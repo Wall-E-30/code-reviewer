@@ -25,7 +25,8 @@ def log_step(step: int, action_type: str, reward: float, done: bool, error: str 
 
 def log_end(success: bool, steps: int, score: float, rewards: list):
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
-    print(f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}", flush=True)
+    # Removed the 'score' variable from the output string to match the spec perfectly
+    print(f"[END] success={str(success).lower()} steps={steps} rewards={rewards_str}", flush=True)
 
 async def run_inference():
     env = CodeReviewEnv()
