@@ -85,3 +85,8 @@ async def run_inference():
 
 if __name__ == "__main__":
     asyncio.run(run_inference())
+
+    print("All tasks completed successfully! Keeping the container awake...")
+    import time
+    while True:
+        time.sleep(3600) # Sleep for an hour, repeat forever
