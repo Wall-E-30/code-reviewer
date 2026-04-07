@@ -8,7 +8,8 @@ from models import Action
 API_KEY = os.getenv("HF_TOKEN")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
-
+print("DEBUG: Here are the environment variables the Space can see:")
+print(list(os.environ.keys()))
 if not API_KEY:
     print("❌ ERROR: HF_TOKEN not found.")
     exit(1)
