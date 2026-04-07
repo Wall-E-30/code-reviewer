@@ -1,7 +1,7 @@
 ---
-title: Aion Code Reviewer
-emoji: 📈
-colorFrom: blue
+title: Openenv Hackathon
+emoji: 🏢
+colorFrom: pink
 colorTo: red
 sdk: docker
 pinned: false
