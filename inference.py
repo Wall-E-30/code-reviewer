@@ -88,10 +88,27 @@ if __name__ == "__main__":
 
     import http.server
     import socketserver
-    
+
     PORT = 7860
-    Handler = http.server.SimpleHTTPRequestHandler
-    
-    print(f"All tasks done! Starting dummy server on port {PORT} to keep the Space alive...")
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+
+    class SuccessHandler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            
+            # The HTML message to display
+            html_content = """
+            <html>
+                <body style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+                    <h1 style="color: #4CAF50;">✅ AI Code Reviewer Completed</h1>
+                    <p>The models have successfully evaluated the code.</p>
+                    <p><b>Please check the Space App Logs to view the step-by-step results.</b></p>
+                </body>
+            </html>
+            """
+            self.wfile.write(html_content.encode("utf-8"))
+
+    print(f"All tasks done! Starting custom server on port {PORT}...")
+    with socketserver.TCPServer(("", PORT), SuccessHandler) as httpd:
         httpd.serve_forever()
