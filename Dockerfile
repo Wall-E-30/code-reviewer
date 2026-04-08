@@ -16,4 +16,4 @@ ENV API_BASE_URL="https://router.huggingface.co/v1"
 ENV MODEL_NAME="Qwen/Qwen2.5-72B-Instruct"
 
 # The command to run your inference
-CMD ["python", "inference.py"]
+CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
