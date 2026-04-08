@@ -1,24 +1,13 @@
----
-title: Aion Code Reviewer
-emoji: 🏢
-colorFrom: pink
-colorTo: red
-sdk: docker
-pinned: false
-tags:
-  - openenv
----
-
 # Aion Code Reviewer (OpenEnv Benchmark)
 
-## 📌 Environment Overview and Motivation
+## Environment Overview and Motivation
 The **Aion Code Reviewer** is an interactive, AI-powered sandbox designed to evaluate a Large Language Model's capability to perform real-world code review and bug-fixing tasks. 
 
 In professional software development, human reviewers must analyze code context, interpret linter warnings, identify logical or security flaws, and apply precise fixes. This environment simulates that workflow. Agents are presented with buggy code, provided with mock linter feedback, and tasked with applying optimal fixes before officially submitting their review. It tests not just code generation, but code comprehension, security auditing, and iterative refinement.
 
 ---
 
-## 🔍 Action and Observation Spaces
+## Action and Observation Spaces
 
 The environment strictly adheres to the OpenEnv specification using typed Pydantic models.
 
@@ -38,7 +27,7 @@ The agent interacts with the environment by emitting an `Action` object formatte
 
 ---
 
-## 🎯 Task Descriptions
+## Task Descriptions
 
 The benchmark includes three progressive tasks requiring different levels of developer expertise:
 
@@ -59,7 +48,7 @@ The benchmark includes three progressive tasks requiring different levels of dev
 
 ---
 
-## 🚀 Setup and Usage Instructions
+## Setup and Usage Instructions
 
 This environment is fully containerized and designed to run on Hugging Face Spaces or locally via Docker.
 
