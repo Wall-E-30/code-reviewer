@@ -66,11 +66,11 @@ async def run_task(task_id):
             if done or reward >= 1.0: break
             step_idx += 1
         except Exception as e:
-            print(f"[STEP] step={step_idx} action=error reward=0.00 done=true error={str(e)}", flush=True)
-            total_rewards.append(0.0)
+            print(f"[STEP] step={step_idx} action=error reward=0.01 done=true error={str(e)}", flush=True)
+            total_rewards.append(0.01)
             break
     
-    success = max(total_rewards) if total_rewards else 0.0
+    success = max(total_rewards) if total_rewards else 0.01
     print(f"[END] success={str(success >= 0.8).lower()} steps={step_idx} rewards={','.join(f'{r:.2f}' for r in total_rewards)}", flush=True)
     return final_code, success
 
