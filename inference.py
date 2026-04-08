@@ -2,18 +2,18 @@ import os
 import json
 import asyncio
 import re
+import traceback
 import gradio as gr
 from openai import OpenAI
 from env import CodeReviewEnv
 from models import Action
 
-# 1. SETUP - Environment Variables & Client Initialization
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-# Initialize the client globally
-client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+safe_token = HF_TOKEN if HF_TOKEN else "dummy_key_for_server_boot"
+client = OpenAI(base_url=API_BASE_URL, api_key=safe_token)
 
 def clean_json_string(raw_string):
     """Aggressively extracts JSON from model output."""
@@ -185,12 +185,16 @@ def build_ui():
                 )
     return demo # <-- Return the demo object instead of launching it here
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     print("--- RUNNING AUTOMATED BASELINE FOR PHASE 2 ---", flush=True)
     
-    # Run all three tasks sequentially so the judge gets the logs it expects
-    asyncio.run(run_task("style-cleanup"))
-    asyncio.run(run_task("efficiency-boost"))
-    asyncio.run(run_task("security-audit"))
-    
+    try:
+        # Run all three tasks sequentially
+        asyncio.run(run_task("style-cleanup"))
+        asyncio.run(run_task("efficiency-boost"))
+        asyncio.run(run_task("security-audit"))
+    except Exception as e:
+        print(f"CRITICAL ERROR IN BASELINE: {str(e)}", flush=True)
+        traceback.print_exc()
+        
     print("--- BASELINE COMPLETE ---", flush=True)
