@@ -120,5 +120,5 @@ class CodeReviewEnv:
             else:
                 score = 0.01  # Still vulnerable
 
-        # Final safety clamp to absolutely guarantee it stays strictly within (0, 1)
-        return float(min(max(score, 0.01), 0.99))
+        # This forces the score to never drop below 0.01 and never go above 0.99
+        return float(max(0.01, min(0.99, score)))
