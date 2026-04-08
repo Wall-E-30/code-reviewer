@@ -185,7 +185,12 @@ def build_ui():
                 )
     return demo # <-- Return the demo object instead of launching it here
 
-if __name__ == "__main__":
-    # If run locally as a script, it will still launch normally
-    demo = build_ui()
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+if _name_ == "_main_":
+    print("--- RUNNING AUTOMATED BASELINE FOR PHASE 2 ---", flush=True)
+    
+    # Run all three tasks sequentially so the judge gets the logs it expects
+    asyncio.run(run_task("style-cleanup"))
+    asyncio.run(run_task("efficiency-boost"))
+    asyncio.run(run_task("security-audit"))
+    
+    print("--- BASELINE COMPLETE ---", flush=True)
