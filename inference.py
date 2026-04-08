@@ -152,5 +152,46 @@ def gradio_interface():
     
     demo.launch(server_name="0.0.0.0", server_port=7860)
 
+# Change the name to build_ui and remove the demo.launch() line from inside the function
+def build_ui():
+    with gr.Blocks(theme=gr.themes.Soft()) as demo:
+        gr.Markdown("# 🏢 Aion Code Reviewer & Optimizer")
+        
+        with gr.Tabs():
+            with gr.TabItem("Hackathon Benchmark"):
+                gr.Markdown("### Automated Task Evaluation")
+                with gr.Row():
+                    task_selector = gr.Dropdown(["style-cleanup", "efficiency-boost", "security-audit"], label="Benchmark Task", value="style-cleanup")
+                    run_btn = gr.Button("Run Benchmark", variant="primary")
+                with gr.Row():
+                    output_code = gr.Code(label="Agent Fix", language="python")
+                    score_display = gr.Number(label="Final Score")
+                run_btn.click(lambda t: asyncio.run(run_task(t)), inputs=[task_selector], outputs=[output_code, score_display])
+
+            with gr.TabItem("Paste & Optimize"):
+                gr.Markdown("### Custom Code Optimizer")
+                custom_task_type = gr.Radio(["style-cleanup", "efficiency-boost", "security-audit"], label="Optimize For:", value="efficiency-boost")
+                user_input_code = gr.Code(label="Paste Your Code Here", language="python", lines=10)
+                optimize_btn = gr.Button("Evaluate & Optimize", variant="primary")
+                with gr.Row():
+                    pre_score = gr.Number(label="Initial Quality Score")
+                    post_score = gr.Number(label="Optimized Quality Score")
+                optimized_output = gr.Code(label="Optimized Result", language="python")
+
+                optimize_btn.click(
+                    fn=lambda code, t: asyncio.run(evaluate_and_optimize(code, t)),
+                    inputs=[user_input_code, custom_task_type],
+                    outputs=[pre_score, optimized_output, post_score]
+                )
+    return demo # <-- Return the demo object instead of launching it here
+
 if __name__ == "__main__":
-    gradio_interface()
+    print("--- RUNNING AUTOMATED BASELINE FOR PHASE 2 ---", flush=True)
+    
+    # Run all three tasks sequentially so the judge gets the logs it expects
+    asyncio.run(run_task("style-cleanup"))
+    asyncio.run(run_task("efficiency-boost"))
+    asyncio.run(run_task("security-audit"))
+    
+    print("--- BASELINE COMPLETE ---", flush=True)
+        
