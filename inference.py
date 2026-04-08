@@ -32,13 +32,10 @@ async def run_task(task_id):
     final_code = obs.code_content
     
     while step_idx <= 5:
-        # Prompt optimized for 1.0 score
         prompt = f"""
         TASK: {task_id}
-        
-        You are a Senior Software Engineer. I need a PERFECT 1.0 score.
-        
-        CRITERIA FOR 1.0 SCORE:
+        You are a Senior Software Engineer. I need a PERFECT 0.99 score.
+        CRITERIA FOR 0.99 SCORE:
         - If 'security-audit': Remove all f-strings from SQL and use '?' parameter placeholders.
         - If 'efficiency-boost': Refactor nested O(n^2) loops into a single O(n) loop using a dictionary.
         - If 'style-cleanup': Remove unused 'import sys' AND fix all indentation.
@@ -63,13 +60,15 @@ async def run_task(task_id):
             final_code = obs.code_content
             print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward:.2f} done={str(done).lower()} error=null", flush=True)
             
-            if done or reward >= 1.0: break
+            if done or reward >= 0.99: break
             step_idx += 1
         except Exception as e:
+            # FIX: If the AI errors out, log 0.01 instead of 0.00
             print(f"[STEP] step={step_idx} action=error reward=0.01 done=true error={str(e)}", flush=True)
             total_rewards.append(0.01)
             break
     
+    # FIX: Fallback to 0.01 instead of 0.0
     success = max(total_rewards) if total_rewards else 0.01
     print(f"[END] success={str(success >= 0.8).lower()} steps={step_idx} rewards={','.join(f'{r:.2f}' for r in total_rewards)}", flush=True)
     return final_code, success
@@ -198,4 +197,3 @@ if __name__ == "__main__":
         traceback.print_exc()
         
     print("--- BASELINE COMPLETE ---", flush=True)
-        
