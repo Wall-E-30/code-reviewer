@@ -60,7 +60,7 @@ async def run_task(task_id):
             final_code = obs.code_content
             print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward:.2f} done={str(done).lower()} error=null", flush=True)
             
-            if done or reward >= 0.99: break
+            if done or reward >= 0.98: break
             step_idx += 1
         except Exception as e:
             # FIX: If the AI errors out, log 0.01 instead of 0.00
