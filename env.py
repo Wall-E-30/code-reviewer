@@ -62,7 +62,7 @@ class CodeReviewEnv:
         reward = self._calculate_reward()
         
         # End the episode if the max steps are reached or the fix is perfect (0.99)
-        done = self.step_count >= self.max_steps or reward >= 0.99
+        done = self.step_count >= self.max_steps or reward >= 0.98
         
         # Return observation, reward, done, info
         return self._get_observation(), reward, done, {}
