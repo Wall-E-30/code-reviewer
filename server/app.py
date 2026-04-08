@@ -1,5 +1,7 @@
+app.py:
 import sys
 import os
+import uvicorn
 from fastapi import FastAPI
 import gradio as gr
 
@@ -37,3 +39,14 @@ async def state_endpoint():
 # 3. Mount the Gradio UI for the Human Judges
 demo = build_ui()
 app = gr.mount_gradio_app(app, demo, path="/")
+
+# 4. Mandatory block to pass OpenEnv validation
+def main():
+    """
+    Entry point required by the OpenEnv validator for multi-mode deployment.
+    """
+    print("Starting Aion Code Reviewer Server...")
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()
