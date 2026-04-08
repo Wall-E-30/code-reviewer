@@ -185,7 +185,7 @@ def build_ui():
                 )
     return demo # <-- Return the demo object instead of launching it here
 
-if _name_ == "_main_":
+if __name__ == "_main_":
     print("--- RUNNING AUTOMATED BASELINE FOR PHASE 2 ---", flush=True)
     
     # Run all three tasks sequentially so the judge gets the logs it expects
