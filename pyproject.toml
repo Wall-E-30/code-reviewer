@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aion-code-reviewer"
+version = "1.0.0"
+description = "An interactive, AST-graded code review environment for OpenEnv."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "openenv-core",
+    "openai",
+    "pydantic",
+    "gradio"
+]
+
+[project.scripts]
+server = "server.app:main"
