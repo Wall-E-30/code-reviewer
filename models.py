@@ -17,5 +17,5 @@ class Observation(BaseModel):
 
 class Reward(BaseModel):
     # The score given back to the agent
-    value: float = Field(..., ge=0.0, le=1.0)
+    value: float = Field(..., gt=0.0, lt=1.0)
     comment: str
