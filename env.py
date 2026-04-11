@@ -84,7 +84,7 @@ class CodeReviewEnv:
         )
 
     def _calculate_reward(self) -> float:
-        """AST-Based Grader: Returns a score strictly between (0.01 and 0.99)"""
+        """AST-Based Grader: Returns a score strictly between (0.01 and 0.9)"""
         # Start at 0.01 instead of 0.0 to satisfy the strict > 0 rule
         score = 0.01 
         
@@ -94,31 +94,31 @@ class CodeReviewEnv:
             return 0.01  # Syntax error gets the absolute minimum valid score
 
         if self.current_task_id == "style-cleanup":
-            # Max score will be 0.01 + 0.49 + 0.49 = 0.99
+            # Max score will be 0.01 + 0.45 + 0.45 = 0.91
             if "import sys" not in self.code: 
-                score += 0.49
+                score += 0.45
             if "    print(" in self.code: 
-                score += 0.49
-            
+                score += 0.45
+                
         elif self.current_task_id == "efficiency-boost":
             for_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.For)]
             if len(for_nodes) == 1:
-                score = 0.99  # Perfect success
+                score = 0.9  # Perfect success
             elif len(for_nodes) == 0:
                 score = 0.01  # Deleted the loops entirely
             else:
-                score = 0.50  # Partial progress (still nested)
+                score = 0.5  # Partial progress (still nested)
                 
         elif self.current_task_id == "security-audit":
             has_fstring = any(isinstance(node, ast.JoinedStr) for node in ast.walk(tree))
             uses_params = any(x in self.code for x in ["?", "%s", ":"])
 
             if not has_fstring and uses_params:
-                score = 0.99  # Perfect success
+                score = 0.9  # Perfect success
             elif not has_fstring:
-                score = 0.50  # Partial fix (f-string gone, but no parameters)
+                score = 0.5  # Partial fix (f-string gone, but no parameters)
             else:
                 score = 0.01  # Still vulnerable
 
-        # This forces the score to never drop below 0.01 and never go above 0.99
-        return float(max(0.01, min(0.99, score)))
+        # This forces the score to never drop below 0.01 and never go above 0.9
+        return float(max(0.01, min(0.9, score)))
