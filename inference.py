@@ -58,26 +58,30 @@ async def run_task(task_id):
             
             total_rewards.append(reward)
             final_code = obs.code_content
-            print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward:.2f} done={str(done).lower()} error=null", flush=True)
+            
+            # FIX: Removed :.2f rounding so it prints the raw float
+            print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward} done={str(done).lower()} error=null", flush=True)
             
             if done or reward >= 0.98: break
             step_idx += 1
         except Exception as e:
-            # FIX: If the AI errors out, log 0.01 instead of 0.00
+            # Safe fallback if AI errors out
             print(f"[STEP] step={step_idx} action=error reward=0.01 done=true error={str(e)}", flush=True)
             total_rewards.append(0.01)
             break
     
-    # FIX: Fallback to 0.01 instead of 0.0
     success = max(total_rewards) if total_rewards else 0.01
-    print(f"[END] success={str(success >= 0.8).lower()} steps={step_idx} rewards={','.join(f'{r:.2f}' for r in total_rewards)}", flush=True)
+    
+    # FIX: Removed :.2f rounding from the list of rewards at the end
+    print(f"[END] success={str(success >= 0.8).lower()} steps={step_idx} rewards={','.join(str(r) for r in total_rewards)}", flush=True)
+    
     return final_code, success
 
 # 3. CUSTOM OPTIMIZER LOGIC
 async def evaluate_and_optimize(user_code, task_type):
     # Defensive check for None or Empty strings
     if user_code is None or not user_code.strip():
-        return 0.0, "⚠️ Error: Please paste some code first!", 0.0
+        return 0.01, "⚠️ Error: Please paste some code first!", 0.01
         
     env = CodeReviewEnv()
     # Initial Evaluation
@@ -86,9 +90,9 @@ async def evaluate_and_optimize(user_code, task_type):
     
     prompt = f"""
     TASK: {task_type}
-    You are a Senior Software Engineer. Provide a PERFECT 1.0 fix.
+    You are a Senior Software Engineer. Provide a PERFECT 0.99 fix.
     
-    CRITERIA FOR 1.0 SCORE:
+    CRITERIA FOR 0.99 SCORE:
     - If 'security-audit': Remove f-strings from SQL and use '?' placeholders.
     - If 'efficiency-boost': Refactor nested loops into a single loop using a dictionary.
     - If 'style-cleanup': Remove 'import sys' AND fix indentation.
@@ -115,43 +119,9 @@ async def evaluate_and_optimize(user_code, task_type):
         
         return float(initial_score), agent_action.content, float(final_score)
     except Exception as e:
-        return float(initial_score), f"Error: {str(e)}", 0.0
+        return float(initial_score), f"Error: {str(e)}", 0.01
 
 # 4. GRADIO DASHBOARD
-def gradio_interface():
-    with gr.Blocks(theme=gr.themes.Soft()) as demo:
-        gr.Markdown("# 🏢 Aion Code Reviewer & Optimizer")
-        
-        with gr.Tabs():
-            with gr.TabItem("Hackathon Benchmark"):
-                gr.Markdown("### Automated Task Evaluation")
-                with gr.Row():
-                    task_selector = gr.Dropdown(["style-cleanup", "efficiency-boost", "security-audit"], label="Benchmark Task", value="style-cleanup")
-                    run_btn = gr.Button("Run Benchmark", variant="primary")
-                with gr.Row():
-                    output_code = gr.Code(label="Agent Fix", language="python")
-                    score_display = gr.Number(label="Final Score")
-                run_btn.click(lambda t: asyncio.run(run_task(t)), inputs=[task_selector], outputs=[output_code, score_display])
-
-            with gr.TabItem("Paste & Optimize"):
-                gr.Markdown("### Custom Code Optimizer")
-                custom_task_type = gr.Radio(["style-cleanup", "efficiency-boost", "security-audit"], label="Optimize For:", value="efficiency-boost")
-                user_input_code = gr.Code(label="Paste Your Code Here", language="python", lines=10)
-                optimize_btn = gr.Button("Evaluate & Optimize", variant="primary")
-                with gr.Row():
-                    pre_score = gr.Number(label="Initial Quality Score")
-                    post_score = gr.Number(label="Optimized Quality Score")
-                optimized_output = gr.Code(label="Optimized Result", language="python")
-
-                optimize_btn.click(
-                    fn=lambda code, t: asyncio.run(evaluate_and_optimize(code, t)),
-                    inputs=[user_input_code, custom_task_type],
-                    outputs=[pre_score, optimized_output, post_score]
-                )
-    
-    demo.launch(server_name="0.0.0.0", server_port=7860)
-
-# Change the name to build_ui and remove the demo.launch() line from inside the function
 def build_ui():
     with gr.Blocks(theme=gr.themes.Soft()) as demo:
         gr.Markdown("# 🏢 Aion Code Reviewer & Optimizer")
@@ -182,7 +152,7 @@ def build_ui():
                     inputs=[user_input_code, custom_task_type],
                     outputs=[pre_score, optimized_output, post_score]
                 )
-    return demo # <-- Return the demo object instead of launching it here
+    return demo
 
 if __name__ == "__main__":
     print("--- RUNNING AUTOMATED BASELINE FOR PHASE 2 ---", flush=True)
