@@ -62,7 +62,7 @@ class CodeReviewEnv:
         reward = self._calculate_reward()
         
         # End the episode if the max steps are reached or the fix is perfect (0.99)
-        done = self.step_count >= self.max_steps or reward >= 0.99
+        done = self.step_count >= self.max_steps or reward >= 0.98
         
         # Return observation, reward, done, info
         return self._get_observation(), reward, done, {}
@@ -120,5 +120,5 @@ class CodeReviewEnv:
             else:
                 score = 0.01  # Still vulnerable
 
-        # Final safety clamp to absolutely guarantee it stays strictly within (0, 1)
-        return float(min(max(score, 0.01), 0.99))
+        # This forces the score to never drop below 0.01 and never go above 0.99
+        return float(max(0.01, min(0.99, score)))
