@@ -62,7 +62,7 @@ async def run_task(task_id):
             # FIX: Removed :.2f rounding so it prints the raw float
             print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward} done={str(done).lower()} error=null", flush=True)
             
-            if done or reward >= 0.89: break
+            if done or reward >= 0.88: break
             step_idx += 1
         except Exception as e:
             # Safe fallback if AI errors out
