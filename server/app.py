@@ -17,6 +17,14 @@ code_env = CodeReviewEnv()
 class ResetRequest(BaseModel):
     task_id: Optional[str] = "style-cleanup"
 
+@app.get("/")
+async def root():
+    """Health check endpoint for Hugging Face Spaces."""
+    return {
+        "status": "online", 
+        "message": "🏢 Aion Code Reviewer Headless API is running. Ready for OpenEnv Validation."
+    }
+
 @app.post("/reset")
 async def reset_endpoint(request: ResetRequest = None):
     task_id = (request.task_id if request else None) or "style-cleanup"
