@@ -69,8 +69,8 @@ class CodeReviewEnv:
 
         reward = self._calculate_reward()
 
-        # BUG FIX #3: done threshold was 0.88 — changed to 0.98 to match new ceiling
-        done = self.step_count >= self.max_steps or reward >= 0.98
+        # SAFETY-FIRST: done threshold was 0.98 — changed to 0.88 to match new safer ceiling
+        done = self.step_count >= self.max_steps or reward >= 0.88
 
         return self._get_observation(), reward, done, {}
 
@@ -120,17 +120,17 @@ class CodeReviewEnv:
         return "\n".join(diff_lines)
 
     def _calculate_reward(self) -> float:
-        """AST-Based Grader: Returns a score strictly between (0.01 and 0.99)"""
-        score = 0.01
+        """AST-Based Grader: Returns a score strictly between (0.1 and 0.9)"""
+        score = 0.1
 
         try:
             tree = ast.parse(self.code)
         except SyntaxError:
-            pass  # Stay at score = 0.01 and pass through the clamp
+            pass  # Stay at score = 0.1 and pass through the clamp
 
         if self.current_task_id == "style-cleanup":
             if "import sys" not in self.code:
-                score += 0.49
+                score += 0.4
             # BUG FIX #4a: original check was "    print(" which matched ANY 4-space indented print.
             # Now we check for proper 4-space indentation on ALL def bodies using AST.
             func_defs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
@@ -143,8 +143,8 @@ class CodeReviewEnv:
                     if line.strip() and not line.strip().startswith("def ") and not line.strip().startswith("import") and not line.strip().startswith("#")
                 )
                 if properly_indented:
-                    score += 0.49
-            # Max = 0.01 + 0.49 + 0.49 = 0.99
+                    score += 0.4
+            # Max = 0.1 + 0.4 + 0.4 = 0.9
 
         elif self.current_task_id == "efficiency-boost":
             for_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.For)]
@@ -160,7 +160,7 @@ class CodeReviewEnv:
                             break
             if not nested:
                 # No nested loops → O(n) solution (works for both for-loop and comprehension fixes)
-                score = 0.99
+                score = 0.9
             elif len(for_nodes) >= 2:
                 score = 0.5  # Still nested
 
@@ -177,10 +177,10 @@ class CodeReviewEnv:
             )
 
             if not has_fstring and uses_params:
-                score = 0.99
+                score = 0.9
             elif not has_fstring:
                 score = 0.5
             else:
                 score = 0.01
 
-        return float(round(min(max(score, 0.01), 0.99), 2))
+        return float(round(min(max(score, 0.1), 0.9), 2))
