@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from typing import List
 
 # --- DATA: The Baseline Tasks ---
-# BUG FIX #1: Updated code strings to match the actual data files (style.py, logic.py, security.py)
 TASKS = {
     "style-cleanup": {
         "file_name": "style.py",
@@ -22,16 +21,12 @@ TASKS = {
     }
 }
 
-# --- OBSERVATION MODEL ---
-# BUG FIX #2: Observation model now matches models.py exactly
-# (added file_name, diff; changed linter_report to List[str])
 class Observation(BaseModel):
     file_name: str
     code_content: str
     diff: str
     linter_report: List[str]
     current_task: str
-
 
 class CodeReviewEnv:
     def __init__(self):
@@ -43,10 +38,8 @@ class CodeReviewEnv:
         self.max_score_seen = 0.0
 
     def reset(self, task_id: str = "style-cleanup") -> Observation:
-        """Required by OpenEnv: Resets the environment for a new episode."""
         if task_id not in TASKS:
             task_id = "style-cleanup"
-
         self.current_task_id = task_id
         self.code = TASKS[task_id]["code"]
         self.original_code = self.code
@@ -55,7 +48,6 @@ class CodeReviewEnv:
         return self._get_observation()
 
     def state(self) -> dict:
-        """Required by OpenEnv: Returns the current internal state."""
         return {
             "task_id": self.current_task_id,
             "code_content": self.code,
@@ -64,26 +56,22 @@ class CodeReviewEnv:
         }
 
     def step(self, action):
-        """Required by OpenEnv: Applies the agent's action and calculates marginal rewards."""
         self.step_count += 1
-
         if action.action_type == "apply_fix" and action.content:
             self.code = action.content
 
         current_score = self._calculate_reward()
         
-        # Marginal Improvement calculation: Ensures sum(rewards) == final_score
-        # and satisfies the "strictly > 0" requirement by padding with 0.01.
-        reward = float(round(max(0.01, current_score - self.max_score_seen), 2))
-        self.max_score_seen += reward
-
-        # Done if max steps reached or if we've hit the quality ceiling
+        # CRITICAL FIX 1: True Marginal Reward. 
+        # Prevents sum(rewards) from exceeding 1.0 if the judge takes 100 empty steps.
+        reward = float(round(max(0.0, current_score - self.max_score_seen), 2))
+        
+        self.max_score_seen = max(self.max_score_seen, current_score)
         done = self.step_count >= self.max_steps or self.max_score_seen >= 0.99
-
+        
         return self._get_observation(), reward, done, {"total_score": self.max_score_seen}
 
     def load_custom_code(self, code: str, task_type: str) -> Observation:
-        """Custom tool for the Gradio Dashboard to allow human testing."""
         self.code = code
         self.original_code = code
         self.current_task_id = task_type
@@ -91,66 +79,49 @@ class CodeReviewEnv:
         return self._get_observation()
 
     def _get_observation(self) -> Observation:
-        """Helper to package the current state into the Pydantic observation."""
         task = TASKS.get(self.current_task_id, {})
         linter = task.get("linter", ["Custom code analysis."])
         file_name = task.get("file_name", "custom.py")
-
-        # Build a simple unified diff string
         diff = self._build_diff(self.original_code, self.code)
-
-        return Observation(
-            file_name=file_name,
-            code_content=self.code,
-            diff=diff,
-            linter_report=linter,
-            current_task=self.current_task_id
-        )
+        return Observation(file_name=file_name, code_content=self.code, diff=diff, linter_report=linter, current_task=self.current_task_id)
 
     def _build_diff(self, original: str, current: str) -> str:
-        """Builds a simple line-by-line diff string."""
-        if original == current:
-            return ""
-        orig_lines = original.splitlines()
-        curr_lines = current.splitlines()
+        if original == current: return ""
+        orig_lines, curr_lines = original.splitlines(), current.splitlines()
         diff_lines = []
         for i, (o, c) in enumerate(zip(orig_lines, curr_lines)):
             if o != c:
-                diff_lines.append(f"- {o}")
-                diff_lines.append(f"+ {c}")
-        # Handle added/removed lines
+                diff_lines.extend([f"- {o}", f"+ {c}"])
         if len(curr_lines) > len(orig_lines):
-            for line in curr_lines[len(orig_lines):]:
-                diff_lines.append(f"+ {line}")
+            diff_lines.extend([f"+ {line}" for line in curr_lines[len(orig_lines):]])
         elif len(orig_lines) > len(curr_lines):
-            for line in orig_lines[len(curr_lines):]:
-                diff_lines.append(f"- {line}")
+            diff_lines.extend([f"- {line}" for line in orig_lines[len(curr_lines):]])
         return "\n".join(diff_lines)
 
     def _calculate_reward(self) -> float:
-        """AST-Based Grader: Returns a score strictly between [0.01 and 0.99]"""
         score = 0.01
-
         try:
             tree = ast.parse(self.code)
         except SyntaxError:
-            pass  # Stay at base score
+            # CRITICAL FIX 2: Return instantly to avoid UnboundLocalError crashes
+            return 0.01  
+            
+        # Safety Check: If the AI deleted the whole function, it fails.
+        has_func = any(isinstance(n, ast.FunctionDef) for n in ast.walk(tree))
+        if not has_func:
+            return 0.01
 
         if self.current_task_id == "style-cleanup":
             if "import sys" not in self.code:
                 score += 0.49
-            
-            func_defs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
-            if func_defs:
-                lines = self.code.splitlines()
-                properly_indented = all(
-                    line.startswith("    ") or not line.strip()
-                    for line in lines
-                    if line.strip() and not line.strip().startswith("def ") and not line.strip().startswith("import") and not line.strip().startswith("#")
-                )
-                if properly_indented:
-                    score += 0.49
-            # Max = 0.01 + 0.49 + 0.49 = 0.99
+            lines = self.code.splitlines()
+            properly_indented = all(
+                line.startswith("    ") or not line.strip()
+                for line in lines
+                if line.strip() and not line.strip().startswith("def ") and not line.strip().startswith("import") and not line.strip().startswith("#")
+            )
+            if properly_indented:
+                score += 0.49
 
         elif self.current_task_id == "efficiency-boost":
             for_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.For)]
@@ -169,12 +140,8 @@ class CodeReviewEnv:
         elif self.current_task_id == "security-audit":
             has_fstring = any(isinstance(node, ast.JoinedStr) for node in ast.walk(tree))
             uses_params = "?" in self.code or "%s" in self.code or (
-                any(
-                    isinstance(node, ast.Constant) and isinstance(node.value, str) and ":" in node.value
-                    for node in ast.walk(tree)
-                )
+                any(isinstance(node, ast.Constant) and isinstance(node.value, str) and ":" in node.value for node in ast.walk(tree))
             )
-
             if not has_fstring and uses_params:
                 score = 0.99
             elif not has_fstring:
