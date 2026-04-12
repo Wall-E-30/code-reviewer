@@ -36,6 +36,7 @@ async def run_task(task_id):
         prompt = f"""
         TASK: {task_id}
         You are a Senior Software Engineer. Your goal is to fix the code correctly.
+
         CRITERIA FOR A PERFECT SCORE:
         - If 'security-audit': Remove ALL f-strings from SQL queries and use '?' parameter placeholders.
           Example: cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
@@ -48,10 +49,13 @@ async def run_task(task_id):
                 if i in set_b:
                     dupes.append(i)
         - If 'style-cleanup': Remove the unused 'import sys' line AND fix ALL indentation to 4 spaces.
+
         CURRENT CODE:
         {obs.code_content}
+
         LINTER WARNINGS:
         {obs.linter_report}
+
         Return the COMPLETE fixed file in this JSON format:
         {{"action_type": "apply_fix", "content": "FIXED_CODE_HERE"}}
         """
@@ -86,7 +90,10 @@ async def run_task(task_id):
             break
 
     success = max(total_rewards) if total_rewards else 0.01
-    print(f"[END] success={str(success >= 0.7).lower()} steps={step_idx} rewards={','.join(str(r) for r in total_rewards)}", flush=True)
+    # BUG FIX: was printing success=true/false (boolean string).
+    # Validator parses success= as a float score → float("true") raises ValueError.
+    # Now prints the actual numeric score e.g. success=0.89
+    print(f"[END] success={success} steps={step_idx} rewards={','.join(str(r) for r in total_rewards)}", flush=True)
 
     return final_code, success
 
@@ -102,12 +109,15 @@ async def evaluate_and_optimize(user_code, task_type):
     prompt = f"""
     TASK: {task_type}
     You are a Senior Software Engineer. Fix the code for a perfect score.
+
     CRITERIA:
     - If 'security-audit': Remove f-strings from SQL and use '?' placeholders.
     - If 'efficiency-boost': Refactor nested loops into a single for loop using a set (not a list comprehension).
     - If 'style-cleanup': Remove 'import sys' AND fix all indentation to 4 spaces.
+
     USER CODE:
     {user_code}
+
     Return the COMPLETE fixed file in JSON format:
     {{"action_type": "apply_fix", "content": "FIXED_CODE"}}
     """
