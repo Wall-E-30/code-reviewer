@@ -65,7 +65,7 @@ async def run_task(task_id):
             # CRITICAL FIX: Format to 2 decimal places exactly as required by the PDF
             print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward:.2f} done={str(done).lower()} error=null", flush=True)
             
-            if done or reward >= 0.98: break
+            if done or reward >= 0.99: break
             step_idx += 1
             
         except Exception as e:

@@ -69,8 +69,8 @@ class CodeReviewEnv:
 
         reward = self._calculate_reward()
 
-        # SAFETY-FIRST: done threshold was 0.98 — changed to 0.88 to match new safer ceiling
-        done = self.step_count >= self.max_steps or reward >= 0.88
+        # SAFETY-FIRST: done threshold updated to handle new max reward
+        done = self.step_count >= self.max_steps or reward >= 0.98
 
         return self._get_observation(), reward, done, {}
 
@@ -120,7 +120,7 @@ class CodeReviewEnv:
         return "\n".join(diff_lines)
 
     def _calculate_reward(self) -> float:
-        """AST-Based Grader: Returns a score strictly between (0.1 and 0.9)"""
+        """AST-Based Grader: Returns a score strictly between [0.1 and 0.99]"""
         score = 0.1
 
         try:
@@ -143,8 +143,8 @@ class CodeReviewEnv:
                     if line.strip() and not line.strip().startswith("def ") and not line.strip().startswith("import") and not line.strip().startswith("#")
                 )
                 if properly_indented:
-                    score += 0.4
-            # Max = 0.1 + 0.4 + 0.4 = 0.9
+                    score += 0.49
+            # Max = 0.1 + 0.4 + 0.49 = 0.99
 
         elif self.current_task_id == "efficiency-boost":
             for_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.For)]
@@ -160,7 +160,7 @@ class CodeReviewEnv:
                             break
             if not nested:
                 # No nested loops → O(n) solution (works for both for-loop and comprehension fixes)
-                score = 0.9
+                score = 0.99
             elif len(for_nodes) >= 2:
                 score = 0.5  # Still nested
 
@@ -177,10 +177,10 @@ class CodeReviewEnv:
             )
 
             if not has_fstring and uses_params:
-                score = 0.9
+                score = 0.99
             elif not has_fstring:
                 score = 0.5
             else:
-                score = 0.01
+                score = 0.1
 
-        return float(round(min(max(score, 0.1), 0.9), 2))
+        return float(round(min(max(score, 0.1), 0.99), 2))
