@@ -90,7 +90,10 @@ async def run_task(task_id):
             break
 
     success = max(total_rewards) if total_rewards else 0.01
-    print(f"[END] success={str(success >= 0.7).lower()} steps={step_idx} rewards={','.join(str(r) for r in total_rewards)}", flush=True)
+    # BUG FIX: was printing success=true/false (boolean string).
+    # Validator parses success= as a float score → float("true") raises ValueError.
+    # Now prints the actual numeric score e.g. success=0.89
+    print(f"[END] success={success} steps={step_idx} rewards={','.join(str(r) for r in total_rewards)}", flush=True)
 
     return final_code, success
 
