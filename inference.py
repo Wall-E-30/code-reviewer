@@ -35,8 +35,8 @@ async def run_task(task_id):
     while step_idx <= 5:
         prompt = f"""
         TASK: {task_id}
-        You are a Senior Software Engineer. I need a PERFECT 0.90 score.
-        CRITERIA FOR 0.90 SCORE:
+        You are a Senior Software Engineer. I need a PERFECT 0.99 score.
+        CRITERIA FOR 0.99 SCORE:
         - If 'security-audit': Remove all f-strings from SQL and use '?' parameter placeholders.
         - If 'efficiency-boost': Refactor nested O(n^2) loops into a single O(n) loop using a dictionary.
         - If 'style-cleanup': Remove unused 'import sys' AND fix all indentation.
@@ -56,9 +56,8 @@ async def run_task(task_id):
             json_content = clean_json_string(response.choices[0].message.content)
             agent_action = Action(**json.loads(json_content))
             
-            # CRITICAL FIX: Extract reward from the Pydantic Reward object
-            obs, reward_obj, done, _ = env.step(agent_action)
-            reward = reward_obj.value 
+            # CRITICAL FIX: env.step() now returns a primitive float
+            obs, reward, done, _ = env.step(agent_action)
             
             total_rewards.append(reward)
             final_code = obs.code_content
@@ -66,7 +65,7 @@ async def run_task(task_id):
             # CRITICAL FIX: Format to 2 decimal places exactly as required by the PDF
             print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward:.2f} done={str(done).lower()} error=null", flush=True)
             
-            if done or reward >= 0.9: break
+            if done or reward >= 0.98: break
             step_idx += 1
             
         except Exception as e:
@@ -95,9 +94,9 @@ async def evaluate_and_optimize(user_code, task_type):
     
     prompt = f"""
     TASK: {task_type}
-    You are a Senior Software Engineer. Provide a PERFECT 0.90 fix.
+    You are a Senior Software Engineer. Provide a PERFECT 0.99 fix.
     
-    CRITERIA FOR 0.90 SCORE:
+    CRITERIA FOR 0.99 SCORE:
     - If 'security-audit': Remove f-strings from SQL and use '?' placeholders.
     - If 'efficiency-boost': Refactor nested loops into a single loop using a dictionary.
     - If 'style-cleanup': Remove 'import sys' AND fix indentation.
@@ -118,9 +117,8 @@ async def evaluate_and_optimize(user_code, task_type):
         json_content = clean_json_string(response.choices[0].message.content)
         agent_action = Action(**json.loads(json_content))
         
-        # Apply and get final score from Pydantic object
-        _, reward_obj, _, _ = env.step(agent_action)
-        final_score = reward_obj.value
+        # Apply and get final score (now a primitive float)
+        _, final_score, _, _ = env.step(agent_action)
         
         return float(initial_score), agent_action.content, float(final_score)
     except Exception as e:

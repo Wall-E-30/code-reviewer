@@ -126,7 +126,7 @@ class CodeReviewEnv:
         try:
             tree = ast.parse(self.code)
         except SyntaxError:
-            return 0.01
+            pass  # Stay at score = 0.01 and pass through the clamp
 
         if self.current_task_id == "style-cleanup":
             if "import sys" not in self.code:
