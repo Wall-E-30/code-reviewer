@@ -32,12 +32,11 @@ async def reset_endpoint(request: ResetRequest = None):
 async def step_endpoint(action: Action):
     obs, reward, done, info = code_env.step(action)
 
-    # BUG FIX: Previously returned float(reward) directly — bypassing the Reward model's
-    # gt=0.0 lt=1.0 validation. Now we return a properly structured response so the
-    # validator can confirm the score is within the required strict (0, 1) range.
+    # UPDATED: Returns primitive float as required by Phase 2 guidelines
+    # to ensure the validator's regex parser handles the value correctly.
     return {
         "observation": obs,
-        "reward": Reward(value=reward, comment="Score from AST-based grader").model_dump(),
+        "reward": float(reward),
         "done": bool(done),
         "info": info
     }

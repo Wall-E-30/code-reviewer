@@ -70,12 +70,12 @@ async def run_task(task_id):
             step_idx += 1
             
         except Exception as e:
-            # Safe fallback if AI errors out (Formats as exactly 0.10)
-            print(f"[STEP] step={step_idx} action=error reward=0.10 done=true error={str(e)}", flush=True)
-            total_rewards.append(0.1)
+            # Safe fallback if AI errors out (Formats as exactly 0.01)
+            print(f"[STEP] step={step_idx} action=error reward=0.01 done=true error={str(e)}", flush=True)
+            total_rewards.append(0.01)
             break
     
-    success = max(total_rewards) if total_rewards else 0.1
+    success = max(total_rewards) if total_rewards else 0.01
     
     # CRITICAL FIX: Format the array of rewards to 2 decimal places
     print(f"[END] success={str(success >= 0.8).lower()} steps={step_idx} rewards={','.join(f'{r:.2f}' for r in total_rewards)}", flush=True)
@@ -86,7 +86,7 @@ async def run_task(task_id):
 async def evaluate_and_optimize(user_code, task_type):
     # Defensive check for None or Empty strings
     if user_code is None or not user_code.strip():
-        return 0.1, "⚠️ Error: Please paste some code first!", 0.1
+        return 0.01, "⚠️ Error: Please paste some code first!", 0.01
         
     env = CodeReviewEnv()
     # Initial Evaluation
@@ -124,7 +124,7 @@ async def evaluate_and_optimize(user_code, task_type):
         
         return float(initial_score), agent_action.content, float(final_score)
     except Exception as e:
-        return float(initial_score), f"Error: {str(e)}", 0.1
+        return float(initial_score), f"Error: {str(e)}", 0.01
 
 # 4. GRADIO DASHBOARD
 def build_ui():

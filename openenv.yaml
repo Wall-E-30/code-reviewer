@@ -6,11 +6,14 @@ tasks:
     name: "Style & Linting"
     difficulty: "easy"
     description: "Fix indentation and remove unused imports."
+    expected_reward: 1.0
   - id: "efficiency-boost"
     name: "Algorithm Optimization"
     difficulty: "medium"
     description: "Refactor a nested loop into a more efficient lookup."
+    expected_reward: 1.0
   - id: "security-audit"
     name: "Security Vulnerability"
     difficulty: "hard"
     description: "Identify and fix a SQL injection vulnerability."
+    expected_reward: 1.0
