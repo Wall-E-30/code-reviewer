@@ -35,8 +35,8 @@ async def run_task(task_id):
     while step_idx <= 5:
         prompt = f"""
         TASK: {task_id}
-        You are a Senior Software Engineer. I need a PERFECT 0.90 score.
-        CRITERIA FOR 0.90 SCORE:
+        You are a Senior Software Engineer. I need a PERFECT 0.99 score.
+        CRITERIA FOR 0.99 SCORE:
         - If 'security-audit': Remove all f-strings from SQL and use '?' parameter placeholders.
         - If 'efficiency-boost': Refactor nested O(n^2) loops into a single O(n) loop using a dictionary.
         - If 'style-cleanup': Remove unused 'import sys' AND fix all indentation.
@@ -62,22 +62,22 @@ async def run_task(task_id):
             total_rewards.append(reward)
             final_code = obs.code_content
             
-            # CRITICAL FIX: Format to 3 decimal places exactly
-            print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward:.3f} done={str(done).lower()} error=null", flush=True)
+            # CRITICAL FIX: Format to 2 decimal places exactly
+            print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward:.2f} done={str(done).lower()} error=null", flush=True)
             
-            if done or env.max_score_seen >= 0.999: break
+            if done or env.max_score_seen >= 0.99: break
             step_idx += 1
             
         except Exception as e:
-            # Safe fallback (0.001)
-            print(f"[STEP] step={step_idx} action=error reward=0.001 done=true error={str(e)}", flush=True)
-            total_rewards.append(0.001)
+            # Safe fallback (0.01)
+            print(f"[STEP] step={step_idx} action=error reward=0.01 done=true error={str(e)}", flush=True)
+            total_rewards.append(0.01)
             break
     
-    success = sum(total_rewards) if total_rewards else 0.001
+    success = sum(total_rewards) if total_rewards else 0.01
     
-    # CRITICAL FIX: Format the array of rewards to 3 decimal places
-    print(f"[END] success={str(success >= 0.8).lower()} steps={step_idx} rewards={','.join(f'{r:.3f}' for r in total_rewards)}", flush=True)
+    # CRITICAL FIX: Format the array of rewards to 2 decimal places
+    print(f"[END] success={str(success >= 0.8).lower()} steps={step_idx} rewards={','.join(f'{r:.2f}' for r in total_rewards)}", flush=True)
     
     return final_code, success
 
@@ -85,7 +85,7 @@ async def run_task(task_id):
 async def evaluate_and_optimize(user_code, task_type):
     # Defensive check for None or Empty strings
     if user_code is None or not user_code.strip():
-        return 0.001, "⚠️ Error: Please paste some code first!", 0.001
+        return 0.01, "⚠️ Error: Please paste some code first!", 0.01
         
     env = CodeReviewEnv()
     # Initial Evaluation
@@ -94,9 +94,9 @@ async def evaluate_and_optimize(user_code, task_type):
     
     prompt = f"""
     TASK: {task_type}
-    You are a Senior Software Engineer. Provide a PERFECT 0.90 fix.
+    You are a Senior Software Engineer. Provide a PERFECT 0.99 fix.
     
-    CRITERIA FOR 0.90 SCORE:
+    CRITERIA FOR 0.99 SCORE:
     - If 'security-audit': Remove f-strings from SQL and use '?' placeholders.
     - If 'efficiency-boost': Refactor nested loops into a single loop using a dictionary.
     - If 'style-cleanup': Remove 'import sys' AND fix indentation.
@@ -119,11 +119,11 @@ async def evaluate_and_optimize(user_code, task_type):
         
         # Apply and get final score
         _, _, _, info = env.step(agent_action)
-        final_score = info.get("total_score", 0.001)
+        final_score = info.get("total_score", 0.01)
         
         return float(initial_score), agent_action.content, float(final_score)
     except Exception as e:
-        return float(initial_score), f"Error: {str(e)}", 0.001
+        return float(initial_score), f"Error: {str(e)}", 0.01
 
 # 4. GRADIO DASHBOARD
 def build_ui():

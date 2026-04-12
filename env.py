@@ -73,12 +73,12 @@ class CodeReviewEnv:
         current_score = self._calculate_reward()
         
         # Marginal Improvement calculation: Ensures sum(rewards) == final_score
-        # and satisfies the "strictly > 0" requirement by padding with 0.001.
-        reward = float(round(max(0.001, current_score - self.max_score_seen), 3))
+        # and satisfies the "strictly > 0" requirement by padding with 0.01.
+        reward = float(round(max(0.01, current_score - self.max_score_seen), 2))
         self.max_score_seen += reward
 
         # Done if max steps reached or if we've hit the quality ceiling
-        done = self.step_count >= self.max_steps or self.max_score_seen >= 0.999
+        done = self.step_count >= self.max_steps or self.max_score_seen >= 0.99
 
         return self._get_observation(), reward, done, {"total_score": self.max_score_seen}
 
@@ -128,8 +128,8 @@ class CodeReviewEnv:
         return "\n".join(diff_lines)
 
     def _calculate_reward(self) -> float:
-        """AST-Based Grader: Returns a score strictly between [0.001 and 0.999]"""
-        score = 0.001
+        """AST-Based Grader: Returns a score strictly between [0.01 and 0.99]"""
+        score = 0.01
 
         try:
             tree = ast.parse(self.code)
@@ -138,7 +138,7 @@ class CodeReviewEnv:
 
         if self.current_task_id == "style-cleanup":
             if "import sys" not in self.code:
-                score += 0.499
+                score += 0.49
             
             func_defs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
             if func_defs:
@@ -149,8 +149,8 @@ class CodeReviewEnv:
                     if line.strip() and not line.strip().startswith("def ") and not line.strip().startswith("import") and not line.strip().startswith("#")
                 )
                 if properly_indented:
-                    score += 0.499
-            # Max = 0.001 + 0.499 + 0.499 = 0.999
+                    score += 0.49
+            # Max = 0.01 + 0.49 + 0.49 = 0.99
 
         elif self.current_task_id == "efficiency-boost":
             for_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.For)]
@@ -162,7 +162,7 @@ class CodeReviewEnv:
                             nested = True
                             break
             if not nested:
-                score = 0.999
+                score = 0.99
             elif len(for_nodes) >= 2:
                 score = 0.5
 
@@ -176,10 +176,10 @@ class CodeReviewEnv:
             )
 
             if not has_fstring and uses_params:
-                score = 0.999
+                score = 0.99
             elif not has_fstring:
                 score = 0.5
             else:
                 score = 0.1
 
-        return float(round(min(max(score, 0.001), 0.999), 3))
+        return float(round(min(max(score, 0.01), 0.99), 2))
