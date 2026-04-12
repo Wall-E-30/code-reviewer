@@ -62,7 +62,7 @@ class CodeReviewEnv:
         reward = self._calculate_reward()
         
         # End the episode if the max steps are reached or the fix is perfect (0.99)
-        done = self.step_count >= self.max_steps or reward >= 0.98
+        done = self.step_count >= self.max_steps or reward >= 0.88
         
         # Return observation, reward, done, info
         return self._get_observation(), reward, done, {}
@@ -103,7 +103,7 @@ class CodeReviewEnv:
         elif self.current_task_id == "efficiency-boost":
             for_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.For)]
             if len(for_nodes) == 1:
-                score = 0.9  # Perfect success
+                score = 0.89  # Perfect success
             elif len(for_nodes) == 0:
                 score = 0.01  # Deleted the loops entirely
             else:
@@ -114,11 +114,11 @@ class CodeReviewEnv:
             uses_params = any(x in self.code for x in ["?", "%s", ":"])
 
             if not has_fstring and uses_params:
-                score = 0.9  # Perfect success
+                score = 0.89  # Perfect success
             elif not has_fstring:
                 score = 0.5  # Partial fix (f-string gone, but no parameters)
             else:
                 score = 0.01  # Still vulnerable
 
         # This forces the score to never drop below 0.01 and never go above 0.9
-        return float(max(0.01, min(0.9, score)))
+        return float(max(0.01, min(0.89, score)))
