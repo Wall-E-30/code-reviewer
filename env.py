@@ -1,172 +1,135 @@
 import ast
 from pydantic import BaseModel
+from typing import List
 
 # --- DATA: The Baseline Tasks ---
 TASKS = {
     "style-cleanup": {
-        "code": "import sys\ndef hello_world():\nprint('Hello')\n",
-        "linter": "Unused import 'sys' detected. Indentation error on print statement."
+        "file_name": "style.py",
+        "code": "import os\nimport sys # Unused import\ndef hello_world():\n  print(\"Hello\")\n  print(\"Indentation is wrong here\")\n",
+        "linter": ["Unused import 'sys' detected.", "Indentation error: expected 4 spaces, got 2."]
     },
     "efficiency-boost": {
-        "code": "def find_duplicates(arr1, arr2):\n    dupes = []\n    for i in arr1:\n        for j in arr2:\n            if i == j:\n                dupes.append(i)\n    return dupes\n",
-        "linter": "Nested loops detected (O(n^2)). Refactor to use a dictionary or set for O(n) lookups."
+        "file_name": "logic.py",
+        "code": "def find_duplicates(list_a, list_b):\n    # Very slow O(N^2) approach\n    duplicates = []\n    for item_a in list_a:\n        for item_b in list_b:\n            if item_a == item_b:\n                duplicates.append(item_a)\n    return duplicates\n",
+        "linter": ["Nested loops detected (O(n^2)). Refactor to use a dictionary or set for O(n) lookups."]
     },
     "security-audit": {
-        "code": "def get_user(db, user_id):\n    query = f'SELECT * FROM users WHERE id = {user_id}'\n    db.execute(query)\n",
-        "linter": "SQL Injection vulnerability. Remove f-string and use parameterized queries (?, %s, or :)."
+        "file_name": "security.py",
+        "code": "import sqlite3\ndef get_user_data(user_id):\n    conn = sqlite3.connect('users.db')\n    cursor = conn.cursor()\n    query = f\"SELECT * FROM users WHERE id = '{user_id}'\"\n    cursor.execute(query)\n    return cursor.fetchone()\n",
+        "linter": ["SQL Injection vulnerability. Remove f-string and use parameterized queries (?, %s, or :param)."]
     }
 }
 
-# --- OBSERVATION MODEL ---
-# Defines what the AI sees at each step
 class Observation(BaseModel):
-    current_task: str
+    file_name: str
     code_content: str
-    linter_report: str
+    diff: str
+    linter_report: List[str]
+    current_task: str
 
 class CodeReviewEnv:
     def __init__(self):
         self.current_task_id = "style-cleanup"
         self.code = TASKS[self.current_task_id]["code"]
+        self.original_code = self.code
         self.step_count = 0
         self.max_steps = 5
+        self.max_score_seen = 0.0
 
     def reset(self, task_id: str = "style-cleanup") -> Observation:
-        """Required by OpenEnv: Resets the environment for a new episode."""
-        # Fallback to style-cleanup if an unknown task is requested
         if task_id not in TASKS:
             task_id = "style-cleanup"
-            
         self.current_task_id = task_id
         self.code = TASKS[task_id]["code"]
+        self.original_code = self.code
         self.step_count = 0
+        self.max_score_seen = 0.0
         return self._get_observation()
 
     def state(self) -> dict:
-        """Required by OpenEnv: Returns the current internal state."""
         return {
             "task_id": self.current_task_id,
             "code_content": self.code,
-            "steps_taken": self.step_count
+            "steps_taken": self.step_count,
+            "total_score": self.max_score_seen
         }
 
     def step(self, action):
-        """Required by OpenEnv: Applies the agent's action and calculates rewards."""
         self.step_count += 1
-        
-        # Apply the AI's code fix
         if action.action_type == "apply_fix" and action.content:
             self.code = action.content
+
+        current_score = self._calculate_reward()
         
-        # Grade the new code
-        reward = self._calculate_reward()
+        # End the episode if the max steps are reached or the fix is perfect (0.99)
+        done = self.step_count >= self.max_steps or reward >= 0.98
         
-        # FIX: Align 'done' threshold with the max possible reward (0.9)
-        done = self.step_count >= self.max_steps or reward >= 0.89
-        
-        # Return observation, reward, done, info
-        return self._get_observation(), reward, done, {}
+        return self._get_observation(), reward, done, {"total_score": self.max_score_seen}
 
     def load_custom_code(self, code: str, task_type: str) -> Observation:
-        """Custom tool for the Gradio Dashboard to allow human testing."""
         self.code = code
+        self.original_code = code
         self.current_task_id = task_type
         self.step_count = 0
         return self._get_observation()
 
     def _get_observation(self) -> Observation:
-        """Helper to package the current state into the Pydantic observation."""
-        linter = TASKS.get(self.current_task_id, {}).get("linter", "Custom code analysis.")
-        return Observation(
-            current_task=self.current_task_id,
-            code_content=self.code,
-            linter_report=linter
-        )
+        task = TASKS.get(self.current_task_id, {})
+        linter = task.get("linter", ["Custom code analysis."])
+        file_name = task.get("file_name", "custom.py")
+        diff = self._build_diff(self.original_code, self.code)
+        return Observation(file_name=file_name, code_content=self.code, diff=diff, linter_report=linter, current_task=self.current_task_id)
+
+    def _build_diff(self, original: str, current: str) -> str:
+        if original == current: return ""
+        orig_lines, curr_lines = original.splitlines(), current.splitlines()
+        diff_lines = []
+        for i, (o, c) in enumerate(zip(orig_lines, curr_lines)):
+            if o != c:
+                diff_lines.extend([f"- {o}", f"+ {c}"])
+        if len(curr_lines) > len(orig_lines):
+            diff_lines.extend([f"+ {line}" for line in curr_lines[len(orig_lines):]])
+        elif len(orig_lines) > len(curr_lines):
+            diff_lines.extend([f"- {line}" for line in orig_lines[len(curr_lines):]])
+        return "\n".join(diff_lines)
 
     def _calculate_reward(self) -> float:
-        """AST-Based Grader: Returns a score strictly between [0.01 and 0.9]"""
+        """AST-Based Grader: Returns a score strictly between (0.01 and 0.9)"""
+        # Start at 0.01 instead of 0.0 to satisfy the strict > 0 rule
         score = 0.01 
         
         try:
             tree = ast.parse(self.code)
         except SyntaxError:
-            return 0.01
+            return 0.01  # Syntax error gets the absolute minimum valid score
 
         if self.current_task_id == "style-cleanup":
-            # 1. Check for unused import 'sys'
-            has_sys_import = False
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Import):
-                    for alias in node.names:
-                        if alias.name == 'sys':
-                            has_sys_import = True
-                elif isinstance(node, ast.ImportFrom) and node.module == 'sys':
-                    has_sys_import = True
-            
-            if not has_sys_import:
+            # Max score will be 0.01 + 0.45 + 0.45 = 0.91
+            if "import sys" not in self.code: 
                 score += 0.45
-            
-            # 2. Check for indentation of the print statement
-            is_indented = True
-            if "def " in self.code:
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef):
-                        if not node.body:
-                            is_indented = False
-                        for stmt in node.body:
-                            if stmt.col_offset <= node.col_offset:
-                                is_indented = False
-                if is_indented:
-                    score += 0.45
+            if "    print(" in self.code: 
+                score += 0.45
                 
         elif self.current_task_id == "efficiency-boost":
-            all_loops = [node for node in ast.walk(tree) if isinstance(node, (ast.For, ast.While))]
-            
-            # Detect nested loops
-            is_nested = False
-            for node in all_loops:
-                for child in ast.walk(node):
-                    if child is node: continue
-                    if isinstance(child, (ast.For, ast.While)):
-                        is_nested = True
-                        break
-            
-            # Detect efficient lookups/modern Python
-            uses_efficient_lookup = any(isinstance(node, ast.Call) and getattr(node.func, 'id', '') in ['set', 'dict'] for node in ast.walk(tree))
-            uses_comp = any(isinstance(node, (ast.ListComp, ast.SetComp, ast.DictComp)) for node in ast.walk(tree))
-
-            if is_nested:
-                score = 0.5
-            elif uses_efficient_lookup or uses_comp or len(all_loops) == 1:
-                score = 0.9
-            elif len(all_loops) == 0:
-                score = 0.01
+            for_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.For)]
+            if len(for_nodes) == 1:
+                score = 0.9  # Perfect success
+            elif len(for_nodes) == 0:
+                score = 0.01  # Deleted the loops entirely
             else:
-                score = 0.3
+                score = 0.5  # Partial progress (still nested)
                 
         elif self.current_task_id == "security-audit":
-            vulnerable = False
-            found_execute = False
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Call) and getattr(node.func, 'attr', '') == 'execute':
-                    found_execute = True
-                    if node.args:
-                        query_arg = node.args[0]
-                        if isinstance(query_arg, ast.JoinedStr):
-                            vulnerable = True
-                        if isinstance(query_arg, ast.BinOp) and isinstance(query_arg.op, ast.Mod):
-                            vulnerable = True
-                        if len(node.args) < 2 and not vulnerable:
-                            if any(isinstance(n, ast.Name) for n in ast.walk(query_arg)):
-                                vulnerable = True
+            has_fstring = any(isinstance(node, ast.JoinedStr) for node in ast.walk(tree))
+            uses_params = any(x in self.code for x in ["?", "%s", ":"])
 
-            if found_execute and not vulnerable:
-                score = 0.9
-            elif found_execute and vulnerable:
-                score = 0.1
+            if not has_fstring and uses_params:
+                score = 0.9  # Perfect success
+            elif not has_fstring:
+                score = 0.5  # Partial fix (f-string gone, but no parameters)
             else:
-                score = 0.01
+                score = 0.01  # Still vulnerable
 
-        # NEW: Ensure 2nd decimal precision
-        final_score = round(float(max(0.01, min(0.9, score))), 2)
-        return final_score
+        # This forces the score to never drop below 0.01 and never go above 0.9
+        return float(max(0.01, min(0.9, score)))

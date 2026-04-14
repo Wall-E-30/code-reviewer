@@ -1,7 +1,6 @@
 openenv-core
 pydantic
 openai
-gradio
 uv
 fastapi
 uvicorn

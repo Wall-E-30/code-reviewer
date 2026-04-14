@@ -2,23 +2,33 @@ import sys
 import os
 import uvicorn
 from fastapi import FastAPI
-import gradio as gr
+from pydantic import BaseModel
+from typing import Optional
 
-# Ensure the system can find your other files
+# Ensure the system can find env.py
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from env import CodeReviewEnv
 from models import Action
-from inference import build_ui
 
-# 1. Initialize the FastAPI server and your OpenEnv Environment
 app = FastAPI()
 code_env = CodeReviewEnv()
 
-# 2. Mandatory Endpoints for the Automated Judge (Phase 1 checks)
+class ResetRequest(BaseModel):
+    task_id: Optional[str] = "style-cleanup"
+
+@app.get("/")
+async def root():
+    """Health check endpoint for Hugging Face Spaces."""
+    return {
+        "status": "online", 
+        "message": "🏢 Aion Code Reviewer Headless API is running. Ready for OpenEnv Validation."
+    }
+
 @app.post("/reset")
-async def reset_endpoint():
-    obs = code_env.reset()
+async def reset_endpoint(request: ResetRequest = None):
+    task_id = (request.task_id if request else None) or "style-cleanup"
+    obs = code_env.reset(task_id=task_id)
     return obs
 
 @app.post("/step")
@@ -35,16 +45,9 @@ async def step_endpoint(action: Action):
 async def state_endpoint():
     return code_env.state()
 
-# 3. Mount the Gradio UI for the Human Judges
-demo = build_ui()
-app = gr.mount_gradio_app(app, demo, path="/")
-
-# 4. Mandatory block to pass OpenEnv validation
 def main():
-    """
-    Entry point required by the OpenEnv validator for multi-mode deployment.
-    """
-    print("Starting Aion Code Reviewer Server...")
+    """Entry point required by the OpenEnv validator for multi-mode deployment."""
+    print("Starting Aion Code Reviewer Headless API Server...")
     uvicorn.run(app, host="0.0.0.0", port=7860)
 
 if __name__ == "__main__":

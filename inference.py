@@ -3,7 +3,6 @@ import json
 import asyncio
 import re
 import traceback
-import gradio as gr
 from openai import OpenAI
 from env import CodeReviewEnv
 from models import Action
@@ -12,47 +11,9 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-# --- MOCK CLIENT FOR OFFLINE TESTING ---
-class MockMessage:
-    def __init__(self, content):
-        self.message = self
-        self.content = content
-
-class MockChoice(object):
-    def __init__(self, content):
-        self.message = MockMessage(content)
-
-class MockResponse:
-    def __init__(self, content):
-        self.choices = [MockChoice(content)]
-
-class MockOpenAI:
-    def __init__(self):
-        self.chat = self
-        self.completions = self
-    
-    def create(self, **kwargs):
-        # Provide canned "perfect" fixes for the baseline tasks
-        task_prompt = str(kwargs.get("messages", [{}])[-1].get("content", ""))
-        
-        # Look for the specific TASK header to avoid instruction-list overlap
-        if "TASK: style-cleanup" in task_prompt:
-            fix = "def hello_world():\n    print('Hello')"
-        elif "TASK: efficiency-boost" in task_prompt:
-            fix = "def find_duplicates(arr1, arr2):\n    return list(set(arr1) & set(arr2))"
-        elif "TASK: security-audit" in task_prompt:
-            fix = "def get_user(db, user_id):\n    db.execute('SELECT * FROM users WHERE id = ?', (user_id,))"
-        else:
-            fix = "print('Optimization complete!')"
-            
-        return MockResponse(json.dumps({"action_type": "apply_fix", "content": fix}))
-
-# Use Mock if token is missing or dummy
-if not HF_TOKEN or HF_TOKEN in ["None", "dummy_key_for_server_boot"]:
-    print("--- WARNING: HF_TOKEN missing. Using Mock AI for demonstration. ---")
-    client = MockOpenAI()
-else:
-    client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+# Safely initialize the client so it doesn't crash the server container on boot
+safe_token = HF_TOKEN if HF_TOKEN else "dummy_key_for_server_boot"
+client = OpenAI(base_url=API_BASE_URL, api_key=safe_token)
 
 def clean_json_string(raw_string):
     """Aggressively extracts JSON from model output."""
@@ -61,7 +22,7 @@ def clean_json_string(raw_string):
         return match.group(0)
     return raw_string
 
-# 2. HACKATHON BENCHMARK LOGIC
+# HACKATHON BENCHMARK LOGIC
 async def run_task(task_id):
     env = CodeReviewEnv()
     obs = env.reset(task_id=task_id)
@@ -73,12 +34,20 @@ async def run_task(task_id):
     while step_idx <= 5:
         prompt = f"""
         TASK: {task_id}
+<<<<<<< HEAD
         You are a Senior Software Engineer. I need a PERFECT 0.9 score.
         CRITERIA FOR 0.9 SCORE:
         - If 'security-audit': Remove all f-strings/formatting from SQL calls and use parameterized queries (e.g., db.execute(query, params)).
         - If 'efficiency-boost': Refactor nested O(n^2) loops into an O(n) or O(log n) solution. Using sets or dictionaries for lookups is highly rewarded.
         - If 'style-cleanup': Remove 'import sys' AND ensure all code inside the function is properly indented.
 
+=======
+        You are a Senior Software Engineer. I need a PERFECT 0.99 score.
+        CRITERIA FOR 0.99 SCORE:
+        - If 'security-audit': Remove all f-strings from SQL and use '?' parameter placeholders.
+        - If 'efficiency-boost': Refactor nested O(n^2) loops into a single O(n) loop using a dictionary.
+        - If 'style-cleanup': Remove unused 'import sys' AND fix all indentation.
+>>>>>>> 6dab9f09dc4b269a95df797a90ef03050c34d58a
         USER CODE:
         {obs.code_content}
         
@@ -93,16 +62,22 @@ async def run_task(task_id):
             )
             json_content = clean_json_string(response.choices[0].message.content)
             agent_action = Action(**json.loads(json_content))
-            obs, reward, done, _ = env.step(agent_action)
             
+            obs, reward, done, _ = env.step(agent_action)
             total_rewards.append(reward)
             final_code = obs.code_content
             
+<<<<<<< HEAD
             print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward} done={str(done).lower()} error=null", flush=True)
+=======
+            print(f"[STEP] step={step_idx} action={agent_action.action_type} reward={reward:.2f} done={str(done).lower()} error=null", flush=True)
+>>>>>>> 6dab9f09dc4b269a95df797a90ef03050c34d58a
             
-            if done or reward >= 0.89: break
+            if done or env.max_score_seen >= 0.99: break
             step_idx += 1
+            
         except Exception as e:
+<<<<<<< HEAD
             print(f"[STEP] step={step_idx} action=error reward=0.01 done=true error={str(e)}", flush=True)
             total_rewards.append(0.01)
             break
@@ -186,9 +161,19 @@ def build_ui():
                 )
     return demo
 
+=======
+            # Safe fallback (0.01)
+            print(f"[STEP] step={step_idx} action=error reward=0.01 done=true error={str(e)}", flush=True)
+            total_rewards.append(0.01)
+            break
+
+    success = sum(total_rewards) if total_rewards else 0.01
+    print(f"[END] success={str(success >= 0.8).lower()} steps={step_idx} rewards={','.join(f'{r:.2f}' for r in total_rewards)}", flush=True)
+    return final_code, success
+
+>>>>>>> 6dab9f09dc4b269a95df797a90ef03050c34d58a
 if __name__ == "__main__":
     print("--- RUNNING AUTOMATED BASELINE FOR PHASE 2 ---", flush=True)
-    
     try:
         asyncio.run(run_task("style-cleanup"))
         asyncio.run(run_task("efficiency-boost"))
@@ -198,6 +183,9 @@ if __name__ == "__main__":
         traceback.print_exc()
         
     print("--- BASELINE COMPLETE ---", flush=True)
+<<<<<<< HEAD
     print("--- LAUNCHING GRADIO DASHBOARD ---")
     demo = build_ui()
     demo.launch(server_name="0.0.0.0", server_port=7861, theme=gr.themes.Soft())
+=======
+>>>>>>> 6dab9f09dc4b269a95df797a90ef03050c34d58a
