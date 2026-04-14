@@ -46,6 +46,12 @@ class MockOpenAI:
             if name_match:
                 user_func_name = name_match.group(1)
 
+        # --- ROBUSTNESS LAYER: Deep Syntax Repair ---
+        # Force quotes around unquoted print arguments that look like intended strings
+        robust_code = user_code
+        # 1. Clean up multiple prints into a manageable state
+        robust_code = re.sub(r'print\(\s*(?!\'|")(?!True|False|None|self|cls)(\w+)\s*\)', r'print("\1")', robust_code)
+
         # Content-Aware Logic Selection
         has_loops = "for " in user_code or "while " in user_code
         has_sql = ".execute(" in user_code or "SELECT" in user_code
@@ -56,24 +62,31 @@ class MockOpenAI:
             if is_baseline:
                 fix = "def hello_world():\n    # Removed unused sys and fixed indentation\n    print('Hello')\n    print('Indentation is fixed')"
             elif has_print:
-                fix = f"# Cleaned up style for {user_func_name}\n" + user_code.replace("print(", "    print(").replace("import sys\n", "")
+                fix = f"# Cleaned up style for {user_func_name}\n" + robust_code.replace("print(", "    print(").replace("import sys\n", "")
             else:
-                fix = f"def {user_func_name}():\n    print('Hello world!')"
+                fix = f"def {user_func_name}():\n    print('Hello world!') # Cleaned"
                 
         elif "TASK: efficiency-boost" in task_prompt:
-            if is_baseline or has_loops:
+            if is_baseline:
                 fix = f"def {user_func_name}(data_list_a, data_list_b):\n    # Optimized {user_func_name}: O(n) set lookup\n    seen = set(data_list_a)\n    return [x for x in data_list_b if x in seen]"
+            elif has_print and not has_loops:
+                # If multiple prints detected, optimize with a loop + FIXED QUOTES
+                val_match = re.search(r'print\("(\w+)"\)', robust_code)
+                val = val_match.group(1) if val_match else "hello"
+                count = robust_code.count("print(")
+                fix = f"def print_repeater(text, times):\n    \"\"\"Optimized: Replaced multiple prints with a loop\"\"\"\n    for _ in range(times):\n        print(text)\n\nprint_repeater(\"{val}\", {count})"
+            elif has_loops:
+                fix = f"for _ in range(8):\n    {robust_code.replace(chr(10), chr(10)+'    ')}"
             else:
-                # Correctly identify that efficiency isn't the problem for simple prints
-                fix = f"{user_code}\n# Optimization Note: No loops detected. Code is already O(1) efficiency."
+                fix = f"{robust_code}\n# Note: Code is already efficient."
 
         elif "TASK: security-audit" in task_prompt:
             if is_baseline or has_sql:
                 fix = f"def {user_func_name}(db, user_id):\n    # Replaced f-string with parameterized query in {user_func_name}\n    db.execute('SELECT * FROM users WHERE id = ?', (user_id,))"
             else:
-                fix = f"{user_code}\n# Security Note: No database calls found. Code appears safe."
+                fix = f"{robust_code}\n# Security Note: No database calls found."
         else:
-            fix = "# Optimization complete!"
+            fix = "# Operation complete!"
             
         return MockResponse(json.dumps({"action_type": "apply_fix", "content": fix}))
 
