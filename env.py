@@ -61,8 +61,8 @@ class CodeReviewEnv:
         # Grade the new code
         reward = self._calculate_reward()
         
-        # End the episode if the max steps are reached or the fix is perfect (0.99)
-        done = self.step_count >= self.max_steps or reward >= 0.98
+        # FIX: Align 'done' threshold with the max possible reward (0.9)
+        done = self.step_count >= self.max_steps or reward >= 0.89
         
         # Return observation, reward, done, info
         return self._get_observation(), reward, done, {}
@@ -84,41 +84,89 @@ class CodeReviewEnv:
         )
 
     def _calculate_reward(self) -> float:
-        """AST-Based Grader: Returns a score strictly between (0.01 and 0.9)"""
-        # Start at 0.01 instead of 0.0 to satisfy the strict > 0 rule
+        """AST-Based Grader: Returns a score strictly between [0.01 and 0.9]"""
         score = 0.01 
         
         try:
             tree = ast.parse(self.code)
         except SyntaxError:
-            return 0.01  # Syntax error gets the absolute minimum valid score
+            return 0.01
 
         if self.current_task_id == "style-cleanup":
-            # Max score will be 0.01 + 0.45 + 0.45 = 0.91
-            if "import sys" not in self.code: 
+            # 1. Check for unused import 'sys'
+            has_sys_import = False
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name == 'sys':
+                            has_sys_import = True
+                elif isinstance(node, ast.ImportFrom) and node.module == 'sys':
+                    has_sys_import = True
+            
+            if not has_sys_import:
                 score += 0.45
-            if "    print(" in self.code: 
-                score += 0.45
+            
+            # 2. Check for indentation of the print statement
+            is_indented = True
+            if "def " in self.code:
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.FunctionDef):
+                        if not node.body:
+                            is_indented = False
+                        for stmt in node.body:
+                            if stmt.col_offset <= node.col_offset:
+                                is_indented = False
+                if is_indented:
+                    score += 0.45
                 
         elif self.current_task_id == "efficiency-boost":
-            for_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.For)]
-            if len(for_nodes) == 1:
-                score = 0.9  # Perfect success
-            elif len(for_nodes) == 0:
-                score = 0.01  # Deleted the loops entirely
+            all_loops = [node for node in ast.walk(tree) if isinstance(node, (ast.For, ast.While))]
+            
+            # Detect nested loops
+            is_nested = False
+            for node in all_loops:
+                for child in ast.walk(node):
+                    if child is node: continue
+                    if isinstance(child, (ast.For, ast.While)):
+                        is_nested = True
+                        break
+            
+            # Detect efficient lookups/modern Python
+            uses_efficient_lookup = any(isinstance(node, ast.Call) and getattr(node.func, 'id', '') in ['set', 'dict'] for node in ast.walk(tree))
+            uses_comp = any(isinstance(node, (ast.ListComp, ast.SetComp, ast.DictComp)) for node in ast.walk(tree))
+
+            if is_nested:
+                score = 0.5
+            elif uses_efficient_lookup or uses_comp or len(all_loops) == 1:
+                score = 0.9
+            elif len(all_loops) == 0:
+                score = 0.01
             else:
-                score = 0.5  # Partial progress (still nested)
+                score = 0.3
                 
         elif self.current_task_id == "security-audit":
-            has_fstring = any(isinstance(node, ast.JoinedStr) for node in ast.walk(tree))
-            uses_params = any(x in self.code for x in ["?", "%s", ":"])
+            vulnerable = False
+            found_execute = False
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call) and getattr(node.func, 'attr', '') == 'execute':
+                    found_execute = True
+                    if node.args:
+                        query_arg = node.args[0]
+                        if isinstance(query_arg, ast.JoinedStr):
+                            vulnerable = True
+                        if isinstance(query_arg, ast.BinOp) and isinstance(query_arg.op, ast.Mod):
+                            vulnerable = True
+                        if len(node.args) < 2 and not vulnerable:
+                            if any(isinstance(n, ast.Name) for n in ast.walk(query_arg)):
+                                vulnerable = True
 
-            if not has_fstring and uses_params:
-                score = 0.9  # Perfect success
-            elif not has_fstring:
-                score = 0.5  # Partial fix (f-string gone, but no parameters)
+            if found_execute and not vulnerable:
+                score = 0.9
+            elif found_execute and vulnerable:
+                score = 0.1
             else:
-                score = 0.01  # Still vulnerable
+                score = 0.01
 
-        # This forces the score to never drop below 0.01 and never go above 0.9
-        return float(max(0.01, min(0.9, score)))
+        # NEW: Ensure 2nd decimal precision
+        final_score = round(float(max(0.01, min(0.9, score))), 2)
+        return final_score
