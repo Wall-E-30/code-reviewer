@@ -4,3 +4,6 @@ openai
 uv
 fastapi
 uvicorn
+gradio
+torch
+transformers

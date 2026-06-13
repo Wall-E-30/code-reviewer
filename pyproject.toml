@@ -12,8 +12,14 @@ dependencies = [
     "openenv-core",
     "openai",
     "pydantic",
-    "gradio"
+    "gradio",
+    "torch",
+    "transformers"
 ]
 
 [project.scripts]
 server = "server.app:main"
+
+[tool.setuptools]
+packages = ["server"]
+py-modules = ["env", "models", "inference"]

@@ -1,30 +1,42 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
-
 class Action(BaseModel):
-    # The agent chooses what to do
-    action_type: str = Field(..., description="Values: 'comment', 'apply_fix', or 'submit'")
-    line_number: Optional[int] = Field(None, description="The line number to act upon")
-    content: str = Field(..., description="The text of the comment or the code to replace")
+    """
+    Representation of an agent action in the Code Reviewer environment.
+    An agent can apply a fix, make a comment, or submit the code review.
+    """
+    action_type: str = Field(..., description="Must be one of: 'apply_fix', 'comment', or 'submit'")
+    line_number: Optional[int] = Field(None, description="Optional target line number for the action")
+    content: str = Field(..., description="The code snippet to replace, comment text, or full file content")
+    session_id: Optional[str] = Field("default", description="Session identifier for concurrent environment isolation")
 
-
-# BUG FIX: There were TWO conflicting Observation definitions:
-#   - models.py had: file_name, code_content, diff, linter_report (List[str]), current_task
-#   - env.py had:    current_task, code_content, linter_report (str)  ← missing fields, wrong type
-# env.py now imports and uses THIS single Observation so the /reset and /step
-# API responses match what the validator expects.
 class Observation(BaseModel):
-    # What the agent 'sees' every turn
-    file_name: str
-    code_content: str
-    diff: str
-    linter_report: List[str]
-    current_task: str
-
+    """
+    Representation of the environment state observed by the agent at each step.
+    """
+    file_name: str = Field(..., description="Name of the file currently being reviewed")
+    code_content: str = Field(..., description="The current source code under review")
+    diff: str = Field(..., description="The diff showing changes made so far in the current session")
+    linter_report: List[str] = Field(..., description="Simulated/generated linter and compiler messages")
+    current_task: str = Field(..., description="The active task ID (e.g. 'style-cleanup')")
 
 class Reward(BaseModel):
-    # The score given back to the agent
-    # gt=0.0 and lt=1.0 enforce the strict (0, 1) range required by the validator
-    value: float = Field(..., gt=0.0, lt=1.0)
-    comment: str
+    """
+    Scalar reward feedback conforming to the strict (0.0, 1.0) OpenEnv validator requirements.
+    """
+    value: float = Field(..., gt=0.0, lt=1.0, description="Quality score of the current code state")
+    comment: str = Field(..., description="Detailed feedback explaining the code quality score")
+
+class OptimizeResponse(BaseModel):
+    """
+    Response schema for the API optimization endpoints.
+    """
+    initial_score: float = Field(..., description="Quality score of the code before optimization")
+    final_score: float = Field(..., description="Quality score of the code after optimization")
+    fixed_code: str = Field(..., description="Optimized source code")
+    perf_gain: str = Field(..., description="Estimated performance improvement percentage")
+    mem_reduction: str = Field(..., description="Estimated memory savings")
+    recommendation: str = Field(..., description="AI insight and summary of changes made")
+    diff_data: Optional[List[dict]] = None
+    request_id: Optional[str] = None

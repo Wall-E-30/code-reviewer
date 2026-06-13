@@ -1,0 +1,17 @@
+[
+    {
+        "instruction": "Optimize and audit the following python code for: style-cleanup",
+        "input": "import os\nimport sys # Unused import\ndef hello_world():\n  print(\"Hello\")\n  print(\"Indentation is wrong here\")\n\nif __name__ == \"__main__\":\n    hello_world()",
+        "output": "{\"action_type\": \"apply_fix\", \"content\": \"def hello_world():\\n    print(\\\"Hello\\\")\\n    print(\\\"Indentation is wrong here\\\")\\n\\nif __name__ == \\\"__main__\\\":\\n    hello_world()\"}"
+    },
+    {
+        "instruction": "Optimize and audit the following python code for: efficiency-boost",
+        "input": "def find_duplicates(list_a, list_b):\n    # Very slow O(N^2) approach\n    duplicates = []\n    for item_a in list_a:\n        for item_b in list_b:\n            if item_a == item_b:\n                duplicates.append(item_a)\n    return duplicates\n\nif __name__ == \"__main__\":\n    find_duplicates([1,2], [2,3])",
+        "output": "{\"action_type\": \"apply_fix\", \"content\": \"def find_duplicates(list_a, list_b):\\n    seen = set(list_a)\\n    return [x for x in list_b if x in seen]\\n\\nif __name__ == \\\"__main__\\\":\\n    find_duplicates([1,2], [2,3])\"}"
+    },
+    {
+        "instruction": "Optimize and audit the following python code for: security-audit",
+        "input": "import sqlite3\ndef get_user_data(user_id):\n    conn = sqlite3.connect('users.db')\n    cursor = conn.cursor()\n    query = f\"SELECT * FROM users WHERE id = '{user_id}'\"\n    cursor.execute(query)\n    return cursor.fetchone()\n\nif __name__ == \"__main__\":\n    get_user_data('admin')",
+        "output": "{\"action_type\": \"apply_fix\", \"content\": \"import sqlite3\\ndef get_user_data(user_id):\\n    conn = sqlite3.connect('users.db')\\n    cursor = conn.cursor()\\n    cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))\\n    return cursor.fetchone()\\n\\nif __name__ == \\\"__main__\\\":\\n    get_user_data('admin')\"}"
+    }
+]
