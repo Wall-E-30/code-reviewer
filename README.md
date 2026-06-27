@@ -1,6 +1,5 @@
 ---
 title: Aion Code Reviewer
-emoji: 🤖
 colorFrom: indigo
 colorTo: blue
 sdk: docker
@@ -18,10 +17,10 @@ An intelligent, interactive code optimization engine and agent evaluation sandbo
 [![Pytest](https://img.shields.io/badge/Pytest-Python-3776AB?style=flat-square&logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[Live App](http://localhost:7860/) · [Report a Bug](https://github.com/Wall-E-30/code-reviewer/issues) · [Request a Feature](https://github.com/Wall-E-30/code-reviewer/issues)
+[Live App](https://huggingface.co/spaces/Wall-E-30/aion-code-reviewer) · [Report a Bug](https://github.com/Wall-E-30/code-reviewer/issues) · [Request a Feature](https://github.com/Wall-E-30/code-reviewer/issues)
 
 Dashboard Preview:
-![Dashboard Preview](dashboard_preview.png)
+![Dashboard Preview](dashboard_preview.jpg)
 
 ---
 
@@ -55,18 +54,18 @@ What sets Aion apart is its **Universal Robustness Layer** which automatically r
 
 ## Key Features
 
-### ✨ Live Optimizer
+### Live Optimizer
 - **Selected Goal Analysis**: Run optimizations target at a specific goal (`style-cleanup`, `efficiency-boost`, or `security-audit`).
 - **Full Review (All Passes)**: Sequences all optimization passes consecutively, passing refined code from style cleanup to efficiency boosting and finally to security audits.
 - **Dynamic File Linter**: Parses code on-the-fly and generates real-time, custom feedback on syntax issues, loops, and security leaks.
 - **AST Performance Metrics**: Displays initial vs. optimized quality scores, estimated execution speedup, and estimated memory footprint reductions.
 
-### 🧪 Hackathon Benchmark
+### Hackathon Benchmark
 - **Automated Task Trajectory**: Run a 5-step RL agent sequence to automatically scan and repair buggy benchmark files.
 - **Real-Time Step Logs**: Monitor the agent's actions, AST rewards, and linter warnings at each step of the trajectory.
 - **Autoregressive Policy**: Integrates fine-tuned local models (e.g. GPT-2 policy) to generate sequential edit actions directly in the code reviewer sandbox.
 
-### 🔍 Code Auditing Passes
+### Code Auditing Passes
 - **Style & Linting (`style-cleanup`)**: Identifies unused imports, PEP-8 indentation errors, unused variables, bare except blocks, and mutable default arguments.
 - **Algorithm Optimization (`efficiency-boost`)**: Identifies inefficient $O(N^2)$ nested loops and refactors them into $O(N)$ hash-set or dictionary lookups.
 - **Security Vulnerability (`security-audit`)**: Audits database interaction code to detect f-string query interpolation, unsafe execution sinks (`os.system`, `subprocess` with `shell=True`), and deprecated cryptography modules (`md5`, `pickle`).
@@ -229,22 +228,6 @@ Aion is built to handle arbitrary code inputs safely:
 | **Magic Attribute Protection** | AST scanner blocks references to magic attributes like `__subclasses__`, `__globals__`, `__code__`, and `__builtins__`. | Eliminates sandbox escape techniques commonly used to bypass import blocklists. |
 | **Session Isolation** | The FastAPI server maintains a memory-cached, session-isolated environment cache routed via unique client session IDs. | Eliminates state collisions when multiple developers or agent threads interact with the endpoint simultaneously. |
 | **SQL Injection Grader** | AST checks search for `execute()` or `query()` calls containing string concatenations (`+`) or f-string interpolation. | Identifies and flags query design vulnerabilities, prompting agents to refactor queries into safe parameterized formats. |
-
----
-
-## CI/CD & Testing
-
-Aion includes a comprehensive test suite in `test_suite.py` that validates all 18 core features of the system including:
-- AST linter detection (unused imports, indentation, mutable defaults)
-- RCE sandbox blocking and magic attribute protection
-- Dynamic task evaluations and regression backtracking
-- Robust parser recovery and JSON regex extraction
-
-To run tests locally, activate your virtual environment and execute:
-
-```bash
-python test_suite.py
-```
 
 ---
 

@@ -12,3 +12,4 @@ models/*.safetensors
 models/rl_model/
 models/autoregressive_rl_model/
 uv.lock
+dashboard_preview.jpg
