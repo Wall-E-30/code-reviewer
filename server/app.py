@@ -5,7 +5,6 @@ import logging
 import uuid
 import difflib
 import ast
-import torch
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -136,6 +135,7 @@ async def run_benchmark_endpoint(request: ResetRequest):
         
         # Select action using Autoregressive RL model if available
         if HAS_RL_MODEL and rl_model is not None and rl_tokenizer is not None:
+            torch = __import__('torch')
             prompt = f"Task: {task_id}\nCode:\n{env_instance.code}\nOptimized:\n"
             inputs = rl_tokenizer(prompt, return_tensors="pt")
             device = next(rl_model.parameters()).device
