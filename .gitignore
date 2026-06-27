@@ -5,3 +5,10 @@ __pycache__/
 .env
 .DS_Store
 *.egg-info/
+node_modules/
+frontend/dist/
+models/*.pt
+models/*.safetensors
+models/rl_model/
+models/autoregressive_rl_model/
+uv.lock

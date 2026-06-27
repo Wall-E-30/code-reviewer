@@ -52,6 +52,8 @@ const LANG_KEYS = {
   "CSS": "css", "SQL": "sql", "Bash": "bash"
 };
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 function App() {
   const [activeTab, setActiveTab] = useState('optimizer');
   const [taskType, setTaskType] = useState('efficiency-boost');
@@ -87,7 +89,7 @@ function App() {
     setIsBenchmarking(true);
     setBenchmarkResult(null);
     try {
-      const response = await fetch('/run_benchmark', {
+      const response = await fetch(`${API_BASE}/run_benchmark`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task_id: benchmarkTask })
@@ -113,7 +115,7 @@ function App() {
     const endpoint = full ? '/optimize_full' : '/optimize';
     
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: inputCode, task_type: taskType, language: LANG_KEYS[selectedLanguage] || "auto" })
