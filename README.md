@@ -1,3 +1,13 @@
+---
+title: Aion Code Reviewer
+emoji: 🤖
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Aion Code Reviewer (OpenEnv Benchmark)
 
 ## Environment Overview and Motivation
