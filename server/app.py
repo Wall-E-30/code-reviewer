@@ -5,11 +5,14 @@ import logging
 import uuid
 import difflib
 import ast
+import traceback
+import asyncio
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
+from cachetools import TTLCache
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -32,9 +35,13 @@ app = FastAPI(
 
 # CORS middleware
 from fastapi.middleware.cors import CORSMiddleware
+
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:7860")
+allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,7 +56,7 @@ async def log_requests(request: Request, call_next):
     return response
 
 # --- STATE ---
-environments = {}
+environments = TTLCache(maxsize=1000, ttl=3600)
 
 def get_env(session_id: str = "default") -> CodeReviewEnv:
     session_id = session_id or "default"
@@ -211,6 +218,16 @@ async def run_benchmark_endpoint(request: ResetRequest):
         "model_loaded": HAS_RL_MODEL
     }
 
+def _exec_inference(fn, *args, **kwargs):
+    """Offloads sync or async inference execution to a worker thread."""
+    import inspect
+    if inspect.iscoroutinefunction(fn):
+        return asyncio.run(fn(*args, **kwargs))
+    res = fn(*args, **kwargs)
+    if inspect.iscoroutine(res):
+        return asyncio.run(res)
+    return res
+
 @app.post("/optimize_full", response_model=OptimizeResponse)
 async def optimize_full_endpoint(request: OptimizeRequest):
     from inference import run_full_optimization
@@ -218,7 +235,7 @@ async def optimize_full_endpoint(request: OptimizeRequest):
     logger.info(f"[{req_id}] Initiating full optimization sequence")
     
     try:
-        init, fixed, final = await run_full_optimization(request.code)
+        init, fixed, final = await asyncio.to_thread(_exec_inference, run_full_optimization, request.code)
         diff_data = generate_diff_data(request.code, fixed)
         return OptimizeResponse(
             initial_score=init,
@@ -231,8 +248,8 @@ async def optimize_full_endpoint(request: OptimizeRequest):
             request_id=req_id
         )
     except Exception as e:
-        logger.error(f"[{req_id}] Full optimization failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"[{req_id}] Full optimization failed: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Optimization pipeline failed.")
 
 @app.post("/optimize", response_model=OptimizeResponse)
 async def optimize_endpoint(request: OptimizeRequest):
@@ -252,7 +269,9 @@ async def optimize_endpoint(request: OptimizeRequest):
     logger.info(f"[{req_id}] Optimizing code for task: {request.task_type}")
     
     try:
-        init, fixed, final, p_text, m_text, rec = await evaluate_and_optimize(request.code, request.task_type, request.language or "auto")
+        init, fixed, final, p_text, m_text, rec = await asyncio.to_thread(
+            _exec_inference, evaluate_and_optimize, request.code, request.task_type, request.language or "auto"
+        )
         diff_data = generate_diff_data(request.code, fixed)
         return OptimizeResponse(
             initial_score=init,
@@ -267,8 +286,8 @@ async def optimize_endpoint(request: OptimizeRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[{req_id}] Optimization failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"[{req_id}] Optimization failed: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Optimization pass failed.")
 
 @app.post("/diff")
 async def diff_endpoint(request: DiffRequest):
@@ -303,19 +322,28 @@ async def state_endpoint():
 
 # --- STATIC FILE SERVING ---
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
+canonical_root = os.path.realpath(frontend_path)
 
 if os.path.exists(frontend_path):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_path, "assets")), name="assets")
+    assets_dir = os.path.join(frontend_path, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
     
     @app.get("/")
     async def serve_index():
-        return FileResponse(os.path.join(frontend_path, "index.html"))
+        return FileResponse(os.path.join(canonical_root, "index.html"))
 
     @app.get("/{full_path:path}")
     async def catch_all(full_path: str):
-        if os.path.exists(os.path.join(frontend_path, full_path)):
-            return FileResponse(os.path.join(frontend_path, full_path))
-        return FileResponse(os.path.join(frontend_path, "index.html"))
+        target_path = os.path.realpath(os.path.join(canonical_root, full_path.lstrip("/\\")))
+        if not (target_path == canonical_root or target_path.startswith(canonical_root + os.sep)):
+            raise HTTPException(status_code=403, detail="Access denied: path traversal detected")
+        if os.path.isfile(target_path):
+            return FileResponse(target_path)
+        index_file = os.path.join(canonical_root, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="Not Found")
 else:
     @app.get("/")
     async def fallback():
@@ -324,17 +352,27 @@ else:
             "api_docs": "/docs"
         }
 
+    @app.get("/{full_path:path}")
+    async def catch_all(full_path: str):
+        target_path = os.path.realpath(os.path.join(canonical_root, full_path.lstrip("/\\")))
+        if not (target_path == canonical_root or target_path.startswith(canonical_root + os.sep)):
+            raise HTTPException(status_code=403, detail="Access denied: path traversal detected")
+        if os.path.isfile(target_path):
+            return FileResponse(target_path)
+        index_file = os.path.join(canonical_root, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="Not Found")
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    request_id = str(uuid.uuid4())
+    logger.error(f"[{request_id}] Unhandled exception: {str(exc)}\n{traceback.format_exc()}")
     return JSONResponse(
         status_code=500,
         content={
             "error": "Internal Server Error",
-            "message": str(exc),
-            "initial_score": 0.01,
-            "final_score": 0.01,
-            "recommendation": "Engine encountered a critical error. Please try again."
+            "request_id": request_id
         }
     )
 

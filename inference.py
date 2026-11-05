@@ -4,8 +4,10 @@ import asyncio
 import re
 import ast
 import traceback
-import gradio as gr
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 from env import CodeReviewEnv
 from models import Action
@@ -432,7 +434,7 @@ class MockOpenAI:
         return code
 
 # Use Mock if token is missing
-if not HF_TOKEN or HF_TOKEN in ["None", "dummy_key_for_server_boot"]:
+if OpenAI is None or not HF_TOKEN or HF_TOKEN in ["None", "dummy_key_for_server_boot"]:
     print("--- WARNING: HF_TOKEN missing or invalid. Using Mock AI for demonstration. ---")
     client = MockOpenAI()
 else:
@@ -809,36 +811,43 @@ async def run_full_optimization(code):
     return float(init_score), current_code, best_score
 
 # --- GRADIO DASHBOARD SETUP ---
-custom_theme = gr.themes.Soft(
-    primary_hue="indigo",
-    secondary_hue="purple",
-    neutral_hue="slate",
-    font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif"],
-    font_mono=[gr.themes.GoogleFont("JetBrains Mono"), "ui-monospace", "Consolas", "monospace"],
-).set(
-    body_background_fill="#070b19",
-    body_background_fill_dark="#070b19",
-    body_text_color="#e2e8f0",
-    body_text_color_dark="#e2e8f0",
-    background_fill_primary="#0f172a",
-    background_fill_primary_dark="#0f172a",
-    background_fill_secondary="#1e293b",
-    background_fill_secondary_dark="#1e293b",
-    border_color_primary="#334155",
-    border_color_primary_dark="#334155",
-    block_background_fill="#0f172a",
-    block_background_fill_dark="#0f172a",
-    block_label_text_color="#94a3b8",
-    block_label_text_color_dark="#94a3b8",
-    button_primary_background_fill="linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-    button_primary_background_fill_dark="linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-    button_primary_text_color="white",
-    button_primary_text_color_dark="white",
-    button_secondary_background_fill="#1e293b",
-    button_secondary_background_fill_dark="#1e293b",
-    button_secondary_text_color="#cbd5e1",
-    button_secondary_text_color_dark="#cbd5e1",
-)
+def get_custom_theme():
+    try:
+        import gradio as gr
+    except ImportError as e:
+        raise RuntimeError("Gradio is not installed. Please install gradio to run the Gradio UI.") from e
+    return gr.themes.Soft(
+        primary_hue="indigo",
+        secondary_hue="purple",
+        neutral_hue="slate",
+        font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif"],
+        font_mono=[gr.themes.GoogleFont("JetBrains Mono"), "ui-monospace", "Consolas", "monospace"],
+    ).set(
+        body_background_fill="#070b19",
+        body_background_fill_dark="#070b19",
+        body_text_color="#e2e8f0",
+        body_text_color_dark="#e2e8f0",
+        background_fill_primary="#0f172a",
+        background_fill_primary_dark="#0f172a",
+        background_fill_secondary="#1e293b",
+        background_fill_secondary_dark="#1e293b",
+        border_color_primary="#334155",
+        border_color_primary_dark="#334155",
+        block_background_fill="#0f172a",
+        block_background_fill_dark="#0f172a",
+        block_label_text_color="#94a3b8",
+        block_label_text_color_dark="#94a3b8",
+        button_primary_background_fill="linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+        button_primary_background_fill_dark="linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+        button_primary_text_color="white",
+        button_primary_text_color_dark="white",
+        button_secondary_background_fill="#1e293b",
+        button_secondary_background_fill_dark="#1e293b",
+        button_secondary_text_color="#cbd5e1",
+        button_secondary_text_color_dark="#cbd5e1",
+    )
+
+custom_theme = None
 
 custom_css = """
 .gradio-container {
@@ -947,6 +956,11 @@ button.selected {
 """
 
 def build_ui():
+    try:
+        import gradio as gr
+    except ImportError as e:
+        raise RuntimeError("Gradio is not installed. Please install gradio to run the Gradio UI.") from e
+
     async def evaluate_wrapper(user_code, task_type, language_display):
         lang_key = LANG_KEY_MAP.get(language_display, "auto")
         pre, code, post, perf, mem, rec = await evaluate_and_optimize(user_code, task_type, language=lang_key)
@@ -1153,4 +1167,5 @@ if __name__ == "__main__":
     else:
         print("--- LAUNCHING GRADIO DASHBOARD ---", flush=True)
         demo = build_ui()
-        demo.launch(theme=custom_theme, css=custom_css, server_name="0.0.0.0", server_port=7860)
+        theme = get_custom_theme()
+        demo.launch(theme=theme, css=custom_css, server_name="0.0.0.0", server_port=7860)

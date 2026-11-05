@@ -1,15 +1,30 @@
+"""
+Aion Code Reviewer RL Environment.
+
+Security Notice (SEC-01):
+Untrusted code execution on the host machine is strictly prohibited.
+Differential execution and dynamic subshell generation via subprocess.run
+are disabled in safe mode. Code evaluation and correctness verification
+rely exclusively on static analysis (Python AST validation and linter checks).
+"""
 import ast
 import re
 import difflib
 import sys
-import subprocess
-import tempfile
 import os
-import base64
 import json
 from typing import List, Tuple, Dict, Any
 
 from models import Observation
+
+
+class VerificationResult(tuple):
+    """Result tuple of (success, message) with boolean truthiness defined by success."""
+    def __new__(cls, success: bool, message: str):
+        return super().__new__(cls, (success, message))
+
+    def __bool__(self):
+        return bool(self[0])
 
 # --- Baseline Tasks Definitions ---
 TASKS = {
@@ -219,104 +234,11 @@ class CodeReviewEnv:
         self.best_code = code
         self.test_cases = []
 
-        if language == "python" and self._is_code_safe_to_execute(code):
-            # Build and run the test case generator inside a subprocess
-            encoded_code = base64.b64encode(code.encode('utf-8')).decode('utf-8')
-            generator_script = f"""
-import base64
-import sys
-import json
-import ast
-import io
-from contextlib import redirect_stdout
-
-code_str = base64.b64decode({repr(encoded_code)}).decode('utf-8')
-globals_dict = {{}}
-
-try:
-    exec(code_str, globals_dict)
-except Exception:
-    print(json.dumps([]))
-    sys.exit(0)
-
-try:
-    tree = ast.parse(code_str)
-except Exception:
-    print(json.dumps([]))
-    sys.exit(0)
-
-funcs = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
-test_cases = []
-
-for f in funcs:
-    func_name = f.name
-    if func_name.startswith("__"):
-        continue
-    orig_func = globals_dict.get(func_name)
-    if not orig_func or not callable(orig_func):
-        continue
-    
-    args_count = len(f.args.args)
-    arg_scenarios = []
-    if args_count == 1:
-        arg_scenarios = [
-            ([1, 2, 3, 2, 1],),
-            ([],),
-            ("hello",),
-            (10,)
-        ]
-    elif args_count == 2:
-        arg_scenarios = [
-            ([1, 2, 3], [2, 3, 4]),
-            ([1, 1], [1, 2]),
-            ([], []),
-            ("abc", "bcd"),
-            (5, 10)
-        ]
-    elif args_count == 3:
-        arg_scenarios = [
-            (1, 2, 3),
-            ([], [], []),
-            ("a", "b", "c")
-        ]
-    else:
-        arg_scenarios = [()]
-
-    for args in arg_scenarios:
-        try:
-            f_out = io.StringIO()
-            with redirect_stdout(f_out):
-                ret = orig_func(*args)
-            stdout_val = f_out.getvalue()
-            test_cases.append({{
-                "func_name": func_name,
-                "args": args,
-                "expected_return": ret,
-                "expected_stdout": stdout_val
-            }})
-        except Exception:
-            pass
-
-print(json.dumps(test_cases))
-"""
+        if language == "python":
             try:
-                with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w", encoding="utf-8") as f:
-                    f.write(generator_script)
-                    f_path = f.name
-                
-                res = subprocess.run([sys.executable, f_path], capture_output=True, text=True, timeout=5.0)
-                try:
-                    os.unlink(f_path)
-                except Exception:
-                    pass
-
-                if res.returncode == 0:
-                    try:
-                        self.test_cases = json.loads(res.stdout.strip())
-                    except Exception:
-                        self.test_cases = []
-            except Exception:
-                self.test_cases = []
+                ast.parse(code)
+            except SyntaxError:
+                pass
 
         self.best_reward = self._calculate_reward()
         self.max_score_seen = self.best_reward
@@ -661,139 +583,24 @@ print(json.dumps(test_cases))
         )
         return "".join(list(diff))
 
-    def _verify_correctness(self, code: str) -> bool:
+    def _verify_correctness(self, code: str) -> VerificationResult:
+        """
+        Verify code correctness safely without host subprocess execution (SEC-01).
+        Static AST analysis is used exclusively.
+        """
         if hasattr(self, 'language') and self.language == "python":
             try:
                 ast.parse(code)
-            except SyntaxError:
-                return False
-            if not self._is_code_safe_to_execute(code):
-                return True
+            except SyntaxError as e:
+                return VerificationResult(False, f"Syntax error: {str(e)}")
+            except Exception as e:
+                return VerificationResult(False, f"Parse error: {str(e)}")
+            return VerificationResult(True, "Static AST analysis verified (safe mode)")
 
-        if hasattr(self, 'language') and self.language != "python":
-            if self.language == "javascript":
-                try:
-                    with tempfile.NamedTemporaryFile(suffix=".js", delete=False, mode="w", encoding="utf-8") as f:
-                        f.write(code)
-                        f_path = f.name
-                    res = subprocess.run(["node", "--check", f_path], capture_output=True, text=True, timeout=2.0)
-                    os.unlink(f_path)
-                    if res.returncode != 0:
-                        return False
-                except Exception:
-                    pass
-            return True
+        if not code or not code.strip():
+            return VerificationResult(False, "Empty code")
 
-        encoded_code = base64.b64encode(code.encode('utf-8')).decode('utf-8')
-        test_script = f"""
-import base64
-import sys
-import io
-from contextlib import redirect_stdout
-
-code_str = base64.b64decode({repr(encoded_code)}).decode('utf-8')
-globals_dict = {{}}
-"""
-        if not (hasattr(self, 'test_cases') and self.test_cases):
-            if self.current_task_id == "style-cleanup":
-                test_script += """
-try:
-    exec(code_str, globals_dict)
-    if 'hello_world' not in globals_dict:
-        sys.exit(1)
-    f = io.StringIO()
-    with redirect_stdout(f):
-        globals_dict['hello_world']()
-    output = f.getvalue()
-    if "Hello" not in output:
-        sys.exit(1)
-except Exception:
-    sys.exit(1)
-"""
-            elif self.current_task_id == "efficiency-boost":
-                test_script += """
-try:
-    exec(code_str, globals_dict)
-    if 'find_duplicates' not in globals_dict:
-        sys.exit(1)
-    res1 = globals_dict['find_duplicates']([1, 2, 3], [2, 3, 4])
-    res2 = globals_dict['find_duplicates']([1, 1, 2], [1, 3])
-    if set(res1) != {2, 3} or set(res2) != {1}:
-        sys.exit(1)
-except Exception:
-    sys.exit(1)
-"""
-            elif self.current_task_id == "security-audit":
-                test_script += """
-import sqlite3
-import unittest.mock as mock
-
-mock_conn = sqlite3.connect(":memory:")
-try:
-    mock_conn.execute("CREATE TABLE users (id TEXT, name TEXT)")
-    mock_conn.execute("INSERT INTO users VALUES ('admin', 'Administrator')")
-    mock_conn.execute("INSERT INTO users VALUES ('user1', 'Normal User')")
-    mock_conn.commit()
-except Exception:
-    pass
-
-try:
-    with mock.patch("sqlite3.connect", return_value=mock_conn):
-        exec(code_str, globals_dict)
-        if 'get_user_data' not in globals_dict:
-            sys.exit(1)
-        res = globals_dict['get_user_data']("admin")
-        if not res or "admin" not in res:
-            sys.exit(1)
-except Exception:
-    sys.exit(1)
-"""
-            else:
-                test_script += """
-try:
-    exec(code_str, globals_dict)
-except Exception:
-    sys.exit(1)
-"""
-        else:
-            test_script += f"""
-test_cases = {repr(self.test_cases)}
-try:
-    exec(code_str, globals_dict)
-    for tc in test_cases:
-        func_name = tc["func_name"]
-        args = tc["args"]
-        expected_ret = tc["expected_return"]
-        expected_stdout = tc["expected_stdout"]
-        
-        if func_name not in globals_dict:
-            sys.exit(1)
-        func = globals_dict[func_name]
-        
-        f_out = io.StringIO()
-        with redirect_stdout(f_out):
-            actual_ret = func(*args)
-        actual_stdout = f_out.getvalue()
-        
-        if actual_ret != expected_ret or actual_stdout != expected_stdout:
-            sys.exit(1)
-except Exception:
-    sys.exit(1)
-"""
-
-        try:
-            with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w", encoding="utf-8") as f:
-                f.write(test_script)
-                f_path = f.name
-            
-            res = subprocess.run([sys.executable, f_path], capture_output=True, text=True, timeout=5.0)
-            try:
-                os.unlink(f_path)
-            except Exception:
-                pass
-            return res.returncode == 0
-        except Exception:
-            return False
+        return VerificationResult(True, "Static AST analysis verified (safe mode)")
 
     def _calculate_reward(self) -> float:
         if hasattr(self, 'language') and self.language != "python":

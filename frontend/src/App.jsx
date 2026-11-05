@@ -17,10 +17,11 @@ const highlightPython = (code) => {
   });
 };
 
-const StatBox = ({ title, value, type = '' }) => (
-  <div className={`stat-box ${type}`}>
+const StatBox = ({ title, value, type = '', tooltip = '' }) => (
+  <div className={`stat-box ${type}`} title={tooltip}>
     <h3>{title}</h3>
     <p>{value}</p>
+    {tooltip && <span style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.25rem' }}>{tooltip}</span>}
   </div>
 );
 
@@ -38,18 +39,48 @@ const Toast = ({ message, type, onRemove }) => {
   );
 };
 
-const SUPPORTED_LANGUAGES = [
-  "Auto (Detect)", "Python", "JavaScript", "TypeScript", "Java",
-  "C++", "C", "Go", "Rust", "Ruby", "Kotlin", "Swift", "C#",
-  "PHP", "HTML", "CSS", "SQL", "Bash"
+const TIER1_LANGUAGES = [
+  { name: "Python", key: "python" },
+  { name: "TypeScript", key: "typescript" },
+  { name: "JavaScript", key: "javascript" }
+];
+
+const EXPERIMENTAL_LANGUAGES = [
+  { name: "Java", key: "java" },
+  { name: "C++", key: "cpp" },
+  { name: "C", key: "c" },
+  { name: "Go", key: "go" },
+  { name: "Rust", key: "rust" },
+  { name: "Ruby", key: "ruby" },
+  { name: "Kotlin", key: "kotlin" },
+  { name: "Swift", key: "swift" },
+  { name: "C#", key: "csharp" },
+  { name: "PHP", key: "php" },
+  { name: "HTML", key: "html" },
+  { name: "CSS", key: "css" },
+  { name: "SQL", key: "sql" },
+  { name: "Bash", key: "bash" }
 ];
 
 const LANG_KEYS = {
-  "Auto (Detect)": "auto", "Python": "python", "JavaScript": "javascript",
-  "TypeScript": "typescript", "Java": "java", "C++": "cpp", "C": "c",
-  "Go": "go", "Rust": "rust", "Ruby": "ruby", "Kotlin": "kotlin",
-  "Swift": "swift", "C#": "csharp", "PHP": "php", "HTML": "html",
-  "CSS": "css", "SQL": "sql", "Bash": "bash"
+  "Auto (Detect)": "auto",
+  "Python": "python", "Python (Supported)": "python",
+  "TypeScript": "typescript", "TypeScript (Supported)": "typescript",
+  "JavaScript": "javascript", "JavaScript (Supported)": "javascript",
+  "Java": "java", "Java (Experimental)": "java",
+  "C++": "cpp", "C++ (Experimental)": "cpp",
+  "C": "c", "C (Experimental)": "c",
+  "Go": "go", "Go (Experimental)": "go",
+  "Rust": "rust", "Rust (Experimental)": "rust",
+  "Ruby": "ruby", "Ruby (Experimental)": "ruby",
+  "Kotlin": "kotlin", "Kotlin (Experimental)": "kotlin",
+  "Swift": "swift", "Swift (Experimental)": "swift",
+  "C#": "csharp", "C# (Experimental)": "csharp",
+  "PHP": "php", "PHP (Experimental)": "php",
+  "HTML": "html", "HTML (Experimental)": "html",
+  "CSS": "css", "CSS (Experimental)": "css",
+  "SQL": "sql", "SQL (Experimental)": "sql",
+  "Bash": "bash", "Bash (Experimental)": "bash"
 };
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -64,8 +95,8 @@ function App() {
   
   const [initialScore, setInitialScore] = useState('-');
   const [optimizedScore, setOptimizedScore] = useState('-');
-  const [speedup, setSpeedup] = useState('-');
-  const [memorySaved, setMemorySaved] = useState('-');
+  const [astNodeDelta, setAstNodeDelta] = useState('-');
+  const [structuralComplexity, setStructuralComplexity] = useState('-');
   
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [toasts, setToasts] = useState([]);
@@ -131,8 +162,8 @@ function App() {
         
         setInitialScore((data.initial_score).toFixed(2));
         setOptimizedScore((data.final_score).toFixed(2));
-        setSpeedup(data.perf_gain || '+0.0%');
-        setMemorySaved(data.mem_reduction || '-0.0MB');
+        setAstNodeDelta(data.perf_gain || '+0 nodes');
+        setStructuralComplexity(data.mem_reduction || '-0.0');
         
         addToast("Optimization Successful");
       }
@@ -202,10 +233,39 @@ function App() {
                   value={selectedLanguage}
                   onChange={(e) => setSelectedLanguage(e.target.value)}
                 >
-                  {SUPPORTED_LANGUAGES.map((lang) => (
-                    <option key={lang} value={lang}>{lang}</option>
-                  ))}
+                  <option value="Auto (Detect)">Auto (Detect)</option>
+                  <optgroup label="Supported (Tier-1)">
+                    {TIER1_LANGUAGES.map((lang) => (
+                      <option key={lang.name} value={lang.name}>
+                        {lang.name} (Supported)
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Experimental">
+                    {EXPERIMENTAL_LANGUAGES.map((lang) => (
+                      <option key={lang.name} value={lang.name}>
+                        {lang.name} (Experimental)
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
+                {EXPERIMENTAL_LANGUAGES.some(l => l.name === selectedLanguage) && (
+                  <div style={{
+                    marginTop: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    background: 'rgba(245, 158, 11, 0.1)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    borderRadius: '8px',
+                    color: '#fbbf24',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <span>⚠️</span>
+                    <span>Language is in experimental static preview mode. Full AST grading active for Python &amp; TypeScript.</span>
+                  </div>
+                )}
               </div>
 
               <div className="code-wrapper">
@@ -261,12 +321,30 @@ function App() {
               </div>
 
               <div>
-                <span className="control-label" style={{marginBottom: '0.75rem'}}>📊 Performance Metrics</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span className="control-label" style={{ margin: 0 }}>📊 Performance Metrics</span>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                    Static AST Structural Metric — Real execution benchmarks available via Aion-Bench
+                  </span>
+                </div>
                 <div className="stat-grid">
                   <StatBox title="Initial Score" value={initialScore} />
                   <StatBox title="Optimized Score" value={optimizedScore} type="success" />
-                  <StatBox title="Est. Speedup" value={speedup} type="highlight" />
-                  <StatBox title="Memory Saved" value={memorySaved} type="highlight" />
+                  <StatBox 
+                    title="AST Node Delta" 
+                    value={astNodeDelta} 
+                    type="highlight" 
+                    tooltip="Exact change in total AST nodes"
+                  />
+                  <StatBox 
+                    title="Structural Complexity Score" 
+                    value={structuralComplexity} 
+                    type="highlight" 
+                    tooltip="AST nesting & branch reduction"
+                  />
+                </div>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
+                  Static AST Structural Metric — Real execution benchmarks available via Aion-Bench
                 </div>
               </div>
             </div>

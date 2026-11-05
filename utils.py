@@ -168,25 +168,80 @@ def fix_syntax_errors(code: str, language: str) -> str:
         return _fix_swift_syntax(code)
     return code
 
+def _scan_python_line(line: str):
+    """
+    Scans a Python line and returns:
+    - delta: change in bracket depth (parens, brackets, braces)
+    - has_colon: whether an unquoted colon exists outside comments
+    - clean_content: content excluding trailing comments
+    """
+    in_single_quote = False
+    in_double_quote = False
+    escape = False
+    delta = 0
+    clean_chars = []
+    has_colon = False
+    for ch in line:
+        if escape:
+            escape = False
+            clean_chars.append(ch)
+            continue
+        if ch == '\\':
+            escape = True
+            clean_chars.append(ch)
+            continue
+        if ch == "'" and not in_double_quote:
+            in_single_quote = not in_single_quote
+            clean_chars.append(ch)
+            continue
+        if ch == '"' and not in_single_quote:
+            in_double_quote = not in_double_quote
+            clean_chars.append(ch)
+            continue
+        if not in_single_quote and not in_double_quote:
+            if ch == '#':
+                break
+            if ch in '([{':
+                delta += 1
+            elif ch in ')]}':
+                delta -= 1
+            elif ch == ':':
+                has_colon = True
+        clean_chars.append(ch)
+    return delta, has_colon, "".join(clean_chars).rstrip()
+
 def _fix_python_syntax(code: str) -> str:
-    """Fix common Python syntax errors."""
+    """Fix common Python syntax errors, preserving multi-line signatures."""
     lines = code.splitlines()
     fixed = []
+    balance = 0
+    in_header = False
+    header_keywords = ('def', 'if', 'elif', 'for', 'while', 'class', 'try', 'except', 'finally', 'with')
+    
     for line in lines:
         stripped = line.rstrip()
         lstripped = stripped.lstrip()
         indent = stripped[:len(stripped) - len(lstripped)]
         
-        # Fix missing colons after def/if/elif/else/for/while/class/try/except/finally/with
-        if re.match(r'^(def|if|elif|for|while|class|try|except|finally|with)\b', lstripped):
-            # Only add colon if no colon is present in the line (excluding comments)
-            clean_line = lstripped.split('#')[0].rstrip()
-            if ':' not in clean_line:
-                stripped = stripped + ':'
-        # 'else' without colon
-        if lstripped == 'else':
-            stripped = indent + 'else:'
+        delta, has_colon, clean_line = _scan_python_line(lstripped)
+        new_balance = max(0, balance + delta)
         
+        starts_header = any(re.match(rf'^{kw}\b', lstripped) for kw in header_keywords)
+        if starts_header:
+            if new_balance == 0:
+                if not has_colon:
+                    stripped = stripped + ':'
+                in_header = False
+            else:
+                in_header = True
+        elif in_header and new_balance == 0 and balance > 0:
+            if not has_colon:
+                stripped = stripped + ':'
+            in_header = False
+        elif lstripped == 'else' or (re.match(r'^else\b', lstripped) and not has_colon and new_balance == 0):
+            stripped = indent + 'else:'
+            
+        balance = new_balance
         fixed.append(stripped)
     
     code = '\n'.join(fixed)

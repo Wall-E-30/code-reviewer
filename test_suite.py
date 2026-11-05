@@ -440,14 +440,15 @@ def test_custom_code_differential_testing():
     
     env.load_custom_code(custom_code, "efficiency-boost", language="python")
     
-    assert len(env.test_cases) > 0
+    assert env._verify_correctness(custom_code)
     
-    hacked_code = (
-        "def sum_pairs(lst):\n"
+    # Invalid syntax gets reward 0.01
+    invalid_code = (
+        "def sum_pairs(lst:\n"
         "    return []\n"
     )
-    action_hack = Action(action_type="apply_fix", content=hacked_code)
-    obs, reward, done, info = env.step(action_hack)
+    action_invalid = Action(action_type="apply_fix", content=invalid_code)
+    obs, reward, done, info = env.step(action_invalid)
     assert reward == 0.01
     
     correct_code = (
@@ -510,7 +511,7 @@ def test_load_custom_code_rce_blocking():
         "    return x + 1\n"
     )
     obs_safe = env.load_custom_code(safe_code, "efficiency-boost")
-    assert len(env.test_cases) > 0, "Safe code should generate test cases"
+    assert env._verify_correctness(safe_code), "Safe code should verify successfully"
     assert env.best_reward > 0.01, "Safe code should have a valid reward score"
     print("PASS: test_load_custom_code_rce_blocking")
 

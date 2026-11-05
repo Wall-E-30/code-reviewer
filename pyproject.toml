@@ -7,14 +7,18 @@ name = "aion-code-reviewer"
 version = "1.0.0"
 description = "An interactive, AST-graded code review environment for OpenEnv."
 readme = "README.md"
+license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = [
     "openenv-core",
-    "openai",
-    "pydantic",
-    "gradio",
-    "torch",
-    "transformers"
+    "fastapi>=0.110.0",
+    "uvicorn>=0.29.0",
+    "pydantic>=2.0",
+    "openai>=1.0",
+    "cachetools>=5.3.0",
+    "torch>=2.0.0",
+    "transformers>=4.40.0",
+    "gradio>=4.0.0"
 ]
 
 [project.scripts]
@@ -22,4 +26,35 @@ server = "server.app:main"
 
 [tool.setuptools]
 packages = ["server"]
-py-modules = ["env", "models", "inference"]
+py-modules = ["env", "models", "inference", "utils"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+exclude = [
+    ".git",
+    ".github",
+    ".planning",
+    "data",
+    "frontend",
+    "models/rl_model",
+    "__pycache__"
+]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = [
+    "E402",
+    "E501",
+    "E701",
+    "E722",
+    "E741",
+    "F401",
+    "F841",
+    "W291",
+    "W293"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests", "test_suite.py"]

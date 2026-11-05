@@ -1,0 +1,16 @@
+{
+  "mode": "standard",
+  "granularity": "standard",
+  "phase_id_convention": "sequential",
+  "parallel_subagents": true,
+  "commit_docs": false,
+  "model_profile": "balanced",
+  "research": {
+    "depth": "standard"
+  },
+  "workflow": {
+    "verifier": true,
+    "plan_check": true
+  }
+}
+
