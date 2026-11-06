@@ -1,0 +1,413 @@
+{
+  "config": {
+    "engine": "mock",
+    "split": "benchmark_cases_raw",
+    "line_window": 3,
+    "timestamp": "2026-11-05T15:53:42.199120+00:00"
+  },
+  "metrics": {
+    "split": "benchmark_cases_raw",
+    "total_cases": 20,
+    "clean_cases": 10,
+    "buggy_cases": 10,
+    "precision": 1.0,
+    "recall": 1.0,
+    "false_positive_rate": 0.0,
+    "avg_comments_per_pr": 0.5,
+    "nitpick_rate": 0.0,
+    "avg_latency_ms": 0.0,
+    "total_duration_sec": 0.0
+  },
+  "evaluations": [
+    {
+      "case_id": "mined-ts-playwright-45",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-mined-ts-playwright-45-1",
+          "rule_id": "MINED-BUG-01",
+          "finding_category": "bug",
+          "finding_severity": "major",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] Missing await on channel.click() causes click() promise to resolve before action completes on page."
+        }
+      ],
+      "duration_ms": 0.02050003968179226,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-ts-add_type_hints-12",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.00209989957511425,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "inj-py-none_dereference-60",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-inj-py-none_dereference-60-1",
+          "rule_id": "MUT-NONE-DEREF",
+          "finding_category": "bug",
+          "finding_severity": "critical",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] Unsafe dictionary access: removed safe .get() default, exposing cfg['max_retries'] to KeyError."
+        }
+      ],
+      "duration_ms": 0.005299923941493034,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-ts-reformat_whitespace-37",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.00100000761449337,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-ts-add_unit_tests-35",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.000700121745467186,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "inj-py-invert_comparison-43",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-inj-py-invert_comparison-43-1",
+          "rule_id": "MUT-INVERT-COMP",
+          "finding_category": "bug",
+          "finding_severity": "critical",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] Inverted comparison operator: Changed '==' to '!=', reversing branch logic."
+        }
+      ],
+      "duration_ms": 0.003800028935074806,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "mined-py-rich-10",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-mined-py-rich-10-1",
+          "rule_id": "MINED-BUG-01",
+          "finding_category": "bug",
+          "finding_severity": "major",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] In non-interactive environments (CI, pipes), os.get_terminal_size() raises OSError. Add default fallback."
+        }
+      ],
+      "duration_ms": 0.0037997961044311523,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "inj-py-off_by_one-52",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-inj-py-off_by_one-52-1",
+          "rule_id": "MUT-OFF-BY-ONE",
+          "finding_category": "bug",
+          "finding_severity": "major",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] Off-by-one boundary error in range(len(...) + 1) causes IndexError out of bounds."
+        }
+      ],
+      "duration_ms": 0.003500143066048622,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "inj-ts-missing_await-11",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-inj-ts-missing_await-11-1",
+          "rule_id": "MUT-JS-MISSING-AWAIT",
+          "finding_category": "bug",
+          "finding_severity": "critical",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] Missing 'await' keyword on asynchronous function call; returns pending Promise instead of value."
+        }
+      ],
+      "duration_ms": 0.0032999087125062943,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-ts-safe_rename-27",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.0008998904377222061,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "mined-py-httpx-04",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-mined-py-httpx-04-1",
+          "rule_id": "MINED-BUG-01",
+          "finding_category": "bug",
+          "finding_severity": "major",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] Calling close() on an uninitialized client raises AttributeError if __init__ failed partway."
+        }
+      ],
+      "duration_ms": 0.003400025889277458,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-py-reformat_whitespace-2",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.0007997732609510422,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "mined-ts-lodash-16",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-mined-ts-lodash-16-1",
+          "rule_id": "MINED-BUG-01",
+          "finding_category": "bug",
+          "finding_severity": "major",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] JSON roundtrip serialization drops functions, Dates, RegExps, and undefined values. Use baseClone."
+        }
+      ],
+      "duration_ms": 0.00300002284348011,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-ts-add_docstrings-3",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.000700121745467186,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "inj-ts-loose_equality-23",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-inj-ts-loose_equality-23-1",
+          "rule_id": "MUT-JS-LOOSE-EQ",
+          "finding_category": "bug",
+          "finding_severity": "minor",
+          "finding_lines": [
+            2,
+            2
+          ],
+          "comment_line": 2,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] Loose inequality operator '!=' used instead of strict '!==', risking type coercion bugs."
+        }
+      ],
+      "duration_ms": 0.003100140020251274,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-py-add_type_hints-36",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.000800006091594696,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-ts-reformat_whitespace-29",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.0004998873919248581,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "mined-py-urllib3-22",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-mined-py-urllib3-22-1",
+          "rule_id": "MINED-SEC-01",
+          "finding_category": "security",
+          "finding_severity": "critical",
+          "finding_lines": [
+            3,
+            3
+          ],
+          "comment_line": 3,
+          "comment_category": "security",
+          "line_distance": 0,
+          "comment_text": "[Mock Review] Security vulnerability: disabling check_hostname and cert verification permits Man-In-The-Middle attacks."
+        }
+      ],
+      "duration_ms": 0.00300002284348011,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-ts-add_docstrings-17",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.000700121745467186,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "clean-ts-add_type_hints-19",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.0004998873919248581,
+      "nitpick_comments": 0
+    }
+  ]
+}

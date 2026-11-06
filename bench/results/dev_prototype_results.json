@@ -1,0 +1,62 @@
+{
+  "config": {
+    "engine": "prototype",
+    "split": "dev",
+    "line_window": 3,
+    "timestamp": "2026-11-05T15:35:18.972650+00:00"
+  },
+  "metrics": {
+    "split": "dev",
+    "total_cases": 2,
+    "clean_cases": 1,
+    "buggy_cases": 1,
+    "precision": 1.0,
+    "recall": 1.0,
+    "false_positive_rate": 0.0,
+    "avg_comments_per_pr": 0.5,
+    "nitpick_rate": 0.0,
+    "avg_latency_ms": 0.2,
+    "total_duration_sec": 0.0
+  },
+  "evaluations": [
+    {
+      "case_id": "seed-dev-001",
+      "comments_posted": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": false,
+      "clean_diff_violation": false,
+      "matched_findings": [
+        {
+          "finding_id": "gt-001",
+          "rule_id": null,
+          "finding_category": "bug",
+          "finding_severity": "major",
+          "finding_lines": [
+            4,
+            5
+          ],
+          "comment_line": 4,
+          "comment_category": "bug",
+          "line_distance": 0,
+          "comment_text": "Bare except block detected. Specify explicit exception types to avoid swallowing system signals."
+        }
+      ],
+      "duration_ms": 0.2310001291334629,
+      "nitpick_comments": 0
+    },
+    {
+      "case_id": "seed-dev-002",
+      "comments_posted": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "is_clean_diff": true,
+      "clean_diff_violation": false,
+      "matched_findings": [],
+      "duration_ms": 0.1751999370753765,
+      "nitpick_comments": 0
+    }
+  ]
+}

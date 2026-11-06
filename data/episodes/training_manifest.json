@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "created_at": "2026-11-06T04:03:50.756412+00:00",
+  "total_episodes": 10000,
+  "leakage_collisions": 0,
+  "cryptographic_isolation_verified": true,
+  "language_breakdown": {
+    "python": {
+      "count": 5000,
+      "ratio": 0.5
+    },
+    "typescript": {
+      "count": 5000,
+      "ratio": 0.5
+    }
+  },
+  "case_type_distribution": {
+    "injected": 5200,
+    "clean_negative": 3000,
+    "pr_replay": 1800,
+    "clean_negative_ratio": 0.3
+  },
+  "stream_file": "data\\episodes\\episodes_stream.jsonl",
+  "stream_file_sha256": "f72c7fa2b4c04b1fa701f754295f281c0a8e34db78dbee942313fd593b9adb78",
+  "generation_duration_sec": 3.42
+}

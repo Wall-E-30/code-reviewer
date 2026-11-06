@@ -10,12 +10,12 @@
 
 - [x] **Phase 1: Stabilize & Make Trustworthy (Platform & Security Hardening)** - Completed 2026-11-05
   - Explicitly disable untrusted host execution (static analysis only), fix path traversal & CORS, unblock headless test suite, unblock async event loop, reconcile packaging, declare Apache-2.0 license, add GitHub Actions CI, and set Tier-1 language scope (Python, TypeScript/JS). [VERIFICATION.md](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/.planning/phases/01-stabilize-platform/01-VERIFICATION.md)
-- [ ] **Phase 2: Build the Yardstick (Aion-Bench Evaluation Suite)**
-  - Build reproducible evaluation benchmark with injected bugs, clean-diff negatives, mined human PR reviews, hand-audited gold set (100–200 cases), locked private test split, and day-one baseline calibrations.
-- [ ] **Phase 3: Ship the Wedge (GitHub Action & High-Precision Review Pipeline)**
-  - Deliver native PR reviews via GitHub Action, cap output at $\le 5$ high-precision inline comments with suggestion blocks, integrate tree-sitter + static linters, publish plain-language data policy, and log minimal review telemetry.
-- [ ] **Phase 4: Fast Flywheel & Verifiable Data Engine (ReviewEnv & Repo Memory)**
-  - Unblock the learning flywheel early without waiting for GPU training: deploy per-repo convention memory and online contextual bandits. Build `ReviewEnv` Gymnasium MDP, verifiable multi-tier reward function, ephemeral container sandbox with escape tests, and generate 10,000+ verified training episodes strictly isolated from benchmark test splits.
+- [x] **Phase 2: Build the Yardstick (Aion-Bench Evaluation Suite)** - Completed 2026-11-05
+  - Build reproducible evaluation benchmark with injected bugs, clean-diff negatives, mined human PR reviews, hand-audited gold set (100–200 cases), locked private test split, and day-one baseline calibrations. [VERIFICATION.md](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/.planning/phases/02-build-the-yardstick/02-VERIFICATION.md)
+- [x] **Phase 3: Ship the Wedge (GitHub Action & High-Precision Review Pipeline)** - Completed 2026-11-05
+  - Deliver native PR reviews via GitHub Action, cap output at $\le 5$ high-precision inline comments with suggestion blocks, integrate tree-sitter + static linters, publish plain-language data policy, and log minimal review telemetry. [VERIFICATION.md](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/.planning/phases/03-ship-the-wedge/03-VERIFICATION.md)
+- [x] **Phase 4: Fast Flywheel & Verifiable Data Engine (ReviewEnv & Repo Memory)** - Completed 2026-11-06
+  - Unblock the learning flywheel early without waiting for GPU training: deploy per-repo convention memory and online contextual bandits. Build `ReviewEnv` Gymnasium MDP, verifiable multi-tier reward function, ephemeral container sandbox with escape tests, and generate 10,000+ verified training episodes strictly isolated from benchmark test splits. [VERIFICATION.md](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/.planning/phases/04-flywheel-and-data-engine/04-VERIFICATION.md)
 - [ ] **Phase 5: Model Training (SFT Warm-Start & GRPO / RLVR Policy Optimization)**
   - SFT warm-start on open code models (1.5B–7B), train actionability verifier model, run Group-Relative Policy Optimization (GRPO) on free GPU compute (Kaggle/Colab), achieve bootstrap-validated precision gains with clean-diff FPR $<10\%$, and release quantized GGUF/AWQ weights.
 - [ ] **Phase 6: Scale & Distribution (GitHub App & Long-Term Precision Gate)**

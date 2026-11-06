@@ -1,0 +1,1478 @@
+[
+  {
+    "case_id": "mined-ts-eslint-36",
+    "repository": "typescript-eslint/typescript-eslint",
+    "language": "typescript",
+    "file_path": "packages/eslint-plugin/src/rules/no-floating-promises.ts",
+    "original_code": "export function isPromise(type: Type): boolean {\n    return type.getSymbol()!.getName() === 'Promise';\n}\n",
+    "modified_code": "export function isPromise(type: Type): boolean {\n    const symbol = type.getSymbol();\n    return symbol != null && symbol.getName() === 'Promise';\n}\n",
+    "diff": "--- a/packages/eslint-plugin/src/rules/no-floating-promises.ts\n+++ b/packages/eslint-plugin/src/rules/no-floating-promises.ts\n@@ -1,3 +1,4 @@\n export function isPromise(type: Type): boolean {\n-    return type.getSymbol()!.getName() === 'Promise';\n+    const symbol = type.getSymbol();\n+    return symbol != null && symbol.getName() === 'Promise';\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-ts-eslint-36-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Non-null assertion operator (!) causes compiler panic when analyzing anonymous or union types without symbol.",
+        "file_path": "packages/eslint-plugin/src/rules/no-floating-promises.ts",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 4320,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-ts-commander-48",
+    "repository": "tj/commander.js",
+    "language": "typescript",
+    "file_path": "lib/command.ts",
+    "original_code": "export function option(flags: string, description: string): Command {\n    this.options.push(new Option(flags, description));\n    return this;\n}\n",
+    "modified_code": "export function option(flags: string, description: string): Command {\n    const opt = new Option(flags, description);\n    if (this.options.some(o => o.attributeName() === opt.attributeName())) {\n        throw new Error(`Option '${opt.attributeName()}' already registered.`);\n    }\n    this.options.push(opt);\n    return this;\n}\n",
+    "diff": "--- a/lib/command.ts\n+++ b/lib/command.ts\n@@ -1,4 +1,8 @@\n export function option(flags: string, description: string): Command {\n-    this.options.push(new Option(flags, description));\n+    const opt = new Option(flags, description);\n+    if (this.options.some(o => o.attributeName() === opt.attributeName())) {\n+        throw new Error(`Option '${opt.attributeName()}' already registered.`);\n+    }\n+    this.options.push(opt);\n     return this;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-ts-commander-48-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Allowing duplicate option declarations causes silent flag collisions. Throw error on collision.",
+        "file_path": "lib/command.ts",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 1640,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-ts-vite-39",
+    "repository": "vitejs/vite",
+    "language": "typescript",
+    "file_path": "packages/vite/src/node/server/middlewares/static.ts",
+    "original_code": "export function setHeaders(res: ServerResponse, path: string): void {\n    if (path.endsWith('.wasm')) {\n        res.setHeader('Content-Type', 'application/wasm');\n    }\n}\n",
+    "modified_code": "export function setHeaders(res: ServerResponse, path: string): void {\n    if (path.endsWith('.wasm')) {\n        res.setHeader('Content-Type', 'application/wasm');\n        res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');\n    }\n}\n",
+    "diff": "--- a/packages/vite/src/node/server/middlewares/static.ts\n+++ b/packages/vite/src/node/server/middlewares/static.ts\n@@ -1,5 +1,6 @@\n export function setHeaders(res: ServerResponse, path: string): void {\n     if (path.endsWith('.wasm')) {\n         res.setHeader('Content-Type', 'application/wasm');\n+        res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');\n     }\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-ts-vite-39-1",
+        "line_start": 3,
+        "line_end": 3,
+        "category": "bug",
+        "severity": "major",
+        "description": "WASM instantiation fails with SharedArrayBuffer unless Cross-Origin-Embedder-Policy is set.",
+        "file_path": "packages/vite/src/node/server/middlewares/static.ts",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 6820,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-ts-playwright-45",
+    "repository": "microsoft/playwright",
+    "language": "typescript",
+    "file_path": "packages/playwright-core/src/client/locator.ts",
+    "original_code": "export async function click(selector: string): Promise<void> {\n    channel.click({ selector });\n}\n",
+    "modified_code": "export async function click(selector: string): Promise<void> {\n    await channel.click({ selector });\n}\n",
+    "diff": "--- a/packages/playwright-core/src/client/locator.ts\n+++ b/packages/playwright-core/src/client/locator.ts\n@@ -1,3 +1,3 @@\n export async function click(selector: string): Promise<void> {\n-    channel.click({ selector });\n+    await channel.click({ selector });\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-ts-playwright-45-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Missing await on channel.click() causes click() promise to resolve before action completes on page.",
+        "file_path": "packages/playwright-core/src/client/locator.ts",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 12840,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-ts-nextjs-13",
+    "repository": "vercel/next.js",
+    "language": "typescript",
+    "file_path": "packages/next/server/load-components.ts",
+    "original_code": "export async function loadComponents(page: string): Promise<ComponentBundle> {\n    const mod = require(page);\n    return { Component: mod.default || mod };\n}\n",
+    "modified_code": "export async function loadComponents(page: string): Promise<ComponentBundle> {\n    const mod = await import(page);\n    return { Component: mod.default || mod };\n}\n",
+    "diff": "--- a/packages/next/server/load-components.ts\n+++ b/packages/next/server/load-components.ts\n@@ -1,4 +1,4 @@\n export async function loadComponents(page: string): Promise<ComponentBundle> {\n-    const mod = require(page);\n+    const mod = await import(page);\n     return { Component: mod.default || mod };\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-ts-nextjs-13-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Synchronous require() prevents ESM interop. Use dynamic await import() instead.",
+        "file_path": "packages/next/server/load-components.ts",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 22100,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-ts-got-50",
+    "repository": "sindresorhus/got",
+    "language": "typescript",
+    "file_path": "source/as-promise/types.ts",
+    "original_code": "export function calculateDelay(attempt: number): number {\n    return Math.pow(2, attempt) * 1000;\n}\n",
+    "modified_code": "export function calculateDelay(attempt: number): number {\n    const delay = Math.pow(2, attempt) * 1000;\n    return Math.min(delay, 60000);\n}\n",
+    "diff": "--- a/source/as-promise/types.ts\n+++ b/source/as-promise/types.ts\n@@ -1,3 +1,4 @@\n export function calculateDelay(attempt: number): number {\n-    return Math.pow(2, attempt) * 1000;\n+    const delay = Math.pow(2, attempt) * 1000;\n+    return Math.min(delay, 60000);\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-ts-got-50-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Exponential retry backoff without a maximum cap delays subsequent retries by hours. Cap at 60s.",
+        "file_path": "source/as-promise/types.ts",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 1820,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "clean-ts-add_docstrings-17",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_17.ts",
+    "original_code": "export function v17_truncateText(text: string, maxLen: number): string {\n    return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;\n}\n",
+    "modified_code": "/**\n * Execute v17_truncateText logic.\n */\nexport function v17_truncateText(text: string, maxLen: number): string {\n    return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;\n}\n",
+    "diff": "--- a/src/clean/ts_module_17.ts\n+++ b/src/clean/ts_module_17.ts\n@@ -1,3 +1,6 @@\n+/**\n+ * Execute v17_truncateText logic.\n+ */\n export function v17_truncateText(text: string, maxLen: number): string {\n     return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_docstrings",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-ts-add_docstrings-3",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_3.ts",
+    "original_code": "export function v3_truncateText(text: string, maxLen: number): string {\n    return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;\n}\n",
+    "modified_code": "/**\n * Execute v3_truncateText logic.\n */\nexport function v3_truncateText(text: string, maxLen: number): string {\n    return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;\n}\n",
+    "diff": "--- a/src/clean/ts_module_3.ts\n+++ b/src/clean/ts_module_3.ts\n@@ -1,3 +1,6 @@\n+/**\n+ * Execute v3_truncateText logic.\n+ */\n export function v3_truncateText(text: string, maxLen: number): string {\n     return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_docstrings",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-ts-add_unit_tests-21",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_21.ts",
+    "original_code": "export function v21_repeatString(str: string, count: number): string {\n    return str.repeat(count);\n}\n",
+    "modified_code": "export function v21_repeatString(str: string, count: number): string {\n    return str.repeat(count);\n}\n\n// --- Unit Tests ---\ndescribe('module execution', () => {\n    it('should initialize without error', () => {\n        expect(true).toBe(true);\n    });\n});\n",
+    "diff": "--- a/src/clean/ts_module_21.ts\n+++ b/src/clean/ts_module_21.ts\n@@ -1,3 +1,10 @@\n export function v21_repeatString(str: string, count: number): string {\n     return str.repeat(count);\n }\n+\n+// --- Unit Tests ---\n+describe('module execution', () => {\n+    it('should initialize without error', () => {\n+        expect(true).toBe(true);\n+    });\n+});\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_unit_tests",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-ts-reformat_whitespace-15",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_15.ts",
+    "original_code": "export function v15_multiplyNumbers(a: number, b: number): number {\n    const product=a*b;\n    return product;\n}\n",
+    "modified_code": "export function v15_multiplyNumbers(a: number, b: number): number {\n    const product = a*b;\n    return product;\n}\n",
+    "diff": "--- a/src/clean/ts_module_15.ts\n+++ b/src/clean/ts_module_15.ts\n@@ -1,4 +1,4 @@\n export function v15_multiplyNumbers(a: number, b: number): number {\n-    const product=a*b;\n+    const product = a*b;\n     return product;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "reformat_whitespace",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-ts-reformat_whitespace-30",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_30.ts",
+    "original_code": "export function v30_buildPath(dir: string, file: string): string {\n    const fullPath=dir+'/'+file;\n    return fullPath;\n}\n",
+    "modified_code": "export function v30_buildPath(dir: string, file: string): string {\n    const fullPath = dir+'/'+file;\n    return fullPath;\n}\n",
+    "diff": "--- a/src/clean/ts_module_30.ts\n+++ b/src/clean/ts_module_30.ts\n@@ -1,4 +1,4 @@\n export function v30_buildPath(dir: string, file: string): string {\n-    const fullPath=dir+'/'+file;\n+    const fullPath = dir+'/'+file;\n     return fullPath;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "reformat_whitespace",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-ts-safe_rename-13",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_13.ts",
+    "original_code": "export function v13_filterOdds(list: number[]): number[] {\n    const res = [];\n    for (const val of list) {\n        if (val % 2 !== 0) res.push(val);\n    }\n    return res;\n}\n",
+    "modified_code": "export function v13_filterOdds(list: number[]): number[] {\n    const result = [];\n    for (const val of list) {\n        if (val % 2 !== 0) result.push(val);\n    }\n    return result;\n}\n",
+    "diff": "--- a/src/clean/ts_module_13.ts\n+++ b/src/clean/ts_module_13.ts\n@@ -1,7 +1,7 @@\n export function v13_filterOdds(list: number[]): number[] {\n-    const res = [];\n+    const result = [];\n     for (const val of list) {\n-        if (val % 2 !== 0) res.push(val);\n+        if (val % 2 !== 0) result.push(val);\n     }\n-    return res;\n+    return result;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "safe_rename",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-ts-add_type_hints-12",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_12.ts",
+    "original_code": "export function v12_parseTimeout(msString) {\n    return parseInt(msString, 10) || 5000;\n}\n",
+    "modified_code": "export function v12_parseTimeout(msString) {\n    return parseInt(msString, 10) || 5000;\n}\n# Clean refactoring verified\n",
+    "diff": "--- a/src/clean/ts_module_12.ts\n+++ b/src/clean/ts_module_12.ts\n@@ -1,3 +1,4 @@\n export function v12_parseTimeout(msString) {\n     return parseInt(msString, 10) || 5000;\n }\n+# Clean refactoring verified\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_type_hints",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-ts-add_type_hints-33",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_33.ts",
+    "original_code": "export function v33_parseTimeout(msString) {\n    return parseInt(msString, 10) || 5000;\n}\n",
+    "modified_code": "export function v33_parseTimeout(msString) {\n    return parseInt(msString, 10) || 5000;\n}\n# Clean refactoring verified\n",
+    "diff": "--- a/src/clean/ts_module_33.ts\n+++ b/src/clean/ts_module_33.ts\n@@ -1,3 +1,4 @@\n export function v33_parseTimeout(msString) {\n     return parseInt(msString, 10) || 5000;\n }\n+# Clean refactoring verified\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_type_hints",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-ts-reformat_whitespace-22",
+    "repository": "aion/clean-controls",
+    "language": "typescript",
+    "file_path": "src/clean/ts_module_22.ts",
+    "original_code": "export function v22_multiplyNumbers(a: number, b: number): number {\n    const product=a*b;\n    return product;\n}\n",
+    "modified_code": "export function v22_multiplyNumbers(a: number, b: number): number {\n    const product = a*b;\n    return product;\n}\n",
+    "diff": "--- a/src/clean/ts_module_22.ts\n+++ b/src/clean/ts_module_22.ts\n@@ -1,4 +1,4 @@\n export function v22_multiplyNumbers(a: number, b: number): number {\n-    const product=a*b;\n+    const product = a*b;\n     return product;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "reformat_whitespace",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "inj-py-none_dereference-23",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_23.py",
+    "original_code": "def v23_extract_currency(payment):\n    return payment.get('currency', 'USD')\n",
+    "modified_code": "def v23_extract_currency(payment):\n    return payment['currency']\n",
+    "diff": "--- a/src/injected/py_vuln_23.py\n+++ b/src/injected/py_vuln_23.py\n@@ -1,2 +1,2 @@\n def v23_extract_currency(payment):\n-    return payment.get('currency', 'USD')\n+    return payment['currency']\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-none_dereference-23-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Unsafe dictionary access: removed safe .get() default, exposing payment['currency'] to KeyError.",
+        "file_path": "src/injected/py_vuln_23.py",
+        "fix_suggestion": "Use payment.get('currency', default) to guard against missing keys.",
+        "rule_id": "MUT-NONE-DEREF"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "none_dereference",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-resource_leak-27",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_27.py",
+    "original_code": "def v27_load_config_data(path):\n    with open(path, 'r', encoding='utf-8') as f:\n        return json.load(f)\n",
+    "modified_code": "def v27_load_config_data(path):\n    f = open(path, 'r', encoding='utf-8')\n        return json.load(f)\n",
+    "diff": "--- a/src/injected/py_vuln_27.py\n+++ b/src/injected/py_vuln_27.py\n@@ -1,3 +1,3 @@\n def v27_load_config_data(path):\n-    with open(path, 'r', encoding='utf-8') as f:\n+    f = open(path, 'r', encoding='utf-8')\n         return json.load(f)\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-resource_leak-27-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "performance",
+        "severity": "major",
+        "description": "Resource leak: context manager 'with open(...)' was replaced by unclosed 'f = open(...)'.",
+        "file_path": "src/injected/py_vuln_27.py",
+        "fix_suggestion": "Use 'with open(...) as f:' to ensure automatic resource cleanup.",
+        "rule_id": "MUT-RESOURCE-LEAK"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "resource_leak",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-unsafe_command_sink-38",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_38.py",
+    "original_code": "def v38_lookup_session_token(cursor, token):\n    cursor.execute('SELECT user_id FROM sessions WHERE token = ?', (token,))\n    return cursor.fetchone()\n",
+    "modified_code": "def v38_lookup_session_token(cursor, token):\n    cursor.execute(f\"SELECT user_id FROM sessions WHERE token = {token}\")\n    return cursor.fetchone()\n",
+    "diff": "--- a/src/injected/py_vuln_38.py\n+++ b/src/injected/py_vuln_38.py\n@@ -1,3 +1,3 @@\n def v38_lookup_session_token(cursor, token):\n-    cursor.execute('SELECT user_id FROM sessions WHERE token = ?', (token,))\n+    cursor.execute(f\"SELECT user_id FROM sessions WHERE token = {token}\")\n     return cursor.fetchone()\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-unsafe_command_sink-38-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "security",
+        "severity": "critical",
+        "description": "SQL Injection vulnerability: parameterized query converted to f-string interpolation.",
+        "file_path": "src/injected/py_vuln_38.py",
+        "fix_suggestion": "Use parameterized query (? or %s) with argument tuple instead of f-string.",
+        "rule_id": "MUT-UNSAFE-SINK"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "unsafe_command_sink",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-resource_leak-32",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_32.py",
+    "original_code": "def v32_append_audit_log(log_path, entry):\n    with open(log_path, 'a', encoding='utf-8') as f:\n        f.write(entry + '\\n')\n",
+    "modified_code": "def v32_append_audit_log(log_path, entry):\n    f = open(log_path, 'a', encoding='utf-8')\n        f.write(entry + '\\n')\n",
+    "diff": "--- a/src/injected/py_vuln_32.py\n+++ b/src/injected/py_vuln_32.py\n@@ -1,3 +1,3 @@\n def v32_append_audit_log(log_path, entry):\n-    with open(log_path, 'a', encoding='utf-8') as f:\n+    f = open(log_path, 'a', encoding='utf-8')\n         f.write(entry + '\\n')\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-resource_leak-32-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "performance",
+        "severity": "major",
+        "description": "Resource leak: context manager 'with open(...)' was replaced by unclosed 'f = open(...)'.",
+        "file_path": "src/injected/py_vuln_32.py",
+        "fix_suggestion": "Use 'with open(...) as f:' to ensure automatic resource cleanup.",
+        "rule_id": "MUT-RESOURCE-LEAK"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "resource_leak",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-invert_comparison-7",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_7.py",
+    "original_code": "def v7_verify_checksum(calc, expected):\n    if calc == expected:\n        return True\n    return False\n",
+    "modified_code": "def v7_verify_checksum(calc, expected):\n    if calc != expected:\n        return True\n    return False\n",
+    "diff": "--- a/src/injected/py_vuln_7.py\n+++ b/src/injected/py_vuln_7.py\n@@ -1,4 +1,4 @@\n def v7_verify_checksum(calc, expected):\n-    if calc == expected:\n+    if calc != expected:\n         return True\n     return False\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-invert_comparison-7-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Inverted comparison operator: Changed '==' to '!=', reversing branch logic.",
+        "file_path": "src/injected/py_vuln_7.py",
+        "fix_suggestion": "Restore original operator.",
+        "rule_id": "MUT-INVERT-COMP"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "invert_comparison",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-none_dereference-59",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_59.py",
+    "original_code": "def v59_read_header(headers):\n    return headers.get('authorization', 'Bearer anonymous')\n",
+    "modified_code": "def v59_read_header(headers):\n    return headers['authorization']\n",
+    "diff": "--- a/src/injected/py_vuln_59.py\n+++ b/src/injected/py_vuln_59.py\n@@ -1,2 +1,2 @@\n def v59_read_header(headers):\n-    return headers.get('authorization', 'Bearer anonymous')\n+    return headers['authorization']\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-none_dereference-59-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Unsafe dictionary access: removed safe .get() default, exposing headers['authorization'] to KeyError.",
+        "file_path": "src/injected/py_vuln_59.py",
+        "fix_suggestion": "Use headers.get('authorization', default) to guard against missing keys.",
+        "rule_id": "MUT-NONE-DEREF"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "none_dereference",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-off_by_one-11",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_11.py",
+    "original_code": "def v11_get_matrix_row(matrix, idx):\n    if idx < len(matrix):\n        return matrix[idx]\n    return None\n",
+    "modified_code": "def v11_get_matrix_row(matrix, idx):\n    if idx <= len(matrix):\n        return matrix[idx]\n    return None\n",
+    "diff": "--- a/src/injected/py_vuln_11.py\n+++ b/src/injected/py_vuln_11.py\n@@ -1,4 +1,4 @@\n def v11_get_matrix_row(matrix, idx):\n-    if idx < len(matrix):\n+    if idx <= len(matrix):\n         return matrix[idx]\n     return None\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-off_by_one-11-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Off-by-one error: '<= len(...)' exceeds collection size by 1.",
+        "file_path": "src/injected/py_vuln_11.py",
+        "fix_suggestion": "Use '< len(...)' instead of '<= len(...)'.",
+        "rule_id": "MUT-OFF-BY-ONE"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "off_by_one",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-invert_comparison-48",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_48.py",
+    "original_code": "def v48_check_retry_count(attempt, max_attempts):\n    if attempt <= max_attempts:\n        return True\n    return False\n",
+    "modified_code": "def v48_check_retry_count(attempt, max_attempts):\n    if attempt > max_attempts:\n        return True\n    return False\n",
+    "diff": "--- a/src/injected/py_vuln_48.py\n+++ b/src/injected/py_vuln_48.py\n@@ -1,4 +1,4 @@\n def v48_check_retry_count(attempt, max_attempts):\n-    if attempt <= max_attempts:\n+    if attempt > max_attempts:\n         return True\n     return False\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-invert_comparison-48-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Inverted comparison operator: Changed '<=' to '>', reversing branch logic.",
+        "file_path": "src/injected/py_vuln_48.py",
+        "fix_suggestion": "Restore original operator.",
+        "rule_id": "MUT-INVERT-COMP"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "invert_comparison",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-invert_comparison-42",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_42.py",
+    "original_code": "def v42_check_credit(score, min_required):\n    if score > min_required:\n        return 'approved'\n    return 'denied'\n",
+    "modified_code": "def v42_check_credit(score, min_required):\n    if score <= min_required:\n        return 'approved'\n    return 'denied'\n",
+    "diff": "--- a/src/injected/py_vuln_42.py\n+++ b/src/injected/py_vuln_42.py\n@@ -1,4 +1,4 @@\n def v42_check_credit(score, min_required):\n-    if score > min_required:\n+    if score <= min_required:\n         return 'approved'\n     return 'denied'\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-invert_comparison-42-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Inverted comparison operator: Changed '>' to '<=', reversing branch logic.",
+        "file_path": "src/injected/py_vuln_42.py",
+        "fix_suggestion": "Restore original operator.",
+        "rule_id": "MUT-INVERT-COMP"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "invert_comparison",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-off_by_one-12",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_12.py",
+    "original_code": "def v12_print_buffer(buffer):\n    for i in range(len(buffer)):\n        sys.stdout.write(buffer[i])\n",
+    "modified_code": "def v12_print_buffer(buffer):\n    for i in range(len(buffer) + 1):\n        sys.stdout.write(buffer[i])\n",
+    "diff": "--- a/src/injected/py_vuln_12.py\n+++ b/src/injected/py_vuln_12.py\n@@ -1,3 +1,3 @@\n def v12_print_buffer(buffer):\n-    for i in range(len(buffer)):\n+    for i in range(len(buffer) + 1):\n         sys.stdout.write(buffer[i])\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-off_by_one-12-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Off-by-one boundary error in range(len(...) + 1) causes IndexError out of bounds.",
+        "file_path": "src/injected/py_vuln_12.py",
+        "fix_suggestion": "Use range(len(...)) without the + 1 addition.",
+        "rule_id": "MUT-OFF-BY-ONE"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "off_by_one",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-off_by_one-57",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_57.py",
+    "original_code": "def v57_fetch_window(stream, window_len):\n    for i in range(len(stream)):\n        emit(stream[i])\n",
+    "modified_code": "def v57_fetch_window(stream, window_len):\n    for i in range(len(stream) + 1):\n        emit(stream[i])\n",
+    "diff": "--- a/src/injected/py_vuln_57.py\n+++ b/src/injected/py_vuln_57.py\n@@ -1,3 +1,3 @@\n def v57_fetch_window(stream, window_len):\n-    for i in range(len(stream)):\n+    for i in range(len(stream) + 1):\n         emit(stream[i])\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-off_by_one-57-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Off-by-one boundary error in range(len(...) + 1) causes IndexError out of bounds.",
+        "file_path": "src/injected/py_vuln_57.py",
+        "fix_suggestion": "Use range(len(...)) without the + 1 addition.",
+        "rule_id": "MUT-OFF-BY-ONE"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "off_by_one",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-unsafe_command_sink-33",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_33.py",
+    "original_code": "import subprocess\ndef v33_execute_tar(archive, target_dir):\n    return subprocess.run(['tar', '-xzf', archive, '-C', target_dir], check=True)\n",
+    "modified_code": "import subprocess\ndef v33_execute_tar(archive, target_dir):\n    return subprocess.run('tar' + ' ' + '-xzf' + ' ' + archive + ' ' + '-C' + ' ' + target_dir, shell=True, check=True)\n",
+    "diff": "--- a/src/injected/py_vuln_33.py\n+++ b/src/injected/py_vuln_33.py\n@@ -1,3 +1,3 @@\n import subprocess\n def v33_execute_tar(archive, target_dir):\n-    return subprocess.run(['tar', '-xzf', archive, '-C', target_dir], check=True)\n+    return subprocess.run('tar' + ' ' + '-xzf' + ' ' + archive + ' ' + '-C' + ' ' + target_dir, shell=True, check=True)\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-unsafe_command_sink-33-1",
+        "line_start": 3,
+        "line_end": 3,
+        "category": "security",
+        "severity": "critical",
+        "description": "Command injection vulnerability: subprocess executed with shell=True and dynamic arguments.",
+        "file_path": "src/injected/py_vuln_33.py",
+        "fix_suggestion": "Pass arguments as a list without shell=True to avoid command injection.",
+        "rule_id": "MUT-UNSAFE-SINK"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "unsafe_command_sink",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-none_dereference-22",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_22.py",
+    "original_code": "def v22_retrieve_cache_ttl(options):\n    return options.get('ttl', 300)\n",
+    "modified_code": "def v22_retrieve_cache_ttl(options):\n    return options['ttl']\n",
+    "diff": "--- a/src/injected/py_vuln_22.py\n+++ b/src/injected/py_vuln_22.py\n@@ -1,2 +1,2 @@\n def v22_retrieve_cache_ttl(options):\n-    return options.get('ttl', 300)\n+    return options['ttl']\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-none_dereference-22-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Unsafe dictionary access: removed safe .get() default, exposing options['ttl'] to KeyError.",
+        "file_path": "src/injected/py_vuln_22.py",
+        "fix_suggestion": "Use options.get('ttl', default) to guard against missing keys.",
+        "rule_id": "MUT-NONE-DEREF"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "none_dereference",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-none_dereference-25",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_25.py",
+    "original_code": "def v25_get_page_limit(params):\n    return params.get('limit', 50)\n",
+    "modified_code": "def v25_get_page_limit(params):\n    return params['limit']\n",
+    "diff": "--- a/src/injected/py_vuln_25.py\n+++ b/src/injected/py_vuln_25.py\n@@ -1,2 +1,2 @@\n def v25_get_page_limit(params):\n-    return params.get('limit', 50)\n+    return params['limit']\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-none_dereference-25-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Unsafe dictionary access: removed safe .get() default, exposing params['limit'] to KeyError.",
+        "file_path": "src/injected/py_vuln_25.py",
+        "fix_suggestion": "Use params.get('limit', default) to guard against missing keys.",
+        "rule_id": "MUT-NONE-DEREF"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "none_dereference",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-py-none_dereference-19",
+    "repository": "aion/synthetic-bench",
+    "language": "python",
+    "file_path": "src/injected/py_vuln_19.py",
+    "original_code": "def v19_read_header(headers):\n    return headers.get('authorization', 'Bearer anonymous')\n",
+    "modified_code": "def v19_read_header(headers):\n    return headers['authorization']\n",
+    "diff": "--- a/src/injected/py_vuln_19.py\n+++ b/src/injected/py_vuln_19.py\n@@ -1,2 +1,2 @@\n def v19_read_header(headers):\n-    return headers.get('authorization', 'Bearer anonymous')\n+    return headers['authorization']\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-py-none_dereference-19-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Unsafe dictionary access: removed safe .get() default, exposing headers['authorization'] to KeyError.",
+        "file_path": "src/injected/py_vuln_19.py",
+        "fix_suggestion": "Use headers.get('authorization', default) to guard against missing keys.",
+        "rule_id": "MUT-NONE-DEREF"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "none_dereference",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "mined-py-pandas-08",
+    "repository": "pandas-dev/pandas",
+    "language": "python",
+    "file_path": "pandas/core/algorithms.py",
+    "original_code": "def unique(values):\n    table = set()\n    return [x for x in values if not (x in table or table.add(x))]\n",
+    "modified_code": "def unique(values):\n    table = set()\n    result = []\n    for x in values:\n        if x not in table:\n            table.add(x)\n            result.append(x)\n    return result\n",
+    "diff": "--- a/pandas/core/algorithms.py\n+++ b/pandas/core/algorithms.py\n@@ -1,3 +1,8 @@\n def unique(values):\n     table = set()\n-    return [x for x in values if not (x in table or table.add(x))]\n+    result = []\n+    for x in values:\n+        if x not in table:\n+            table.add(x)\n+            result.append(x)\n+    return result\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-py-pandas-08-1",
+        "line_start": 3,
+        "line_end": 3,
+        "category": "bug",
+        "severity": "major",
+        "description": "Side-effect inside list comprehension comprehension is brittle and non-idiomatic; refactor to loop.",
+        "file_path": "pandas/core/algorithms.py",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 25100,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-py-typer-26",
+    "repository": "tiangolo/typer",
+    "language": "python",
+    "file_path": "typer/main.py",
+    "original_code": "def get_param_default(param):\n    if param.default:\n        return param.default\n    return None\n",
+    "modified_code": "def get_param_default(param):\n    if param.default is not inspect.Parameter.empty:\n        return param.default\n    return None\n",
+    "diff": "--- a/typer/main.py\n+++ b/typer/main.py\n@@ -1,4 +1,4 @@\n def get_param_default(param):\n-    if param.default:\n+    if param.default is not inspect.Parameter.empty:\n         return param.default\n     return None\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-py-typer-26-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Boolean flags with default=False are treated as empty because bool(False) is False. Compare with Parameter.empty.",
+        "file_path": "typer/main.py",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 412,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-py-sqlalchemy-05",
+    "repository": "sqlalchemy/sqlalchemy",
+    "language": "python",
+    "file_path": "sqlalchemy/engine/base.py",
+    "original_code": "def execute(self, statement, *multiparams, **params):\n    cursor = self.connection.cursor()\n    return cursor.execute(statement)\n",
+    "modified_code": "def execute(self, statement, *multiparams, **params):\n    cursor = self.connection.cursor()\n    try:\n        return cursor.execute(statement, *multiparams, **params)\n    except Exception:\n        cursor.close()\n        raise\n",
+    "diff": "--- a/sqlalchemy/engine/base.py\n+++ b/sqlalchemy/engine/base.py\n@@ -1,3 +1,7 @@\n def execute(self, statement, *multiparams, **params):\n     cursor = self.connection.cursor()\n-    return cursor.execute(statement)\n+    try:\n+        return cursor.execute(statement, *multiparams, **params)\n+    except Exception:\n+        cursor.close()\n+        raise\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-py-sqlalchemy-05-1",
+        "line_start": 3,
+        "line_end": 3,
+        "category": "performance",
+        "severity": "major",
+        "description": "Cursor leak: cursor is not closed when statement execution fails with an exception.",
+        "file_path": "sqlalchemy/engine/base.py",
+        "fix_suggestion": null,
+        "rule_id": "MINED-PERF-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 4310,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-py-pydantic-09",
+    "repository": "pydantic/pydantic",
+    "language": "python",
+    "file_path": "pydantic/validators.py",
+    "original_code": "def parse_int(v):\n    return int(v)\n",
+    "modified_code": "def parse_int(v):\n    try:\n        return int(v)\n    except (ValueError, TypeError) as e:\n        raise ValueError(f'Cannot parse integer from {v!r}') from e\n",
+    "diff": "--- a/pydantic/validators.py\n+++ b/pydantic/validators.py\n@@ -1,2 +1,5 @@\n def parse_int(v):\n-    return int(v)\n+    try:\n+        return int(v)\n+    except (ValueError, TypeError) as e:\n+        raise ValueError(f'Cannot parse integer from {v!r}') from e\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-py-pydantic-09-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Direct int(v) exposes internal TypeError. Raise pydantic-friendly ValueError with clear message.",
+        "file_path": "pydantic/validators.py",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 2104,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-py-scipy-28",
+    "repository": "scipy/scipy",
+    "language": "python",
+    "file_path": "scipy/spatial/distance.py",
+    "original_code": "def cosine_similarity(u, v):\n    return np.dot(u, v) / (norm(u) * norm(v))\n",
+    "modified_code": "def cosine_similarity(u, v):\n    denom = norm(u) * norm(v)\n    if denom == 0.0:\n        return 0.0\n    return np.dot(u, v) / denom\n",
+    "diff": "--- a/scipy/spatial/distance.py\n+++ b/scipy/spatial/distance.py\n@@ -1,2 +1,5 @@\n def cosine_similarity(u, v):\n-    return np.dot(u, v) / (norm(u) * norm(v))\n+    denom = norm(u) * norm(v)\n+    if denom == 0.0:\n+        return 0.0\n+    return np.dot(u, v) / denom\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-py-scipy-28-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "major",
+        "description": "Zero division error: norm(u) * norm(v) evaluates to zero when either vector is all zeros. Add zero check.",
+        "file_path": "scipy/spatial/distance.py",
+        "fix_suggestion": null,
+        "rule_id": "MINED-BUG-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 14210,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "mined-py-ansible-30",
+    "repository": "ansible/ansible",
+    "language": "python",
+    "file_path": "lib/ansible/modules/system.py",
+    "original_code": "def run_command(module, cmd):\n    return module.run_command(f'/bin/sh -c \"{cmd}\"')\n",
+    "modified_code": "def run_command(module, cmd):\n    if isinstance(cmd, str):\n        cmd = shlex.split(cmd)\n    return module.run_command(cmd, use_unsafe_shell=False)\n",
+    "diff": "--- a/lib/ansible/modules/system.py\n+++ b/lib/ansible/modules/system.py\n@@ -1,2 +1,4 @@\n def run_command(module, cmd):\n-    return module.run_command(f'/bin/sh -c \"{cmd}\"')\n+    if isinstance(cmd, str):\n+        cmd = shlex.split(cmd)\n+    return module.run_command(cmd, use_unsafe_shell=False)\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-mined-py-ansible-30-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "security",
+        "severity": "critical",
+        "description": "Arbitrary command execution vulnerability. Do not interpolate user commands into raw shell wrapper.",
+        "file_path": "lib/ansible/modules/system.py",
+        "fix_suggestion": null,
+        "rule_id": "MINED-SEC-01"
+      }
+    ],
+    "metadata": {
+      "source": "mined_pr_review",
+      "pr_number": 71200,
+      "commit_hash": null
+    }
+  },
+  {
+    "case_id": "inj-ts-missing_await-9",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_9.ts",
+    "original_code": "export async function v9_getDocumentById(docId: string): Promise<Doc> {\n    const doc = await repository.fetch(docId);\n    return doc;\n}\n",
+    "modified_code": "export async function v9_getDocumentById(docId: string): Promise<Doc> {\n    const doc = repository.fetch(docId);\n    return doc;\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_9.ts\n+++ b/src/injected/ts_vuln_9.ts\n@@ -1,4 +1,4 @@\n export async function v9_getDocumentById(docId: string): Promise<Doc> {\n-    const doc = await repository.fetch(docId);\n+    const doc = repository.fetch(docId);\n     return doc;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-missing_await-9-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Missing 'await' keyword on asynchronous function call; returns pending Promise instead of value.",
+        "file_path": "src/injected/ts_vuln_9.ts",
+        "fix_suggestion": "Prepend 'await' to resolve the returned Promise.",
+        "rule_id": "MUT-JS-MISSING-AWAIT"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "missing_await",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-missing_await-15",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_15.ts",
+    "original_code": "export async function v15_refreshAccessToken(refreshToken: string): Promise<string> {\n    const newToken = await auth.refresh(refreshToken);\n    return newToken;\n}\n",
+    "modified_code": "export async function v15_refreshAccessToken(refreshToken: string): Promise<string> {\n    const newToken = auth.refresh(refreshToken);\n    return newToken;\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_15.ts\n+++ b/src/injected/ts_vuln_15.ts\n@@ -1,4 +1,4 @@\n export async function v15_refreshAccessToken(refreshToken: string): Promise<string> {\n-    const newToken = await auth.refresh(refreshToken);\n+    const newToken = auth.refresh(refreshToken);\n     return newToken;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-missing_await-15-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Missing 'await' keyword on asynchronous function call; returns pending Promise instead of value.",
+        "file_path": "src/injected/ts_vuln_15.ts",
+        "fix_suggestion": "Prepend 'await' to resolve the returned Promise.",
+        "rule_id": "MUT-JS-MISSING-AWAIT"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "missing_await",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-missing_await-31",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_31.ts",
+    "original_code": "export async function v31_queryAccountBalance(id: string): Promise<number> {\n    const bal = await ledger.getBalance(id);\n    return bal;\n}\n",
+    "modified_code": "export async function v31_queryAccountBalance(id: string): Promise<number> {\n    const bal = ledger.getBalance(id);\n    return bal;\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_31.ts\n+++ b/src/injected/ts_vuln_31.ts\n@@ -1,4 +1,4 @@\n export async function v31_queryAccountBalance(id: string): Promise<number> {\n-    const bal = await ledger.getBalance(id);\n+    const bal = ledger.getBalance(id);\n     return bal;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-missing_await-31-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Missing 'await' keyword on asynchronous function call; returns pending Promise instead of value.",
+        "file_path": "src/injected/ts_vuln_31.ts",
+        "fix_suggestion": "Prepend 'await' to resolve the returned Promise.",
+        "rule_id": "MUT-JS-MISSING-AWAIT"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "missing_await",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-loose_equality-62",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_62.ts",
+    "original_code": "export function v62_isCompleted(status: string): boolean {\n    return status === 'completed';\n}\n",
+    "modified_code": "export function v62_isCompleted(status: string): boolean {\n    return status == 'completed';\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_62.ts\n+++ b/src/injected/ts_vuln_62.ts\n@@ -1,3 +1,3 @@\n export function v62_isCompleted(status: string): boolean {\n-    return status === 'completed';\n+    return status == 'completed';\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-loose_equality-62-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "minor",
+        "description": "Loose equality operator '==' used instead of strict '===', risking type coercion bugs.",
+        "file_path": "src/injected/ts_vuln_62.ts",
+        "fix_suggestion": "Use strict equality '===' to avoid unexpected coercion.",
+        "rule_id": "MUT-JS-LOOSE-EQ"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "loose_equality",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-loose_equality-8",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_8.ts",
+    "original_code": "export function v8_matchesTarget(a: string, b: string): boolean {\n    return a !== b;\n}\n",
+    "modified_code": "export function v8_matchesTarget(a: string, b: string): boolean {\n    return a != b;\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_8.ts\n+++ b/src/injected/ts_vuln_8.ts\n@@ -1,3 +1,3 @@\n export function v8_matchesTarget(a: string, b: string): boolean {\n-    return a !== b;\n+    return a != b;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-loose_equality-8-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "minor",
+        "description": "Loose inequality operator '!=' used instead of strict '!==', risking type coercion bugs.",
+        "file_path": "src/injected/ts_vuln_8.ts",
+        "fix_suggestion": "Use strict inequality '!==' to avoid unexpected coercion.",
+        "rule_id": "MUT-JS-LOOSE-EQ"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "loose_equality",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-missing_await-55",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_55.ts",
+    "original_code": "export async function v55_refreshAccessToken(refreshToken: string): Promise<string> {\n    const newToken = await auth.refresh(refreshToken);\n    return newToken;\n}\n",
+    "modified_code": "export async function v55_refreshAccessToken(refreshToken: string): Promise<string> {\n    const newToken = auth.refresh(refreshToken);\n    return newToken;\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_55.ts\n+++ b/src/injected/ts_vuln_55.ts\n@@ -1,4 +1,4 @@\n export async function v55_refreshAccessToken(refreshToken: string): Promise<string> {\n-    const newToken = await auth.refresh(refreshToken);\n+    const newToken = auth.refresh(refreshToken);\n     return newToken;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-missing_await-55-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Missing 'await' keyword on asynchronous function call; returns pending Promise instead of value.",
+        "file_path": "src/injected/ts_vuln_55.ts",
+        "fix_suggestion": "Prepend 'await' to resolve the returned Promise.",
+        "rule_id": "MUT-JS-MISSING-AWAIT"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "missing_await",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-loose_equality-44",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_44.ts",
+    "original_code": "export function v44_checkUserRole(role: string): boolean {\n    return role === 'admin';\n}\n",
+    "modified_code": "export function v44_checkUserRole(role: string): boolean {\n    return role == 'admin';\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_44.ts\n+++ b/src/injected/ts_vuln_44.ts\n@@ -1,3 +1,3 @@\n export function v44_checkUserRole(role: string): boolean {\n-    return role === 'admin';\n+    return role == 'admin';\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-loose_equality-44-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "minor",
+        "description": "Loose equality operator '==' used instead of strict '===', risking type coercion bugs.",
+        "file_path": "src/injected/ts_vuln_44.ts",
+        "fix_suggestion": "Use strict equality '===' to avoid unexpected coercion.",
+        "rule_id": "MUT-JS-LOOSE-EQ"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "loose_equality",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-unhandled_promise-39",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_39.ts",
+    "original_code": "export function v39_flushEventBuffer(events: Event[]): void {\n    sink.send(events)\n        .then(() => markSent())\n        .catch(err => retryBuffer(err));\n}\n",
+    "modified_code": "export function v39_flushEventBuffer(events: Event[]): void {\n    sink.send(events)\n        .then(() => markSent())\n        );\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_39.ts\n+++ b/src/injected/ts_vuln_39.ts\n@@ -1,5 +1,5 @@\n export function v39_flushEventBuffer(events: Event[]): void {\n     sink.send(events)\n         .then(() => markSent())\n-        .catch(err => retryBuffer(err));\n+        );\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-unhandled_promise-39-1",
+        "line_start": 4,
+        "line_end": 4,
+        "category": "bug",
+        "severity": "major",
+        "description": "Unhandled Promise rejection: removed '.catch()' handler from Promise chain.",
+        "file_path": "src/injected/ts_vuln_39.ts",
+        "fix_suggestion": "Attach a '.catch()' error handler to catch and handle Promise rejections.",
+        "rule_id": "MUT-JS-UNHANDLED-PROMISE"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "unhandled_promise",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-missing_await-16",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_16.ts",
+    "original_code": "export async function v16_invalidateCacheKey(key: string): Promise<void> {\n    await cache.delete(key);\n    console.log('Evicted');\n}\n",
+    "modified_code": "export async function v16_invalidateCacheKey(key: string): Promise<void> {\n    cache.delete(key);\n    console.log('Evicted');\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_16.ts\n+++ b/src/injected/ts_vuln_16.ts\n@@ -1,4 +1,4 @@\n export async function v16_invalidateCacheKey(key: string): Promise<void> {\n-    await cache.delete(key);\n+    cache.delete(key);\n     console.log('Evicted');\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-missing_await-16-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Missing 'await' keyword on asynchronous function call; returns pending Promise instead of value.",
+        "file_path": "src/injected/ts_vuln_16.ts",
+        "fix_suggestion": "Prepend 'await' to resolve the returned Promise.",
+        "rule_id": "MUT-JS-MISSING-AWAIT"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "missing_await",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-loose_equality-42",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_42.ts",
+    "original_code": "export function v42_isCompleted(status: string): boolean {\n    return status === 'completed';\n}\n",
+    "modified_code": "export function v42_isCompleted(status: string): boolean {\n    return status == 'completed';\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_42.ts\n+++ b/src/injected/ts_vuln_42.ts\n@@ -1,3 +1,3 @@\n export function v42_isCompleted(status: string): boolean {\n-    return status === 'completed';\n+    return status == 'completed';\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-loose_equality-42-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "minor",
+        "description": "Loose equality operator '==' used instead of strict '===', risking type coercion bugs.",
+        "file_path": "src/injected/ts_vuln_42.ts",
+        "fix_suggestion": "Use strict equality '===' to avoid unexpected coercion.",
+        "rule_id": "MUT-JS-LOOSE-EQ"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "loose_equality",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-loose_equality-21",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_21.ts",
+    "original_code": "export function v21_isAuthorizedUser(token: string, secret: string): boolean {\n    return token === secret;\n}\n",
+    "modified_code": "export function v21_isAuthorizedUser(token: string, secret: string): boolean {\n    return token == secret;\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_21.ts\n+++ b/src/injected/ts_vuln_21.ts\n@@ -1,3 +1,3 @@\n export function v21_isAuthorizedUser(token: string, secret: string): boolean {\n-    return token === secret;\n+    return token == secret;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-loose_equality-21-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "minor",
+        "description": "Loose equality operator '==' used instead of strict '===', risking type coercion bugs.",
+        "file_path": "src/injected/ts_vuln_21.ts",
+        "fix_suggestion": "Use strict equality '===' to avoid unexpected coercion.",
+        "rule_id": "MUT-JS-LOOSE-EQ"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "loose_equality",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-loose_equality-6",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_6.ts",
+    "original_code": "export function v6_isZero(val: number): boolean {\n    return val === 0;\n}\n",
+    "modified_code": "export function v6_isZero(val: number): boolean {\n    return val == 0;\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_6.ts\n+++ b/src/injected/ts_vuln_6.ts\n@@ -1,3 +1,3 @@\n export function v6_isZero(val: number): boolean {\n-    return val === 0;\n+    return val == 0;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-loose_equality-6-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "minor",
+        "description": "Loose equality operator '==' used instead of strict '===', risking type coercion bugs.",
+        "file_path": "src/injected/ts_vuln_6.ts",
+        "fix_suggestion": "Use strict equality '===' to avoid unexpected coercion.",
+        "rule_id": "MUT-JS-LOOSE-EQ"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "loose_equality",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-missing_await-11",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_11.ts",
+    "original_code": "export async function v11_queryAccountBalance(id: string): Promise<number> {\n    const bal = await ledger.getBalance(id);\n    return bal;\n}\n",
+    "modified_code": "export async function v11_queryAccountBalance(id: string): Promise<number> {\n    const bal = ledger.getBalance(id);\n    return bal;\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_11.ts\n+++ b/src/injected/ts_vuln_11.ts\n@@ -1,4 +1,4 @@\n export async function v11_queryAccountBalance(id: string): Promise<number> {\n-    const bal = await ledger.getBalance(id);\n+    const bal = ledger.getBalance(id);\n     return bal;\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-missing_await-11-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "critical",
+        "description": "Missing 'await' keyword on asynchronous function call; returns pending Promise instead of value.",
+        "file_path": "src/injected/ts_vuln_11.ts",
+        "fix_suggestion": "Prepend 'await' to resolve the returned Promise.",
+        "rule_id": "MUT-JS-MISSING-AWAIT"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "missing_await",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-loose_equality-24",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_24.ts",
+    "original_code": "export function v24_checkUserRole(role: string): boolean {\n    return role === 'admin';\n}\n",
+    "modified_code": "export function v24_checkUserRole(role: string): boolean {\n    return role == 'admin';\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_24.ts\n+++ b/src/injected/ts_vuln_24.ts\n@@ -1,3 +1,3 @@\n export function v24_checkUserRole(role: string): boolean {\n-    return role === 'admin';\n+    return role == 'admin';\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-loose_equality-24-1",
+        "line_start": 2,
+        "line_end": 2,
+        "category": "bug",
+        "severity": "minor",
+        "description": "Loose equality operator '==' used instead of strict '===', risking type coercion bugs.",
+        "file_path": "src/injected/ts_vuln_24.ts",
+        "fix_suggestion": "Use strict equality '===' to avoid unexpected coercion.",
+        "rule_id": "MUT-JS-LOOSE-EQ"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "loose_equality",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "inj-ts-unhandled_promise-37",
+    "repository": "aion/synthetic-bench",
+    "language": "typescript",
+    "file_path": "src/injected/ts_vuln_37.ts",
+    "original_code": "export function v37_initializeDatabase(): void {\n    db.connect()\n        .then(() => logger.info('DB connected'))\n        .catch(err => logger.error('DB failed', err));\n}\n",
+    "modified_code": "export function v37_initializeDatabase(): void {\n    db.connect()\n        .then(() => logger.info('DB connected'))\n        );\n}\n",
+    "diff": "--- a/src/injected/ts_vuln_37.ts\n+++ b/src/injected/ts_vuln_37.ts\n@@ -1,5 +1,5 @@\n export function v37_initializeDatabase(): void {\n     db.connect()\n         .then(() => logger.info('DB connected'))\n-        .catch(err => logger.error('DB failed', err));\n+        );\n }\n",
+    "split": "test_locked",
+    "is_clean_diff": false,
+    "ground_truth": [
+      {
+        "finding_id": "gt-inj-ts-unhandled_promise-37-1",
+        "line_start": 4,
+        "line_end": 4,
+        "category": "bug",
+        "severity": "major",
+        "description": "Unhandled Promise rejection: removed '.catch()' handler from Promise chain.",
+        "file_path": "src/injected/ts_vuln_37.ts",
+        "fix_suggestion": "Attach a '.catch()' error handler to catch and handle Promise rejections.",
+        "rule_id": "MUT-JS-UNHANDLED-PROMISE"
+      }
+    ],
+    "metadata": {
+      "mutation_operator": "unhandled_promise",
+      "synthesizer": "BugInjector"
+    }
+  },
+  {
+    "case_id": "clean-py-add_type_hints-21",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_21.py",
+    "original_code": "def v21_greet_user(username):\n    return f'Welcome, {username}'\n",
+    "modified_code": "def v21_greet_user(username: Any) -> Any:\n    return f'Welcome, {username}'\n",
+    "diff": "--- a/src/clean/py_module_21.py\n+++ b/src/clean/py_module_21.py\n@@ -1,2 +1,2 @@\n-def v21_greet_user(username):\n+def v21_greet_user(username: Any) -> Any:\n     return f'Welcome, {username}'\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_type_hints",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-py-add_unit_tests-14",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_14.py",
+    "original_code": "def v14_reverse_string(s):\n    return s[::-1]\n",
+    "modified_code": "def v14_reverse_string(s):\n    return s[::-1]\n\n# --- Unit Tests ---\ndef test_module_behavior():\n    \"\"\"Verify basic module functions execute without exceptions.\"\"\"\n    assert True\n",
+    "diff": "--- a/src/clean/py_module_14.py\n+++ b/src/clean/py_module_14.py\n@@ -1,2 +1,7 @@\n def v14_reverse_string(s):\n     return s[::-1]\n+\n+# --- Unit Tests ---\n+def test_module_behavior():\n+    \"\"\"Verify basic module functions execute without exceptions.\"\"\"\n+    assert True\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_unit_tests",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-py-add_docstrings-5",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_5.py",
+    "original_code": "def v5_normalize_slug(text):\n    return re.sub(r'[^a-zA-Z0-9]+', '-', text).strip('-').lower()\n",
+    "modified_code": "def v5_normalize_slug(text):\n    \"\"\"Perform v5 normalize slug operation.\"\"\"\n    return re.sub(r'[^a-zA-Z0-9]+', '-', text).strip('-').lower()\n",
+    "diff": "--- a/src/clean/py_module_5.py\n+++ b/src/clean/py_module_5.py\n@@ -1,2 +1,3 @@\n def v5_normalize_slug(text):\n+    \"\"\"Perform v5 normalize slug operation.\"\"\"\n     return re.sub(r'[^a-zA-Z0-9]+', '-', text).strip('-').lower()\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_docstrings",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-py-add_type_hints-36",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_36.py",
+    "original_code": "def v36_calculate_discount(price, pct):\n    return price * (1.0 - pct)\n",
+    "modified_code": "def v36_calculate_discount(price: Any, pct: Any) -> Any:\n    return price * (1.0 - pct)\n",
+    "diff": "--- a/src/clean/py_module_36.py\n+++ b/src/clean/py_module_36.py\n@@ -1,2 +1,2 @@\n-def v36_calculate_discount(price, pct):\n+def v36_calculate_discount(price: Any, pct: Any) -> Any:\n     return price * (1.0 - pct)\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_type_hints",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-py-add_docstrings-20",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_20.py",
+    "original_code": "def v20_compute_hypotenuse(a, b):\n    return math.sqrt(a**2 + b**2)\n",
+    "modified_code": "def v20_compute_hypotenuse(a, b):\n    \"\"\"Perform v20 compute hypotenuse operation.\"\"\"\n    return math.sqrt(a**2 + b**2)\n",
+    "diff": "--- a/src/clean/py_module_20.py\n+++ b/src/clean/py_module_20.py\n@@ -1,2 +1,3 @@\n def v20_compute_hypotenuse(a, b):\n+    \"\"\"Perform v20 compute hypotenuse operation.\"\"\"\n     return math.sqrt(a**2 + b**2)\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_docstrings",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-py-reformat_whitespace-17",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_17.py",
+    "original_code": "def v17_calculate_ratio(numerator, denominator):\n    ratio=numerator/denominator if denominator!=0 else 0.0\n    return ratio\n",
+    "modified_code": "def v17_calculate_ratio(numerator, denominator):\n    ratio = numerator/denominator if denominator!=0 else 0.0\n    return ratio\n",
+    "diff": "--- a/src/clean/py_module_17.py\n+++ b/src/clean/py_module_17.py\n@@ -1,3 +1,3 @@\n def v17_calculate_ratio(numerator, denominator):\n-    ratio=numerator/denominator if denominator!=0 else 0.0\n+    ratio = numerator/denominator if denominator!=0 else 0.0\n     return ratio\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "reformat_whitespace",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-py-add_docstrings-33",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_33.py",
+    "original_code": "def v33_normalize_slug(text):\n    return re.sub(r'[^a-zA-Z0-9]+', '-', text).strip('-').lower()\n",
+    "modified_code": "def v33_normalize_slug(text):\n    \"\"\"Perform v33 normalize slug operation.\"\"\"\n    return re.sub(r'[^a-zA-Z0-9]+', '-', text).strip('-').lower()\n",
+    "diff": "--- a/src/clean/py_module_33.py\n+++ b/src/clean/py_module_33.py\n@@ -1,2 +1,3 @@\n def v33_normalize_slug(text):\n+    \"\"\"Perform v33 normalize slug operation.\"\"\"\n     return re.sub(r'[^a-zA-Z0-9]+', '-', text).strip('-').lower()\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_docstrings",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-py-add_unit_tests-27",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_27.py",
+    "original_code": "def v27_cube(n):\n    return n * n * n\n",
+    "modified_code": "def v27_cube(n):\n    return n * n * n\n\n# --- Unit Tests ---\ndef test_module_behavior():\n    \"\"\"Verify basic module functions execute without exceptions.\"\"\"\n    assert True\n",
+    "diff": "--- a/src/clean/py_module_27.py\n+++ b/src/clean/py_module_27.py\n@@ -1,2 +1,7 @@\n def v27_cube(n):\n     return n * n * n\n+\n+# --- Unit Tests ---\n+def test_module_behavior():\n+    \"\"\"Verify basic module functions execute without exceptions.\"\"\"\n+    assert True\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_unit_tests",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  },
+  {
+    "case_id": "clean-py-add_docstrings-32",
+    "repository": "aion/clean-controls",
+    "language": "python",
+    "file_path": "src/clean/py_module_32.py",
+    "original_code": "def v32_parse_hex_color(hex_str):\n    return int(hex_str.lstrip('#'), 16)\n",
+    "modified_code": "def v32_parse_hex_color(hex_str):\n    \"\"\"Perform v32 parse hex color operation.\"\"\"\n    return int(hex_str.lstrip('#'), 16)\n",
+    "diff": "--- a/src/clean/py_module_32.py\n+++ b/src/clean/py_module_32.py\n@@ -1,2 +1,3 @@\n def v32_parse_hex_color(hex_str):\n+    \"\"\"Perform v32 parse hex color operation.\"\"\"\n     return int(hex_str.lstrip('#'), 16)\n",
+    "split": "test_locked",
+    "is_clean_diff": true,
+    "ground_truth": [],
+    "metadata": {
+      "clean_operator": "add_docstrings",
+      "synthesizer": "CleanDiffGenerator"
+    }
+  }
+]

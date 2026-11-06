@@ -1,0 +1,63 @@
+name: 'Aion Code Reviewer'
+description: 'High-precision, verifiable AI code reviewer for GitHub Pull Requests'
+author: 'Wall-E-30'
+branding:
+  icon: 'shield'
+  color: 'purple'
+
+inputs:
+  github-token:
+    description: 'GitHub token for reading PR diffs and posting review comments'
+    required: true
+    default: ${{ github.token }}
+  api-key:
+    description: 'BYOK API key for model inference (Groq, OpenRouter, OpenAI, Hugging Face)'
+    required: false
+    default: ''
+  provider:
+    description: 'Inference provider (mock, groq, openrouter, ollama, openai, huggingface)'
+    required: false
+    default: 'mock'
+  model:
+    description: 'Model identifier'
+    required: false
+    default: 'qwen-2.5-coder-32b'
+  max-comments:
+    description: 'Maximum inline comments per review (hard ceiling)'
+    required: false
+    default: '5'
+  min-confidence:
+    description: 'Confidence threshold (0.0 to 1.0) for posting comments'
+    required: false
+    default: '0.7'
+  enable-telemetry:
+    description: 'Enable anonymized review and telemetry logging'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -e .
+
+    - name: Run Aion Code Reviewer
+      shell: bash
+      env:
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_API_KEY: ${{ inputs.api-key }}
+        INPUT_PROVIDER: ${{ inputs.provider }}
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_MAX_COMMENTS: ${{ inputs.max-comments }}
+        INPUT_MIN_CONFIDENCE: ${{ inputs.min-confidence }}
+        INPUT_ENABLE_TELEMETRY: ${{ inputs.enable-telemetry }}
+      run: python -m action.main
+

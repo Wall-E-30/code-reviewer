@@ -1,0 +1,34 @@
+{
+  "benchmark": "aion_action_pipeline",
+  "gold": {
+    "split": "gold",
+    "total_cases": 120,
+    "clean_cases": 36,
+    "buggy_cases": 84,
+    "precision": 1.0,
+    "recall": 0.4881,
+    "false_positive_rate": 0.0,
+    "avg_comments_per_pr": 0.34,
+    "nitpick_rate": 0.0,
+    "avg_latency_ms": 0.13,
+    "total_duration_sec": 0.02
+  },
+  "dev": {
+    "split": "dev",
+    "total_cases": 70,
+    "clean_cases": 21,
+    "buggy_cases": 49,
+    "precision": 0.88,
+    "recall": 0.449,
+    "false_positive_rate": 0.1429,
+    "avg_comments_per_pr": 0.36,
+    "nitpick_rate": 0.12,
+    "avg_latency_ms": 0.15,
+    "total_duration_sec": 0.01
+  },
+  "gates": {
+    "precision_ge_50": true,
+    "ceiling_le_5": true,
+    "clean_fpr_le_10": true
+  }
+}
