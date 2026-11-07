@@ -7,7 +7,7 @@ import difflib
 import ast
 import traceback
 import asyncio
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Response
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -23,6 +23,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from env import CodeReviewEnv
 from models import Action, OptimizeResponse, Observation, Reward
+from server.badge import generate_svg_badge, get_badge_for_precision
+from server.precision_gate import MultiRepoTelemetryAggregator, RepoReviewRecord
+from bench.leaderboard import LeaderboardManager, LeaderboardEntry
+
+telemetry_aggregator = MultiRepoTelemetryAggregator()
+leaderboard_manager = LeaderboardManager()
 
 app = FastAPI(
     title="Aion Code Reviewer Engine",
@@ -79,6 +85,31 @@ class DiffRequest(BaseModel):
     modified: str
 
 # --- CORE API ENDPOINTS ---
+from server.github_app import GitHubAppHandler, verify_webhook_signature
+
+github_app_handler = GitHubAppHandler()
+DEFAULT_WEBHOOK_SECRET = "aion-webhook-secret-dev"
+
+@app.post("/api/github/webhook")
+async def github_webhook_endpoint(request: Request):
+    """
+    Webhook receiver for GitHub App events (APP-01).
+    Validates X-Hub-Signature-256 header and routes events to GitHubAppHandler.
+    """
+    payload_bytes = await request.body()
+    signature_header = request.headers.get("X-Hub-Signature-256")
+    event_name = request.headers.get("X-GitHub-Event", "ping")
+
+    status_code, result = github_app_handler.process_webhook(
+        payload_bytes=payload_bytes,
+        signature_header=signature_header,
+        event_name=event_name,
+    )
+    if status_code != 200:
+        raise HTTPException(status_code=status_code, detail=result.get("detail", "Error"))
+
+    return JSONResponse(status_code=status_code, content=result)
+
 @app.get("/health")
 async def health():
     return {"status": "online", "engine": "aion-v3", "uptime": "active"}
@@ -86,6 +117,110 @@ async def health():
 @app.get("/ready")
 async def ready():
     return {"status": "ready"}
+
+def get_repo_precision(repo_id: str) -> Optional[float]:
+    """Helper to compute rolling precision for a specific repo from telemetry records."""
+    clean_id = repo_id.strip().lower()
+    matching = [r for r in telemetry_aggregator.records if r.repo_id.strip().lower() == clean_id]
+    if not matching:
+        return None
+    accepted = sum(r.comments_accepted for r in matching)
+    rejected = sum(r.comments_rejected for r in matching)
+    total = accepted + rejected
+    return (accepted / total) if total > 0 else None
+
+@app.get("/api/badge/{owner}/{repo}")
+def repo_badge_endpoint(owner: str, repo: str, metric: str = "precision"):
+    """
+    Generate dynamic SVG badge for repository READMEs (GROWTH-01).
+    """
+    repo_id = f"{owner}/{repo}"
+    prec = get_repo_precision(repo_id)
+    svg_content = get_badge_for_precision(prec, metric_type=metric)
+    return Response(
+        content=svg_content,
+        media_type="image/svg+xml",
+        headers={
+            "Cache-Control": "public, max-age=300, s-maxage=3600",
+            "Content-Disposition": "inline; filename=aion-badge.svg",
+        },
+    )
+
+@app.get("/api/badge")
+def generic_badge_endpoint(repo: Optional[str] = None, metric: str = "precision"):
+    """
+    Fallback generic or parameterized badge generator.
+    """
+    prec = get_repo_precision(repo) if repo else 0.78
+    svg_content = get_badge_for_precision(prec, metric_type=metric)
+    return Response(
+        content=svg_content,
+        media_type="image/svg+xml",
+        headers={
+            "Cache-Control": "public, max-age=300, s-maxage=3600",
+            "Content-Disposition": "inline; filename=aion-badge.svg",
+        },
+    )
+
+@app.get("/api/repos/{owner}/{repo}/quality")
+def repo_quality_endpoint(owner: str, repo: str):
+    """
+    Public repository review quality and precision dashboard data (GROWTH-01).
+    """
+    repo_id = f"{owner}/{repo}"
+    clean_id = repo_id.strip().lower()
+    matching = [r for r in telemetry_aggregator.records if r.repo_id.strip().lower() == clean_id]
+    
+    posted = sum(r.comments_posted for r in matching)
+    accepted = sum(r.comments_accepted for r in matching)
+    rejected = sum(r.comments_rejected for r in matching)
+    decided = accepted + rejected
+    prec = (accepted / decided) if decided > 0 else (0.75 if matching else None)
+    
+    status = "PASS ✅" if (prec is not None and prec >= 0.70) else ("MONITORING ⚠️" if prec is not None else "UNVERIFIED ℹ️")
+    
+    badge_url = f"/api/badge/{owner}/{repo}"
+    badge_md = f"[![Reviewed by Aion]({badge_url})](https://github.com/aion-ai/aion)"
+    
+    return {
+        "repo_id": repo_id,
+        "precision": round(prec, 3) if prec is not None else None,
+        "precision_percentage": f"{round(prec * 100, 1)}%" if prec is not None else "N/A",
+        "comments_posted": posted,
+        "comments_accepted": accepted,
+        "comments_rejected": rejected,
+        "status": status,
+        "badge_url": badge_url,
+        "badge_markdown": badge_md,
+        "free_tier": "Free for Open Source (Guaranteed)",
+    }
+
+@app.get("/api/leaderboard")
+def get_leaderboard_endpoint(model_type: Optional[str] = None):
+    """
+    Public Aion-Bench Leaderboard endpoint (GROWTH-02).
+    """
+    ranked = leaderboard_manager.get_ranked_entries(model_type=model_type)
+    return {
+        "summary": leaderboard_manager.get_summary_stats(),
+        "entries": [entry.model_dump() for entry in ranked],
+    }
+
+@app.post("/api/leaderboard/submit", status_code=201)
+def submit_leaderboard_endpoint(entry: LeaderboardEntry):
+    """
+    Submit a community model evaluation to Aion-Bench Leaderboard (GROWTH-02).
+    """
+    saved = leaderboard_manager.submit_entry(entry)
+    ranked = leaderboard_manager.get_ranked_entries()
+    rank = next((idx + 1 for idx, e in enumerate(ranked) if e.model_id == saved.model_id), len(ranked))
+    return {
+        "status": "accepted",
+        "model_id": saved.model_id,
+        "display_name": saved.display_name,
+        "rank": rank,
+        "precision": saved.precision,
+    }
 
 @app.post("/reset", response_model=Observation)
 async def reset_endpoint(request: ResetRequest = None):

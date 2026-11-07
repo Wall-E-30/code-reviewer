@@ -23,9 +23,10 @@ dependencies = [
 
 [project.scripts]
 server = "server.app:main"
+aion = "cli.main:main"
 
 [tool.setuptools]
-packages = ["server"]
+packages = ["server", "cli"]
 py-modules = ["env", "models", "inference", "utils"]
 
 [tool.ruff]

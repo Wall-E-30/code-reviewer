@@ -14,8 +14,28 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict, List, Optional, Tuple
-import gymnasium as gym
-from gymnasium import spaces
+try:
+    import gymnasium as gym
+    from gymnasium import spaces
+except ImportError:
+    class _MockGym:
+        class Env:
+            def reset(self, *, seed=None, options=None):
+                pass
+    gym = _MockGym()
+
+    class _MockSpaces:
+        class Dict:
+            def __init__(self, *args, **kwargs): pass
+        class Text:
+            def __init__(self, *args, **kwargs): pass
+        class Sequence:
+            def __init__(self, *args, **kwargs): pass
+        class Discrete:
+            def __init__(self, *args, **kwargs): pass
+        class Box:
+            def __init__(self, *args, **kwargs): pass
+    spaces = _MockSpaces()
 
 from bench.schema import BenchmarkCase, FindingCategory, FindingSeverity, GroundTruthFinding
 from rl.memory import RepoConventionMemory

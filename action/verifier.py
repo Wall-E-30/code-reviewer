@@ -45,10 +45,14 @@ class PrecisionVerifier:
         default_max_comments: int = 5,
         default_min_confidence: float = 0.7,
         category_thresholds: Optional[Dict[str, float]] = None,
+        verifier_model: Optional[Any] = None,
+        actionability_threshold: float = 0.60,
     ) -> None:
         self.default_max_comments = default_max_comments
         self.default_min_confidence = default_min_confidence
         self.category_thresholds = category_thresholds or {}
+        self.verifier_model = verifier_model
+        self.actionability_threshold = actionability_threshold
 
     def is_valid_suggestion(
         self,
@@ -106,6 +110,7 @@ class PrecisionVerifier:
         min_confidence: Optional[float] = None,
         file_content: Optional[str] = None,
         category_thresholds: Optional[Dict[str, float]] = None,
+        actionability_threshold: Optional[float] = None,
     ) -> List[CandidateComment]:
         """
         Filter and rank candidate comments according to strict precision criteria.
@@ -117,6 +122,7 @@ class PrecisionVerifier:
             min_confidence: Minimum confidence cutoff (default: 0.7)
             file_content: Optional modified file content for syntax & duplicate checks
             category_thresholds: Optional per-category dynamic thresholds from bandit
+            actionability_threshold: Optional actionability cutoff from verifier model (TRAIN-02)
 
         Returns:
             Filtered, deduplicated list capped at <= max_comments.
@@ -129,6 +135,11 @@ class PrecisionVerifier:
             category_thresholds
             if category_thresholds is not None
             else self.category_thresholds
+        )
+        act_thresh = (
+            actionability_threshold
+            if actionability_threshold is not None
+            else self.actionability_threshold
         )
 
         filtered: List[CandidateComment] = []
@@ -155,6 +166,17 @@ class PrecisionVerifier:
             if not self.is_valid_suggestion(c, file_content=file_content):
                 continue
 
+            # Stage 4.5: Actionability verifier model scoring (TRAIN-02)
+            if self.verifier_model is not None:
+                p_act = self.verifier_model.predict_proba(
+                    diff_hunk="",
+                    comment=c.comment,
+                    suggestion=c.suggestion,
+                    category=c.category,
+                )
+                if p_act < act_thresh:
+                    continue
+
             filtered.append(c)
 
         # Stage 5: Deduplication (group by file_path and line_number)
@@ -163,29 +185,28 @@ class PrecisionVerifier:
             key = (c.file_path, c.line_number)
             grouped.setdefault(key, []).append(c)
 
+        def _score(item: CandidateComment) -> float:
+            sev = SEVERITY_WEIGHTS.get(item.severity.lower(), 1)
+            act_bonus = 1.0
+            if self.verifier_model is not None:
+                act_bonus = self.verifier_model.predict_proba(
+                    diff_hunk="",
+                    comment=item.comment,
+                    suggestion=item.suggestion,
+                    category=item.category,
+                )
+            return sev * 10.0 + item.confidence * 2.0 + act_bonus
+
         deduped: List[CandidateComment] = []
         for _, items in grouped.items():
             if len(items) == 1:
                 deduped.append(items[0])
             else:
-                # Rank by severity weight, then confidence
-                best = max(
-                    items,
-                    key=lambda x: (
-                        SEVERITY_WEIGHTS.get(x.severity.lower(), 1),
-                        x.confidence,
-                    ),
-                )
+                best = max(items, key=_score)
                 deduped.append(best)
 
         # Stage 6: Hard ceiling ranking
-        deduped.sort(
-            key=lambda x: (
-                SEVERITY_WEIGHTS.get(x.severity.lower(), 1),
-                x.confidence,
-            ),
-            reverse=True,
-        )
+        deduped.sort(key=_score, reverse=True)
 
         return deduped[:ceiling]
 

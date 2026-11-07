@@ -1,0 +1,72 @@
+{
+  "name": "aion-code-reviewer",
+  "displayName": "Aion Code Reviewer",
+  "description": "AI-native code review with AST verification, convention memory, and 1-click QuickFix.",
+  "version": "1.0.0",
+  "publisher": "aion-ai",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aion.reviewStaged",
+        "title": "Aion: Review Staged Changes"
+      },
+      {
+        "command": "aion.reviewCurrentFile",
+        "title": "Aion: Review Current File"
+      },
+      {
+        "command": "aion.showConventions",
+        "title": "Aion: Show Repository Conventions"
+      }
+    ],
+    "configuration": {
+      "title": "Aion Code Reviewer",
+      "properties": {
+        "aion.executablePath": {
+          "type": "string",
+          "default": "aion",
+          "description": "Path to the aion CLI executable."
+        },
+        "aion.provider": {
+          "type": "string",
+          "enum": [
+            "ollama",
+            "byok",
+            "mock"
+          ],
+          "default": "ollama",
+          "description": "Inference backend provider for code review."
+        },
+        "aion.minConfidence": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Minimum confidence threshold for displaying findings."
+        },
+        "aion.maxComments": {
+          "type": "integer",
+          "default": 5,
+          "description": "Maximum number of comments per review."
+        },
+        "aion.autoReviewOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run Aion review when saving a file."
+        }
+      }
+    }
+  }
+}
+
