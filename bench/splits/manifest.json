@@ -5,11 +5,11 @@
   "splits": {
     "dev": {
       "total_cases": 70,
-      "file_sha256": "c40aa63ae5eefbd8fbbc2c97b822e41f33c143c91f4a71a7e613da446de81fd2"
+      "file_sha256": "68bf3da01415a0e25d198b33383564d15d6fe2fcefe139d6715563cb673413e7"
     },
     "gold": {
       "total_cases": 120,
-      "file_sha256": "ceeb9c790d67f286d9bdf35b240091fd77c785ebf2d220a5314ba7c3239bd41a",
+      "file_sha256": "1bb0955523ad2bdd0c52595e37289f11827518bbfa8147aa4209bd8c6ec87a26",
       "case_hashes": {
         "mined-ts-fastify-44": "39e3b11ffc6bd05009e820cc24130ba67a3557c800773665afc1613757d49962",
         "mined-ts-svelte-20": "bd0cf0a28f02482c6b067f44a6144de29d960bdf825cb1fdcc4e44234cc5baf6",
@@ -135,7 +135,7 @@
     },
     "test_locked": {
       "total_cases": 60,
-      "file_sha256": "f61c84b4c221f6f2005ee4b0c4359f0755fa5b578d80b0ee507135c178989b2d",
+      "file_sha256": "453cf009fd17fd914bc9f50347bb92448abc79af2a7ccb4f4059c96680c990bf",
       "case_hashes": {
         "mined-ts-eslint-36": "b7ed27bac83ae9d381caab802a6cbf8e4040994d427ac310fd92a973dc1a16e1",
         "mined-ts-commander-48": "13572f33ccbf8b967ed11fdbc9c61e2bd4c375771a668fb3cbede0c68da964b0",

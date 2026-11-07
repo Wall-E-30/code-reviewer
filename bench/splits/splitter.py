@@ -30,13 +30,11 @@ def compute_case_hash(case: BenchmarkCase) -> str:
 
 
 def compute_file_hash(file_path: Union[str, Path]) -> str:
-    """Compute SHA-256 checksum for an entire file."""
+    """Compute SHA-256 checksum for an entire file, normalizing newlines (CRLF -> LF) for cross-platform determinism."""
     path = Path(file_path)
-    hasher = hashlib.sha256()
     with open(path, "rb") as f:
-        while chunk := f.read(65536):
-            hasher.update(chunk)
-    return hasher.hexdigest()
+        content = f.read().replace(b"\r\n", b"\n")
+    return hashlib.sha256(content).hexdigest()
 
 
 def partition_benchmark(

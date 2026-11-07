@@ -157,8 +157,18 @@ def _sandboxed_open(file, *args, **kwargs):
     mode = args[0] if args else kwargs.get("mode", "r")
     if any(m in str(mode) for m in ("w", "a", "+", "x")):
         abs_target = os.path.normcase(os.path.realpath(os.path.abspath(str(file))))
-        # Allow writes ONLY inside ephemeral sandbox dir
-        if not abs_target.startswith(SANDBOX_DIR):
+        # Allow writes ONLY inside ephemeral sandbox dir or container /sandbox
+        allowed_dirs = [d for d in [SANDBOX_DIR, "/sandbox"] if d]
+        cwd = os.path.normcase(os.path.realpath(os.getcwd()))
+        if cwd == "/sandbox" or cwd.startswith(SANDBOX_DIR):
+            allowed_dirs.append(cwd)
+        is_allowed = any(
+            abs_target == d
+            or abs_target.startswith(d.rstrip("/\\\\") + "/")
+            or abs_target.startswith(d.rstrip("/\\\\") + "\\\\")
+            for d in allowed_dirs
+        )
+        if not is_allowed:
             raise PermissionError(f"Security violation: Write outside ephemeral sandbox is forbidden: {{file}}")
     return _orig_open(file, *args, **kwargs)
 
@@ -185,13 +195,16 @@ builtins.open = _sandboxed_open
                     duration_sec=0.0,
                 )
 
+            use_container = self.is_container_available() and not self.force_fallback
+            harness_sandbox_dir = "/sandbox" if use_container else tmpdir
+
             # Generate and write restricted harness
-            harness_code = self._generate_restricted_harness(code, tmpdir)
+            harness_code = self._generate_restricted_harness(code, harness_sandbox_dir)
             script_path = os.path.join(tmpdir, "entrypoint.py")
             with open(script_path, "w", encoding="utf-8") as f:
                 f.write(harness_code)
 
-            if self.is_container_available() and not self.force_fallback:
+            if use_container:
                 # Docker / Podman execution
                 engine = self.container_engine
                 cmd = [
