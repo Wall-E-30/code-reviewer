@@ -16,7 +16,7 @@ from __future__ import annotations
 import ast
 import re
 import textwrap
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from action.providers import CandidateComment
 

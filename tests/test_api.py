@@ -7,10 +7,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from fastapi.testclient import TestClient
 from server.app import app
 
-client = TestClient(app)
+@pytest.fixture
+def client():
+    """Pytest fixture providing a test client for the FastAPI app."""
+    return TestClient(app)
 
 
-def test_health():
+def test_health(client):
     """GET /health returns 200 and online status."""
     response = client.get("/health")
     assert response.status_code == 200
@@ -20,14 +23,14 @@ def test_health():
     assert "uptime" in data
 
 
-def test_ready():
+def test_ready(client):
     """GET /ready returns 200 and ready status."""
     response = client.get("/ready")
     assert response.status_code == 200
     assert response.json()["status"] == "ready"
 
 
-def test_reset_endpoint_default():
+def test_reset_endpoint_default(client):
     """POST /reset with empty body returns default Observation schema."""
     response = client.post("/reset", json={})
     assert response.status_code == 200
@@ -40,7 +43,7 @@ def test_reset_endpoint_default():
     assert isinstance(data["linter_report"], list)
 
 
-def test_reset_endpoint_specific_task():
+def test_reset_endpoint_specific_task(client):
     """POST /reset with task_id and session_id returns corresponding Observation."""
     session_id = "test-session-reset-123"
     response = client.post("/reset", json={
@@ -54,7 +57,7 @@ def test_reset_endpoint_specific_task():
     assert isinstance(data["linter_report"], list)
 
 
-def test_step_endpoint():
+def test_step_endpoint(client):
     """POST /step applies Action and returns Observation with structured Reward."""
     session_id = "test-session-step-456"
     # First reset session
@@ -90,7 +93,7 @@ def test_step_endpoint():
     assert isinstance(data["info"], dict)
 
 
-def test_optimize_endpoint_valid():
+def test_optimize_endpoint_valid(client):
     """POST /optimize returns valid OptimizeResponse with score, recommendation, and diff."""
     code = (
         "import sys\n"
@@ -117,7 +120,7 @@ def test_optimize_endpoint_valid():
     assert data["final_score"] >= 0.01
 
 
-def test_optimize_endpoint_empty_code():
+def test_optimize_endpoint_empty_code(client):
     """POST /optimize with empty code returns 400 Bad Request."""
     response = client.post("/optimize", json={
         "code": "   ",
@@ -127,7 +130,7 @@ def test_optimize_endpoint_empty_code():
     assert "Code cannot be empty" in response.json()["detail"]
 
 
-def test_optimize_full_endpoint():
+def test_optimize_full_endpoint(client):
     """POST /optimize_full completes chained passes and returns OptimizeResponse."""
     code = (
         "import sys\n"
@@ -153,7 +156,7 @@ def test_optimize_full_endpoint():
     assert isinstance(data["diff_data"], list)
 
 
-def test_diff_endpoint():
+def test_diff_endpoint(client):
     """POST /diff returns line-by-line diff metadata."""
     original = "def foo():\n    return 1\n"
     modified = "def foo():\n    return 2\n"
@@ -181,7 +184,7 @@ def test_diff_endpoint():
     "/..%2Frequirements.txt",
     "/..%5c..%5cpyproject.toml"
 ])
-def test_path_traversal_security(payload):
+def test_path_traversal_security(client, payload):
     """Path traversal payloads must return 403 Forbidden or 404, never disclosing internal files."""
     response = client.get(payload)
     # The server catch_all endpoint validates target_path against canonical_root
