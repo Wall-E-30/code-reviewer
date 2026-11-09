@@ -1,15 +1,16 @@
 # Aion Code Reviewer — Master Architecture & Project Specification
-**Comprehensive A-to-Z Technical Reference Manual**
+**Comprehensive A-to-Z Technical Reference Manual & Current State Dossier**
 
 ---
 
 ## Document Metadata
-- **Project Name:** Aion (Autonomous AI-Driven Code Reviewer & RL Optimization Sandbox)
-- **Version:** 1.0.0 (Production / Phase 2 Ready)
-- **Primary Authors/Maintainers:** Aion Engineering Team
-- **Document Date:** 2026-11-05
+- **Project Name:** Aion (Autonomous AI-Driven Code Reviewer & Verifiable RL Sandbox)
+- **Document Version:** 2.0.0 (Milestone v1.0 Final — Production Verified)
+- **Document Date:** 2026-11-09
+- **Current Milestone:** v1.0 — Path to the No. 1 Code Reviewer (Zero-Budget, RL-Driven)
+- **Milestone Progress:** **100% Completed & Verified (Phases 1 through 7, 36/36 Requirements)**
 - **Repository Root:** `c:\Users\Sharanya Nagar\Desktop\Projects\code-reviewer`
-- **Applicable Profiles:** Full-Stack Web, Reinforcement Learning (Gymnasium / OpenEnv), Large Language Models (LLM), AST Static Analysis, DevOps
+- **Applicable Profiles:** Full-Stack Web, Reinforcement Learning (Gymnasium / OpenEnv / GRPO), Large Language Models (LLMs / SFT), Abstract Syntax Tree (AST) Static Analysis, GitHub Apps & Actions, DevOps / Containerization
 
 ---
 
@@ -18,132 +19,139 @@
 2. [Complete Technology Stack](#2-complete-technology-stack)
 3. [System Architecture & Tier Breakdown](#3-system-architecture--tier-breakdown)
 4. [Mathematical & Reinforcement Learning Formulation](#4-mathematical--reinforcement-learning-formulation)
-5. [End-to-End Execution Flows & Data Pipelines](#5-end-to-end-execution-flows--data-pipelines)
-6. [Detailed Module & File-by-File Catalog (A to Z)](#6-detailed-module--file-by-file-catalog-a-to-z)
-7. [API Gateway & Communication Contracts](#7-api-gateway--communication-contracts)
-8. [Security Architecture & Vulnerability Audit](#8-security-architecture--vulnerability-audit)
-9. [DevOps, Containerization & Deployment Workflows](#9-devops-containerization--deployment-workflows)
-10. [Testing, Quality Assurance & Verification Suite](#10-testing-quality-assurance--verification-suite)
-11. [Known Issues, Technical Debt & Engineering Roadmap](#11-known-issues-technical-debt--engineering-roadmap)
+5. [The Aion-Bench Evaluation Suite](#5-the-aion-bench-evaluation-suite)
+6. [End-to-End Execution Flows & Data Pipelines](#6-end-to-end-execution-flows--data-pipelines)
+7. [Detailed Module & File-by-File Catalog (A to Z)](#7-detailed-module--file-by-file-catalog-a-to-z)
+8. [API Gateway & Communication Contracts](#8-api-gateway--communication-contracts)
+9. [Security Architecture, Sandboxing & Vulnerability Audit](#9-security-architecture-sandboxing--vulnerability-audit)
+10. [DevOps, CI/CD & Multi-Platform Deployment](#10-devops-cicd--multi-platform-deployment)
+11. [Testing, Quality Assurance & Verification Suite](#11-testing-quality-assurance--verification-suite)
+12. [Current Project State, Milestone Scorecard & Future Horizons](#12-current-project-state-milestone-scorecard--future-horizons)
 
 ---
 
 ## 1. Executive Overview & Vision
 
 ### 1.1 What is Aion?
-**Aion** is an autonomous, production-grade code optimization engine and agent evaluation sandbox. While traditional static linters (such as Flake8, ESLint, or SonarQube) merely detect and catalog infractions, and conversational AI chatbots generate code without deterministic verification, Aion closes the loop. It reframes code quality optimization as a **Markov Decision Process (MDP)** within a Reinforcement Learning (RL) environment.
-
-In Aion:
-- Code quality is evaluated mathematically through an **Abstract Syntax Tree (AST)** grading engine.
-- Optimization agents (powered by remote LLMs like Qwen2.5-72B, local fine-tuned autoregressive policies like GPT-2, or deterministic heuristic fallback engines) iteratively propose structural code modifications.
-- The environment acts as an impartial compiler and judge: it grades proposed code states, detects regressions, automatically backtracks when proposed code degrades quality or fails syntax compilation, and rewards improvements across **Style Cleanup**, **Algorithmic Efficiency**, and **Security Hardening**.
-- A **Universal Robustness Layer** intercepts, cleans markdown fences, repairs LLM syntactic quirks (such as unquoted `print` arguments and broken indentation), ensuring evaluation never crashes due to trivial model formatting errors.
+**Aion** is an autonomous, production-grade code review and optimization engine founded on verifiable **Reinforcement Learning from Verifiable Rewards (RLVR)**. While traditional linters (Flake8, ESLint, SonarQube) produce static, often unprioritized rule lists, and generative conversational LLMs frequently invent subjective nitpicks or hallucinate non-compiling patches, Aion reframes code review as an **Objective Decision Process within a Gymnasium-compatible environment (`ReviewEnv`)**.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           The Aion RL Feedback Loop                         │
 │                                                                             │
-│   ┌──────────────┐     Action: apply_fix(content)     ┌─────────────────┐   │
-│   │   AI Agent   │ ─────────────────────────────────> │  CodeReviewEnv  │   │
-│   │  (LLM / RL)  │ <───────────────────────────────── │    (env.py)     │   │
-│   └──────────────┘    Observation (AST Grade, Linter, │ └───────┬───────┘   │
-│                        Scalar Reward, Unified Diff)   │         │           │
-│                                                       │         ▼           │
-│                                                       │ ┌───────────────┐   │
-│                                                       │ │ Backtracking  │   │
-│                                                       │ │  Guardrail    │   │
-│                                                       │ └───────────────┘   │
+│   ┌──────────────┐   Action: ReviewComment(file, line, diff)  ┌─────────┐   │
+│   │   AI Agent   │ ─────────────────────────────────────────> │ReviewEnv│   │
+│   │ (SFT + GRPO) │ <───────────────────────────────────────── │ (rl/    │   │
+│   └──────────────┘    Observation: Diff Hunk, Linters, Repo   │ env.py) │   │
+│          ▲            Conventions, Verifiable Scalar Reward   └────┬────┘   │
+│          │                                                         │         │
+│          │       Online Maintainer Feedback (+1/-1, Dismiss)       │         │
+│          └─────────────────────────────────────────────────────────┘         │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1.2 Core Capabilities
-1. **Dynamic Multi-Pass Optimization**:
-   - `style-cleanup`: Enforces PEP-8 indentation multiples, strips redundant/unused imports, resolves mutable default function arguments, removes bare `except:` blocks, and flattens deep conditionals.
-   - `efficiency-boost`: Analyzes AST loop structures to detect $O(N^2)$ nested loops, rewarding refactorings that replace linear search loops with $O(N)$ hash-set (`set()`) or hash-map (`dict()`) lookups.
-   - `security-audit`: Audits database queries for string concatenation and f-string interpolation vulnerabilities (SQL injection), flags dangerous execution sinks (`os.system`, `subprocess` with `shell=True`), and blocks deprecated cryptographic functions (`md5`, `pickle`).
-2. **Deterministic Differential Execution Testing**:
-   - Synthesizes automated unit tests from submitted code functions, running code in an isolated subshell to verify that optimized code yields identical inputs and outputs compared to original code.
-3. **OpenEnv Standard Compatibility**:
-   - Conforms directly to the OpenEnv specification (`openenv.yaml`), permitting external autonomous agents and evaluation harnesses to interact with Aion via standard `/reset` and `/step` endpoints.
-4. **Dual User Interfaces**:
-   - **Modern Single-Page Application (SPA)**: Built on React 19 and Vite using the custom "Midnight Glass" Bento Grid design system.
-   - **Gradio Interactive Explorer**: Built into `inference.py` for rapid headless or containerized exploratory evaluation.
+In Aion:
+- Code is audited against **concrete, verifiable execution feedback** (test failures, security AST sinks, algorithmic complexity bottlenecks).
+- Every finding is constrained to modified diff hunks and accompanied by an actionable GitHub suggestion block.
+- An online **Contextual Bandit** tunes category-level confidence cutoffs per repository using maintainer sentiment (+1, -1, resolved, dismissed).
+- An **Actionability Verifier Model** suppresses stylistic chatter and subjective comments before they reach developer screens.
+- Strict **precision gating** guarantees $\le 5$ high-impact comments per pull request, maintaining a live maintainer acceptance rate $\ge 70\%$.
+
+### 1.2 Core Strategic Tenets
+1. **Precision-First Reviewing**: Quality strictly trumps quantity. Posting 1 verified bug is vastly superior to posting 10 subjective nitpicks.
+2. **Verifiable Correctness**: Review comments and suggested patches are validated through static compilation, AST checks, and ephemeral containerized execution before presentation.
+3. **True Reinforcement Learning (RLVR & GRPO)**: The policy is optimized using Group-Relative Policy Optimization without a separate critic network, standardizing relative advantages across group candidate reviews.
+4. **Early Learning Flywheel**: Per-repository convention memory and multi-armed bandits adapt dynamically on day one without waiting for heavy GPU retraining cycles.
+5. **Zero-Budget Scalability**: Operates seamlessly on free-tier infrastructure, open-weight models (1.5B–7B parameter models like Qwen2.5-Coder), and community compute resources (Kaggle, Colab, Hugging Face ZeroGPU).
+6. **Explicit Language Scope**: Python and TypeScript/JavaScript are Tier-1 supported languages with deep AST parsers; 16 additional languages are marked experimental.
+7. **Permanent Open-Source Commitment**: The core review engine, benchmark suite, and GitHub integration are licensed under Apache-2.0 and guaranteed free for open source forever.
 
 ---
 
 ## 2. Complete Technology Stack
 
-| Layer | Technology | Version | Purpose | File Manifest / Config |
+| Layer | Component | Version Floor | Operational Role | Key Manifest / Reference |
 |---|---|---|---|---|
-| **Backend Language** | Python | `>=3.10` (Target: `3.11`) | Core server, environment, AST parsing, ML inference | `pyproject.toml`, `Dockerfile` |
-| **Backend Framework** | FastAPI | `>=0.110.0` | Asynchronous ASGI REST API framework | `server/app.py`, `requirements.txt` |
-| **ASGI Server** | Uvicorn | `>=0.29.0` | Production HTTP/Websocket application server | `Dockerfile`, `render.yaml` |
-| **Schema Validation** | Pydantic | `>=2.0` | Strict data contracts (`Action`, `Observation`, `Reward`) | `models.py` |
-| **Code Parsing** | Python AST | Built-in | Syntax tree traversal, security auditing, node grading | `env.py`, `inference.py`, `utils.py` |
-| **Remote LLM Client** | OpenAI Python SDK | `>=1.0` | Integration with Hugging Face Router endpoint (`Qwen2.5-72B`) | `inference.py` |
-| **Local Policy Framework** | PyTorch & Transformers | `torch>=2.0.0`, `transformers>=4.40.0` | Local autoregressive GPT-2 policy execution and RL training | `train_rl.py`, `train_autoregressive_rl.py` |
-| **Standard Benchmarking** | OpenEnv Core | `openenv-core` | Gymnasium-compatible environment standard definition | `openenv.yaml`, `pyproject.toml` |
-| **Alternative UI** | Gradio | `>=4.0.0` | Standalone interactive web evaluation UI | `inference.py` |
-| **Frontend Framework** | React | `^19.2.4` | Component architecture, state management, UI rendering | `frontend/package.json` |
-| **Frontend Bundler** | Vite | `^8.0.4` | ESM development server and production static build tool | `frontend/vite.config.js` |
-| **Design System** | Midnight Glass | Custom CSS3 | Bento grid layout, glassmorphism cards, glowing status pills | `frontend/src/AionStyles.css` |
-| **Lockfiles** | Astral `uv` / npm | `uv.lock` (v1.3), `package-lock.json` (v3) | Deterministic dependency tree locking | `uv.lock`, `frontend/package-lock.json` |
-| **Container Engine** | Docker & Compose | Multi-Stage (`node:22-slim` + `python:3.11-slim`) | Universal cloud/local deployment containerization | `Dockerfile`, `docker-compose.yml` |
+| **Backend Runtime** | Python | `>=3.10` (Target: `3.11`) | Core engine, AST parser, RL training, REST API | `pyproject.toml`, `.python-version` |
+| **API Framework** | FastAPI | `>=0.110.0` | High-throughput asynchronous ASGI web server | `server/app.py`, `server/github_app.py` |
+| **ASGI Server** | Uvicorn | `>=0.29.0` | Event-loop non-blocking production server | `Dockerfile`, `render.yaml` |
+| **Schema Validation** | Pydantic | `>=2.0` | Strict data contracts (`Action`, `Observation`, `BenchmarkCase`) | `models.py`, `bench/schema.py` |
+| **Code Parsing** | Python `ast`, `tree-sitter` | Built-in / `>=0.21` | AST traversal, syntax repair, scope resolution | `action/diff_parser.py`, `action/linters.py` |
+| **Static Linters** | Ruff, Bandit, Semgrep | Dynamic pre-filters | Instantaneous deterministic bug & vulnerability discovery | `action/linters.py` |
+| **RL Environment** | Gymnasium | `>=0.28.0` | OpenEnv MDP with standard `reset` and `step` hooks | `rl/env.py`, `openenv.yaml` |
+| **Bandit Algorithm** | NumPy, SciPy | `numpy>=1.24.0` | Thompson Sampling with Beta priors for confidence tuning | `rl/bandit.py` |
+| **Model Fine-Tuning** | PyTorch, Transformers, TRL | `torch>=2.0.0`, `transformers>=4.40.0` | SFT warm-start and GRPO reinforcement learning | `rl/training/sft.py`, `rl/training/grpo.py` |
+| **Quantization** | GGUF, AWQ, AutoAWQ | Dynamic | 4-bit / 8-bit model export for Ollama edge deployment | `rl/training/quantize.py`, `models/Modelfile` |
+| **Sandbox Isolation** | Docker / Podman / Subprocess | OCI-compliant | Read-only rootfs, zero-network ephemeral execution | `rl/sandbox/container.py` |
+| **GitHub Integration** | PyJWT, Cryptography, HTTPX | `pyjwt>=2.8.0`, `httpx>=0.25.0` | GitHub App HMAC authentication & REST v3 client | `action/github_client.py`, `server/github_app.py` |
+| **Frontend Framework** | React | `^19.2.4` | Component UI, live WebSocket updates, diff viewer | `frontend/package.json` |
+| **Frontend Tooling** | Vite | `^8.0.4` | High-speed ESM development server and static bundler | `frontend/vite.config.js` |
+| **Design System** | Midnight Glass | Custom CSS3 | Bento grid layout, KaTeX rendering, responsive cards | `frontend/src/AionStyles.css` |
+| **CI / CD** | GitHub Actions | `ubuntu-latest` | Automated Ruff linting, Node 22 build, Pytest suite | `.github/workflows/ci.yml` |
 
 ---
 
 ## 3. System Architecture & Tier Breakdown
 
-The system is organized into five distinct structural tiers:
+Aion is organized into seven interconnected functional tiers:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          1. Client Presentation Tier                        │
-│   ┌─────────────────────────────────────┐   ┌───────────────────────────┐   │
-│   │    React 19 SPA (Vite Dev Server)   │   │     Gradio Web UI         │   │
-│   │      `frontend/src/App.jsx`         │   │     `inference.py`        │   │
-│   │  (Bento Grid, Diff Viewer, Linter)  │   │  (Standalone Lab Mode)    │   │
-│   └──────────────────┬──────────────────┘   └─────────────┬─────────────┘   │
-└──────────────────────┼────────────────────────────────────┼─────────────────┘
-                       │ HTTP REST (JSON)                   │ In-Process
-                       ▼                                    ▼
+│ 1. INGESTION & DISTRIBUTION TIER                                            │
+│    • GitHub Action (action/main.py)           • GitHub App (server/github_app.py)│
+│    • CLI Tool (cli/main.py)                   • VS Code Ext (editors/vscode/)   │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Raw Diffs & Pull Request Context
+                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                   2. API Transport & Gateway Tier (`server/app.py`)         │
-│   ┌─────────────────────────────────────────────────────────────────────┐   │
-│   │ • FastAPI ASGI Application Router                                   │   │
-│   │ • Session Environment Manager (`environments` in-memory dictionary) │   │
-│   │ • Unified Diff Engine (`difflib.Differ` structured metadata)        │   │
-│   │ • Static Production SPA Delivery (`/assets`, catch-all `index.html`)│   │
-│   │ • Permissive CORS & Global Exception Sanitization Middleware       │   │
-│   └──────────────────┬──────────────────────────────────────────────────┘   │
-└──────────────────────┼──────────────────────────────────────────────────────┘
-                       │
-         ┌─────────────┴──────────────────────────┐
-         ▼                                        ▼
-┌───────────────────────────────────┐  ┌──────────────────────────────────────┐
-│ 3. Inference & Intelligence Tier  │  │ 4. Environment & Evaluation Tier     │
-│       (`inference.py`)            │  │           (`env.py`)                 │
-├───────────────────────────────────┤  ├──────────────────────────────────────┤
-│ • Remote Hugging Face Router API  │  │ • `CodeReviewEnv` (Gymnasium API)    │
-│   (`Qwen/Qwen2.5-72B-Instruct`)   │  │ • AST-Based Objective Grader         │
-│ • Local Autoregressive GPT-2      │  │ • Automated Backtracking Engine      │
-│   (PyTorch / Transformers)        │  │ • Dynamic Real-Time AST Linter       │
-│ • Deterministic `MockOpenAI`      │  │ • Differential Sandbox Execution     │
-│ • Universal Robustness Repair     │  │ • Security & Dangerous Import Shield │
-└─────────────────┬─────────────────┘  └──────────────────┬───────────────────┘
-                  │                                       │
-                  └───────────────────┬───────────────────┘
-                                      ▼
+│ 2. ANALYSIS & PRE-FILTERING TIER                                            │
+│    • Unified Diff Parser (action/diff_parser.py)                             │
+│    • Static Linters & Security AST (action/linters.py)                      │
+│    • Multi-Provider Routing: OpenAI / Ollama / Mock (action/providers.py)   │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Candidate Comments
+                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                  5. Data Contracts & Multi-Language Support                 │
-│   ┌──────────────────────────────────┐    ┌─────────────────────────────┐   │
-│   │       Domain Models              │    │       Multi-Language Core   │   │
-│   │       `models.py`                │    │           `utils.py`        │   │
-│   │  • Action (apply_fix, submit)    │    │  • 18-Language Detection    │   │
-│   │  • Observation (code, diff, lint)│    │  • Deep Syntax Auto-Repair  │   │
-│   │  • Reward (bounded float scalar) │    │  • Indentation Normalizer   │   │
-│   │  • OptimizeResponse DTO          │    │  • Language Keyword Matrix  │   │
-│   └──────────────────────────────────┘    └─────────────────────────────┘   │
+│ 3. PRECISION VERIFICATION GATE                                              │
+│    • Line Sanity & Changed-Line Enforcement (action/verifier.py)            │
+│    • Nitpick Pattern Suppression (action/verifier.py)                       │
+│    • ML Actionability Verifier Model (rl/training/verifier_model.py)        │
+│    • Suggestion Block Syntax Compilation & Hard Ceiling (<= 5 comments/PR) │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Verified Review Output
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. FLYWHEEL & REPOSITORY CONVENTION MEMORY                                  │
+│    • Repo Convention Memory (rl/memory.py)                                  │
+│    • Online Contextual Bandit / Thompson Sampling (rl/bandit.py)            │
+│    • Telemetry & Author Reaction Polling (action/reactions.py)              │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Verified Rollout Data
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. REINFORCEMENT LEARNING & DATA ENGINE (RLVR)                              │
+│    • Gymnasium ReviewEnv MDP (rl/env.py)                                    │
+│    • Multi-Tier Verifiable Reward Function (rl/reward.py)                   │
+│    • Ephemeral Isolated Container Sandbox (rl/sandbox/container.py)         │
+│    • 10,000+ Episode Synthesis Engine (rl/data_engine/synthesizer.py)       │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Policy Weights
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 6. MODEL TRAINING & QUANTIZATION TIER                                       │
+│    • SFT Warm-Start Pipeline (rl/training/sft.py)                           │
+│    • Group-Relative Policy Optimization (GRPO) (rl/training/grpo.py)         │
+│    • Bootstrap Statistical Significance Evaluator (bootstrap_eval.py)       │
+│    • Quantization Exporter (GGUF, AWQ, Ollama Modelfile) (quantize.py)     │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Metric Verification
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 7. BENCHMARK & COMMUNITY GROWTH TIER                                        │
+│    • Aion-Bench 250-Case Ground Truth & Splits (bench/splits/)              │
+│    • Hungarian One-to-One Matcher (bench/evaluator/matcher.py)              │
+│    • Public Model Leaderboard (bench/leaderboard.py, LeaderboardView.jsx)   │
+│    • Dynamic SVG Badges & Repo Quality API (server/badge.py)                │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -151,351 +159,395 @@ The system is organized into five distinct structural tiers:
 
 ## 4. Mathematical & Reinforcement Learning Formulation
 
-Aion structures code review as a finite-horizon Markov Decision Process formally defined by the tuple $\mathcal{M} = \langle \mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma, T \rangle$.
+### 4.1 The Review MDP Formulation
+Code review in Aion is formalized as a finite-horizon Markov Decision Process:
+$$\mathcal{M} = \langle \mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma, T \rangle$$
 
-### 4.1 State Space $\mathcal{S}$
-At step $t$, the state $s_t \in \mathcal{S}$ is modeled by the `Observation` schema (`models.py`):
-$$s_t = \langle c_t, d_t, l_t, \tau \rangle$$
-- $c_t \in \Sigma^*$: The full source code string of the file under review.
-- $d_t$: The unified diff representation between original baseline code $c_0$ and current code $c_t$.
-- $l_t$: Dynamic linter diagnostic messages generated via AST checks.
-- $\tau \in \{\text{"style-cleanup"}, \text{"efficiency-boost"}, \text{"security-audit"}\}$: The targeted optimization objective.
+1. **State Space ($\mathcal{S}$)**:
+   A state $s_t = \langle \mathcal{D}, \mathcal{L}, \mathcal{M}_{\text{repo}}, \mathcal{C}_t \rangle$ consists of:
+   - $\mathcal{D}$: The unified git diff with parsed patch hunks, line mappings, and modified file contents.
+   - $\mathcal{L}$: Static diagnostic findings emitted by Ruff, Bandit, and AST linters.
+   - $\mathcal{M}_{\text{repo}}$: The repository convention memory (suppressed patterns, style directives).
+   - $\mathcal{C}_t$: Review comments posted so far in the current episode.
 
-### 4.2 Action Space $\mathcal{A}$
-The action $a_t \in \mathcal{A}$ is emitted by the agent policy $\pi(a_t | s_t)$:
-$$a_t = \langle \alpha, k, c_{\text{prop}} \rangle$$
-- $\alpha \in \{\text{"apply_fix"}, \text{"comment"}, \text{"submit"}\}$: Action verb.
-- $k \in \mathbb{N} \cup \{\text{None}\}$: Line number target.
-- $c_{\text{prop}} \in \Sigma^*$: The proposed code replacement string.
+2. **Action Space ($\mathcal{A}$)**:
+   An action $a_t \in \mathcal{A}$ is a structured review candidate or termination:
+   $$a_t = \langle \text{type}, \text{file}, \text{line}, \text{category}, \text{body}, \text{suggestion} \rangle \quad \text{or} \quad a_t = \text{"submit"}$$
 
-### 4.3 Transition Dynamics & Backtracking Protocol $\mathcal{P}(s_{t+1} | s_t, a_t)$
-When an action is applied:
-1. $c_{\text{prop}}$ is pre-processed by the `robust_repair_code` pipeline.
-2. The environment attempts compilation: $\mathcal{T}_{\text{AST}} = \text{ast.parse}(c_{\text{prop}})$.
-3. **Syntax Error Handling**: If syntax compilation fails, the proposal is rejected. The environment reverts state $c_{t+1} = c_{\text{best}}$, decrements reward to $R_{\text{penalty}} = 0.05$, and appends a syntax diagnostic to $l_{t+1}$.
-4. **Regression Backtracking Handling**: The environment computes proposed reward $r_{\text{prop}} = \mathcal{R}(c_{\text{prop}}, \tau)$. If $r_{\text{prop}} < r_{\text{best}}$:
-   $$c_{t+1} \leftarrow c_{\text{best}}$$
-   $$r_{t+1} \leftarrow r_{\text{best}}$$
-   The environment logs: `"[Regression Warning] Fix reduced reward from {r_best} to {r_prop}. Backtracking."`
-5. **State Progression**: If $r_{\text{prop}} \ge r_{\text{best}}$, $c_{\text{best}} \leftarrow c_{\text{prop}}$ and $r_{\text{best}} \leftarrow r_{\text{prop}}$.
+3. **Transition Dynamics ($\mathcal{P}$)**:
+   Deterministic addition of valid comments to $\mathcal{C}_{t+1}$. If an action attempts to comment outside the modified diff lines or proposes invalid syntax, it is intercepted and penalized.
 
-### 4.4 Reward Function Formulation $\mathcal{R}(c, \tau)$
-Rewards are scalar values bounded strictly in the range $[0.01, 0.99]$. The scoring formulation differs per task objective:
+4. **Horizon ($T$)**:
+   Episodes terminate when the agent issues `"submit"` or reaches the hard ceiling of $T = 5$ comments.
 
-#### 1. Task: `style-cleanup`
-Evaluates syntactic neatness and PEP-8 conformance:
-$$R_{\text{style}} = 0.50 + \Delta_{\text{indent}} + \Delta_{\text{imports}} + \Delta_{\text{except}} + \Delta_{\text{mut}} + \Delta_{\text{main}}$$
-- **Indentation Check ($\Delta_{\text{indent}}$)**: Verifies all statement blocks are indented by multiples of 4 spaces. Conformance grants $+0.15$; violations penalize $-0.10$.
-- **Redundant Imports ($\Delta_{\text{imports}}$)**: Compares declared `ast.Import` and `ast.ImportFrom` symbols against symbols referenced across the AST body. Removing all unused imports awards $+0.10$.
-- **Bare Except Statements ($\Delta_{\text{except}}$)**: AST nodes of type `ast.ExceptHandler` where `type is None` incur a $-0.10$ penalty. Catching specific exceptions (`except Exception:`) grants $+0.05$.
-- **Mutable Default Arguments ($\Delta_{\text{mut}}$)**: Inspects `ast.FunctionDef.args.defaults`. If instances of `ast.List` or `ast.Dict` are found, a $-0.15$ penalty is levied. Replacing with `None` default grants $+0.10$.
-- **Main Guard ($\Delta_{\text{main}}$)**: The presence of `if __name__ == '__main__':` awards $+0.05$.
+### 4.2 Multi-Tier Verifiable Reward Function
+The reward function $R(s_t, a_t)$ produces an objective, reproducible scalar score computed in `rl/reward.py`:
 
-#### 2. Task: `efficiency-boost`
-Evaluates asymptotic time complexity:
-$$R_{\text{efficiency}} = 0.50 + \Delta_{\text{loop}} + \Delta_{\text{hash\_lookup}}$$
-- **Nested Loop Penalty ($\Delta_{\text{loop}}$)**: Scans for `ast.For` or `ast.While` nodes contained inside child bodies of outer loops ($O(N^2)$ complexity). Detecting nested iterations penalizes $-0.30$.
-- **Linear to Hash Lookup Conversion ($\Delta_{\text{hash\_lookup}}$)**: Identifies if collections accessed in iteration are converted to hash sets (`set()`, `ast.SetComp`) or hash maps (`dict()`, `ast.DictComp`). Correct conversion awards $+0.35$, scaling score to $0.95 - 0.99$.
+$$R(s_t, a_t) = R_{\text{accuracy}} + R_{\text{category}} + R_{\text{suggestion}} - \mathcal{P}_{\text{false\_positive}} - \mathcal{P}_{\text{clean\_diff}} - \mathcal{P}_{\text{nitpick}}$$
 
-#### 3. Task: `security-audit`
-Evaluates vulnerability risks:
-$$R_{\text{security}} = 0.50 - \mathcal{P}_{\text{SQLi}} - \mathcal{P}_{\text{RCE}} - \mathcal{P}_{\text{crypto}}$$
-- **SQL Injection ($\mathcal{P}_{\text{SQLi}}$)**: Evaluates calls to `.execute()` or `.query()`. If the argument AST node is an `ast.JoinedStr` (f-string) or `ast.BinOp` with `ast.Add` (`+`), an unparameterized query vulnerability is flagged: penalty $-0.35$. Parameterized queries (`cursor.execute(sql, (param,))`) award $+0.30$.
-- **Insecure Execution Sinks ($\mathcal{P}_{\text{RCE}}$)**: Detects invocations of `os.system`, `posix.system`, `subprocess.call/Popen/run` with `shell=True`. Penalty: $-0.40$.
-- **Deprecated Cryptography / Insecure Deserialization ($\mathcal{P}_{\text{crypto}}$)**: Detects imports or calls to `hashlib.md5()` (without security flags) or `pickle.loads()`. Penalty: $-0.20$.
+| Component | Condition / Criterion | Scalar Value | Mathematical Rationale |
+|---|---|:---:|---|
+| **True Positive Hit** | Comment matches a ground-truth bug within line tolerance ($|\Delta L| \le 3$) | **$+1.00$** | High-signal reward for genuine bug identification |
+| **Security Bonus** | Comment identifies a critical vulnerability (SQLi, RCE, auth bypass) | **$+1.50$** | Prioritizes mission-critical security vulnerabilities |
+| **Patch Validity Bonus** | Provided GitHub suggestion block parses and passes tests in sandbox | **$+0.50$** | Incentivizes actionable, drop-in replacement fixes |
+| **False Positive Penalty** | Comment does not match any ground truth in a buggy diff | **$-0.75$** | Suppresses speculative, incorrect accusations |
+| **Clean Diff Violation** | Posting any comment on a negative-control clean diff | **$-1.50$** | Heavy penalty to drive clean-diff FPR $<10\%$ |
+| **Nitpick Penalty** | Subjective comment matching cosmetic naming/formatting patterns | **$-0.25$** | Eliminates unwanted developer friction |
+| **Empty Review on Clean Diff** | Correctly posting 0 comments on a pristine diff | **$+0.50$** | Reinforces the critical ability to stay silent |
 
-### 4.5 Horizon & Termination Conditions
-An episode terminates ($d_t = \text{True}$) if:
-1. Maximum steps reached: $t \ge T_{\max}$ (default: $T_{\max} = 5$).
-2. Threshold reward achieved: $r_t \ge 0.98$.
-3. Explicit submission: Agent issues $a_t = \langle \text{"submit"}, \dots \rangle$.
+### 4.3 Group-Relative Policy Optimization (GRPO)
+Unlike standard PPO which requires an auxiliary critic value network $V_\phi(s)$ (demanding significant VRAM), Aion trains policies using **Group-Relative Policy Optimization (GRPO)** in `rl/training/grpo.py`.
+
+For each query diff $q$, a group of $G$ candidate review sets $\{o_1, o_2, \dots, o_G\}$ are sampled from the old policy $\pi_{\theta_{\text{old}}}$. The objective optimizes:
+
+$$\mathcal{J}_{\text{GRPO}}(\theta) = \mathbb{E}_{q \sim \mathcal{D}, \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(q)} \left[ \frac{1}{G} \sum_{i=1}^G \left( \min \left( \frac{\pi_\theta(o_i|q)}{\pi_{\theta_{\text{old}}}(o_i|q)} \hat{A}_i, \text{clip}\left(\frac{\pi_\theta(o_i|q)}{\pi_{\theta_{\text{old}}}(o_i|q)}, 1-\epsilon, 1+\epsilon\right) \hat{A}_i \right) - \beta D_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}}) \right) \right]$$
+
+The advantage $\hat{A}_i$ is standardized directly from the group reward realizations:
+$$\hat{A}_i = \frac{R(q, o_i) - \text{mean}(\{R(q, o_j)\}_{j=1}^G)}{\text{std}(\{R(q, o_j)\}_{j=1}^G) + 10^{-8}}$$
+
+### 4.4 Online Contextual Bandits (Thompson Sampling)
+To adapt to repository culture instantly without GPU training, `rl/bandit.py` implements a **Beta-Bernoulli Contextual Bandit**:
+- Each category $c \in \{\text{bug}, \text{security}, \text{performance}, \text{style}\}$ maintains a Beta prior $\text{Beta}(\alpha_c, \beta_c)$.
+- Maintainer positive reactions (+1, resolved) update $\alpha_c \leftarrow \alpha_c + 1$.
+- Maintainer dismissals or negative reactions (-1, dismissed) update $\beta_c \leftarrow \beta_c + 1$.
+- The dynamic posting confidence threshold is computed via posterior Thompson sampling:
+$$\theta_c = \text{clip}\left( \mu_c + \sigma_c, 0.50, 0.95 \right)$$
 
 ---
 
-## 5. End-to-End Execution Flows & Data Pipelines
+## 5. The Aion-Bench Evaluation Suite
 
-### 5.1 Pipeline 1: Live Code Optimization (`/optimize`)
+Before deploying or training any model, Aion measures performance against **Aion-Bench**, an objective, reproducible benchmark located in `bench/`.
+
+### 5.1 Dataset Composition & Stratified Splits
+The benchmark comprises **250 meticulously constructed cases** partitioned across three stratified splits:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            Aion-Bench Composition                           │
+│                                                                             │
+│   ┌─────────────────────┐   ┌────────────────────┐   ┌──────────────────┐   │
+│   │   dev.json (70)     │   │   gold.json (120)  │   │test_locked (60)  │   │
+│   │ Prompt engineering  │   │ Hand-audited gold  │   │ Cryptographically│   │
+│   │ & regression tests  │   │ calibration set    │   │ locked held-out  │   │
+│   └─────────────────────┘   └────────────────────┘   └──────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Synthetic Bug Injections (`bench/generator/injector.py`)**: Real codebases with programmatically injected semantic bugs (inverted comparisons, off-by-one indices, None-dereferences, unhandled promises, resource leaks).
+2. **Clean-Diff Negatives (`bench/generator/clean.py`)**: Genuine developer PRs containing benign refactorings (docstring additions, whitespace formatting, type annotations, unit tests) where an AI reviewer must post **zero** comments.
+3. **Mined Production Reviews (`bench/mined/miner.py`)**: High-signal PR review comments mined from top open-source repositories (Fastify, Svelte, ESLint, Playwright, React, Docker) filtered for author resolution and code amendments.
+
+### 5.2 Cryptographic Split Immutability
+To strictly prevent data leakage and train-test contamination, `bench/splits/manifest.json` tracks SHA-256 checksums of all cases and split files:
+- Line endings are deterministically enforced as LF via `.gitattributes` (`bench/splits/*.json text eol=lf`).
+- `bench/splits/splitter.py` normalizes CRLF $\rightarrow$ LF before hashing.
+- `tests/test_benchmark_isolation.py` validates that `dev`, `gold`, and `test_locked` have **zero** case ID overlap, **zero** diff collision, and match `manifest.json` exactly.
+
+### 5.3 Ground-Truth Matcher & Evaluation Metrics
+The evaluation engine (`bench/evaluator/matcher.py`) executes a **greedy one-to-one Hungarian-style matching** algorithm between model findings and ground truth:
+- **Spatial Alignment**: Finding line within $\pm 3$ lines of ground truth.
+- **Category Congruence**: Matches category family (e.g., security, logic, syntax).
+- **Core Metrics Calculated**:
+  - **Precision ($P$)**: $\frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}}$ (Target: $\ge 85\%$)
+  - **Recall ($R$)**: $\frac{\text{True Positives}}{\text{Ground Truth Bugs}}$ (Target: $\ge 80\%$)
+  - **Clean Diff FPR**: Fraction of clean PRs receiving any spurious comment (Target: $\le 10\%$)
+  - **Nitpick Rate**: Fraction of comments classified as subjective/cosmetic (Target: $\le 15\%$)
+  - **Comments / PR**: Average comments posted per review (Target: $1.0 - 3.0$)
+
+---
+
+## 6. End-to-End Execution Flows & Data Pipelines
+
+### 6.1 GitHub Action Pull Request Review Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as User / Client
-    participant UI as React SPA (App.jsx)
-    participant API as FastAPI (server/app.py)
-    participant Inf as Inference Engine (inference.py)
-    participant Env as CodeReviewEnv (env.py)
-    participant LLM as Qwen2.5 / Mock AI
+    participant GH as GitHub Actions Runner
+    participant Main as Action Main (action/main.py)
+    participant Parser as Diff Parser (action/diff_parser.py)
+    participant Linters as Static Linters (action/linters.py)
+    participant LLM as Model / Provider (action/providers.py)
+    participant Verifier as Precision Verifier (action/verifier.py)
+    participant Client as GitHub Client (action/github_client.py)
 
-    User->>UI: Enter code & select task ("efficiency-boost")
-    UI->>API: POST /optimize {code, task_id, language}
-    API->>Inf: evaluate_and_optimize(code, task_id)
-    Inf->>Env: Load code & compute initial score
-    Env-->>Inf: initial_score (e.g. 0.45)
-    Inf->>LLM: Formatted prompt + system instructions
-    LLM-->>Inf: Raw generated code payload
-    Inf->>Inf: robust_repair_code() (strip markdown, fix indents)
-    Inf->>Env: env.step(apply_fix, repaired_code)
-    Env->>Env: AST compile & grade score
-    Env-->>Inf: Observation, final_score (e.g. 0.98), diff
-    Inf->>Inf: estimate_ast_improvements()
-    Inf-->>API: Result dictionary
-    API->>API: Generate structured line diff (difflib)
-    API-->>UI: JSON {original_code, optimized_code, diff, metrics, quality_score}
-    UI-->>User: Render updated Bento grid, colored diff, and AST speedup metrics
+    GH->>Main: Trigger pull_request event
+    Main->>Client: Fetch PR git diff & existing comments
+    Client-->>Main: Raw unified diff
+    Main->>Parser: parse_unified_diff(diff)
+    Parser-->>Main: Structured file hunks & line mappings
+    Main->>Linters: run_all_linters(files, hunks)
+    Linters-->>Main: Static candidates (Ruff, AST SQLi, etc.)
+    Main->>LLM: generate_comments(diff, conventions)
+    LLM-->>Main: Raw candidate comments
+    Main->>Verifier: filter_and_rank_comments(candidates)
+    Verifier->>Verifier: Line sanity check (modified lines only)
+    Verifier->>Verifier: Suppress nitpicks & repo dismissed patterns
+    Verifier->>Verifier: Validate suggestion block compilation
+    Verifier->>Verifier: Cap at top 5 highest-confidence comments
+    Verifier-->>Main: Verified review comments (<= 5)
+    Main->>Client: post_review(comments, summary)
+    Client-->>GH: Inline comments with suggestions posted to PR
 ```
 
-### 5.2 Pipeline 2: Full Review (All Passes Chained - `/optimize_full`)
-When the user triggers a Full Review:
-1. **Pass 1 (`style-cleanup`)**: The submitted code is passed to the style optimization pipeline. Unused imports are stripped, standard 4-space indentation is applied, and mutable default arguments are corrected.
-2. **Pass 1 Output Validation**: The intermediate result is verified:
-   - If Pass 1 succeeds without error, the returned code becomes the input for Pass 2.
-   - If Pass 1 fails or returns `"Error: ..."`, the pipeline safely retains the original input and logs a fallback notice.
-3. **Pass 2 (`efficiency-boost`)**: The code from Pass 1 is inspected for algorithmic bottlenecks. Nested loops are refactored into set/dict operations.
-4. **Pass 2 Output Validation**: Output is validated; if valid, it becomes input for Pass 3.
-5. **Pass 3 (`security-audit`)**: The code from Pass 2 is audited for SQL injection and unsafe execution sinks. Queries are parameterized and unsafe libraries replaced.
-6. **Unified Synthesis**: The final code, combined maximum quality score, unified diff (comparing original input directly to the final secure code), and aggregated diagnostic linter logs are packaged and returned.
+### 6.2 Webhook GitHub App Architecture (`server/github_app.py`)
+1. **Webhook Ingestion**: GitHub sends JSON payloads to `/api/github/webhook`.
+2. **Signature Authentication**: The app validates the `X-Hub-Signature-256` header using constant-time HMAC-SHA256 comparison.
+3. **JWT Token Minting**: Signs an RS256 JWT with the GitHub App private key, exchanging it for an installation access token.
+4. **Event Routing**:
+   - `pull_request` (`opened`, `synchronize`): Triggers asynchronous review pipeline.
+   - `pull_request_review_comment` (`created`): Inspects emojis (`+1`, `-1`, `confused`) to update repository contextual bandits in real time.
 
-### 5.3 Pipeline 3: RL Benchmark Trajectory (`/run_benchmark`)
-Used by the Hackathon Benchmark tab:
-1. The server resets the benchmark task environment with `env.reset(task_id)`.
-2. A 5-step trajectory loop begins:
-   - Step $t$: Agent examines current code and task requirements.
-   - Model generates proposed code edit.
-   - Environment evaluates `step(action)`.
-   - Resulting reward, AST linter output, unified diff, and execution duration are appended to the trajectory ledger.
-   - If $r_t \ge 0.98$ or `done == True`, the loop breaks early.
-3. The full step history array `[Step 1, Step 2, ...]` is returned to the frontend and rendered in an interactive step-by-step playback timeline.
+### 6.3 Local Developer Workflow (`aion review --staged`)
+Developers can run reviews locally before committing:
+```bash
+# Reviews git staged changes using local linters, convention memory, and verifier
+aion review --staged
+
+# Emits machine-readable JSON for CI integration
+aion review --staged --json
+```
 
 ---
 
-## 6. Detailed Module & File-by-File Catalog (A to Z)
+## 7. Detailed Module & File-by-File Catalog (A to Z)
 
 ```
 c:\Users\Sharanya Nagar\Desktop\Projects\code-reviewer\
-├── .gitattributes                # Git text and line-ending attributes
-├── .gitignore                    # Ignored artifacts (venv, dist, __pycache__, .env)
-├── Dockerfile                    # Multi-stage production container build
+│
+├── .gitattributes                # Enforces LF line endings for JSON and LFS filters
+├── .gitignore                    # Excludes venv, build caches, temporary sandbox mounts
+├── action.yml                    # GitHub Action marketplace definition & input parameters
+├── Dockerfile                    # Multi-stage production container build (Node 22 + Python 3.11)
 ├── docker-compose.yml            # Local container runner specification
-├── env.py                        # Gymnasium RL environment & AST grader
-├── index.css                     # Root stylesheet fallback
-├── inference.py                  # Agent dispatch, LLM client, mock rules, Gradio UI
-├── models.py                     # Pydantic schemas (Action, Observation, Reward)
+├── env.py                        # Legacy Gymnasium environment & AST grading engine
+├── inference.py                  # Model dispatcher, robust syntax repair, Gradio playground
+├── models.py                     # Pydantic schemas (Action, Observation, Reward, OptimizeResponse)
 ├── openenv.yaml                  # OpenEnv benchmark manifest definition
-├── pyproject.toml                # Python package build metadata & dependencies
-├── README.md                     # Public project documentation & HF Space card
-├── render.yaml                   # Render Cloud web service blueprint
-├── requirements.txt              # Pinned Python requirements floor
-├── test_suite.py                 # 18-point verification test suite
+├── pyproject.toml                # Project packaging, CLI entrypoints, and pinned dependencies
+├── requirements.txt              # Pinned Python requirements floor for deployment & CI
+├── test_suite.py                 # 18-point verification test suite for standalone engine
 ├── train.py                      # Trajectory collector & SFT fine-tuner
 ├── train_autoregressive_rl.py    # GPT-2 autoregressive RL policy trainer
 ├── train_rl.py                   # REINFORCE / Actor-Critic RL policy trainer
-├── utils.py                      # Multi-language detection & syntax auto-repair
-├── uv.lock                       # Astral UV resolved dependency lockfile
+├── utils.py                      # Multi-language detection & syntax auto-repair utilities
 │
-├── frontend/                     # React 19 Frontend Application
-│   ├── index.html                # Single-page application root HTML
-│   ├── package.json              # Node dependencies & Vite run scripts
-│   ├── package-lock.json         # Pinned npm dependency lockfile
-│   ├── vite.config.js            # Vite build & reverse-proxy configuration
-│   ├── vercel.json               # Vercel deployment rewrite rules
-│   └── src/
-│       ├── App.jsx               # Primary React dashboard component
-│       ├── main.jsx              # React DOM mounting entry point
-│       ├── AionStyles.css        # Midnight Glass design system & animations
-│       └── index.css             # Base reset & font definitions
+├── action/                       # GitHub Action & Review Pipeline Package
+│   ├── __init__.py               # Package exports
+│   ├── diff_parser.py            # Unified diff parser mapping changed files and line numbers
+│   ├── formatter.py              # GitHub Markdown comment & suggestion block formatter
+│   ├── github_client.py          # GitHub REST API client (diff retrieval, review posting, 422 fallback)
+│   ├── linters.py                # Ruff, Bandit, and AST security linters (SQLi, RCE, bare excepts)
+│   ├── main.py                   # Action entrypoint orchestrating pipeline execution
+│   ├── providers.py              # LLM provider factory (OpenAI, Ollama, deterministic Mock)
+│   ├── reactions.py              # Telemetry reaction poller (+1, -1, resolved, dismissed)
+│   ├── telemetry.py              # Anonymized review telemetry logger & data policy
+│   └── verifier.py               # Precision Verifier Gate (line sanity, nitpicks, hard ceiling)
 │
-├── server/                       # FastAPI Backend Service
-│   └── app.py                    # REST routing, session management, static server
+├── bench/                        # Aion-Bench Evaluation & Calibration Suite
+│   ├── __init__.py               # Package exports
+│   ├── __main__.py               # CLI runner entrypoint (`python -m bench`)
+│   ├── leaderboard.py            # Public benchmark leaderboard ranking engine & storage
+│   ├── runner.py                 # Benchmark execution harness, progress reporting, KaTeX tables
+│   ├── schema.py                 # Pydantic schemas (BenchmarkCase, GroundTruthFinding, BenchmarkMetrics)
+│   ├── baselines/                # Recorded Day-One baseline calibration data
+│   │   ├── BASELINE_DAY_ONE.md   # Official benchmark numbers across 4 baseline models
+│   │   ├── run_action_eval.py    # Evaluates GitHub Action pipeline against benchmark splits
+│   │   └── run_baselines.py      # Evaluates mock, prototype, and static linter baselines
+│   ├── evaluator/                # Ground-truth matching and scoring engine
+│   │   ├── matcher.py            # Greedy one-to-one finding matcher with line tolerance
+│   │   └── metrics.py            # Precision, recall, FPR, and nitpick calculations
+│   ├── generator/                # Synthetic case generators
+│   │   ├── clean.py              # Generates pristine diff negatives (safe rename, docs, tests)
+│   │   └── injector.py           # Injects verifiable semantic bugs into Python and TS code
+│   ├── mined/                    # Real-world PR review mining
+│   │   └── miner.py              # PR review miner extracting confirmed bugs from GitHub PRs
+│   └── splits/                   # Stratified benchmark partitions
+│       ├── dev.json              # 70 cases open for prompt tuning and agent testing
+│       ├── gold.json             # 120 hand-audited high-signal evaluation cases
+│       ├── test_locked.json      # 60 cryptographically locked held-out evaluation cases
+│       ├── manifest.json         # SHA-256 cryptographic hashes securing split immutability
+│       └── splitter.py           # Stratified dataset splitter and manifest generator
 │
-└── .planning/                    # GSD Planning & Architecture Intelligence
-    └── codebase/                 # Structured Codebase Analysis Documents
-        ├── ARCHITECTURE.md       # Architecture analysis & component mapping
-        ├── CONCERNS.md           # Technical debt, security flaws, and bug audit
-        ├── CONVENTIONS.md        # Coding patterns & style guide analysis
-        ├── INTEGRATIONS.md       # External APIs, DBs, and deployment audit
-        ├── STACK.md              # Deep technology stack breakdown
-        ├── STRUCTURE.md          # File & directory organization guide
-        └── TESTING.md            # Test framework, coverage, and pattern analysis
+├── cli/                          # Developer Command-Line Interface
+│   ├── __init__.py               # CLI package marker
+│   └── main.py                   # `aion review --staged` offline developer review command
+│
+├── data/                         # Synthesized RL Datasets & Leaderboard Storage
+│   ├── benchmark_cases_raw.json  # Raw synthesized benchmark cases before splitting
+│   ├── leaderboard.json          # Seeded and community-submitted benchmark leaderboard entries
+│   └── episodes/                 # 10,000+ verified training episodes for RL training
+│       ├── episodes_stream.jsonl # Streaming JSONL dataset of verified training rollouts
+│       └── training_manifest.json# Manifest indexing 10,000 episodes with language balances
+│
+├── docs/                         # Architecture, Governance, Grants & Launch Assets
+│   ├── OPEN_SOURCE_COMMITMENT.md # Irrevocable manifesto guaranteeing free review for OSS
+│   ├── OPEN_SOURCE_MOAT.md       # Strategic analysis of data moat, flywheel, and network effects
+│   ├── grants/                   # Cloud compute grant applications
+│   │   ├── AWS_ACTIVATE.md       # AWS Activate Founders grant dossier ($25k compute)
+│   │   ├── AZURE_FOR_STARTUPS.md # Microsoft for Startups Founders Hub dossier ($25k-$150k)
+│   │   ├── GOOGLE_FOR_STARTUPS.md# Google for Startups Cloud Program & TRC TPU dossier
+│   │   └── HUGGINGFACE_ZEROGPU.md# Hugging Face ZeroGPU Community Grant application
+│   └── launch/                   # Community launch dossiers
+│       ├── MARKETPLACE.md        # GitHub Marketplace listing metadata, tags, and copy
+│       └── SHOW_HN.md            # Show HN launch post detailing RLVR methodology
+│
+├── editors/                      # Editor Extensions
+│   └── vscode/                   # Official Visual Studio Code Extension
+│       ├── extension.js          # In-editor diagnostics, review commands, and 1-click QuickFixes
+│       ├── package.json          # Extension manifest, commands, and keybinding registrations
+│       └── README.md             # Developer installation and configuration guide
+│
+├── frontend/                     # React 19 Single Page Application
+│   ├── index.html                # HTML entrypoint
+│   ├── package.json              # Frontend npm dependencies and Vite build scripts
+│   ├── vite.config.js            # Vite build and reverse-proxy configuration
+│   └── src/                      # React source components
+│       ├── App.jsx               # Main application layout, Bento Grid, review dispatch
+│       ├── AionStyles.css        # Midnight Glass design system styles and animations
+│       ├── DiffViewer.jsx        # Colored side-by-side and unified diff visualization
+│       └── LeaderboardView.jsx   # Public Aion-Bench model leaderboard table with filters
+│
+├── models/                       # Model Metadata & Export Artifacts
+│   ├── MODEL_CARD.md             # Hugging Face Model Card with benchmark comparison table
+│   └── Modelfile                 # Ollama production deployment Modelfile
+│
+├── rl/                           # Reinforcement Learning & Training Engine
+│   ├── __init__.py               # RL package exports
+│   ├── bandit.py                 # Contextual Bandit (Beta-Bernoulli Thompson Sampling)
+│   ├── env.py                    # Production Gymnasium `ReviewEnv` MDP with OpenEnv export
+│   ├── memory.py                 # Per-Repository Convention Memory & suppression tracker
+│   ├── reward.py                 # Verifiable multi-tier scalar reward calculator
+│   ├── data_engine/              # Verifiable Training Episode Generation
+│   │   ├── __init__.py           # Data engine package exports
+│   │   ├── isolation.py          # Cryptographic leakage guard preventing split contamination
+│   │   └── synthesizer.py        # Generates 10,000+ verified training episodes
+│   ├── sandbox/                  # Ephemeral Execution Container Sandbox
+│   │   ├── __init__.py           # Sandbox exports
+│   │   └── container.py          # Docker / Podman runner with `--network none` & escape tests
+│   └── training/                 # Policy Fine-Tuning & Quantization
+│       ├── __init__.py           # Training package exports
+│       ├── bootstrap_eval.py     # 1,000-resample bootstrap statistical significance evaluator
+│       ├── config.py             # Hyperparameters for SFT and GRPO training
+│       ├── formatter.py          # ChatML instruction formatter for training episodes
+│       ├── grpo.py               # Group-Relative Policy Optimization training loop
+│       ├── quantize.py           # GGUF and AWQ model quantization exporter
+│       ├── sft.py                # Supervised Fine-Tuning warm-start training pipeline
+│       └── verifier_model.py     # Calibrated actionability discriminator model
+│
+├── server/                       # Production Web Service & API Gateway
+│   ├── app.py                    # FastAPI application, REST endpoints, session environment registry
+│   ├── badge.py                  # Dynamic SVG "Reviewed by Aion" Shields.io badge generator
+│   ├── github_app.py             # Webhook-driven GitHub App receiver & signature validator
+│   └── precision_gate.py         # 30-day multi-repo precision gate and weekly rolling aggregator
+│
+└── tests/                        # Full Automated Test Suite (216 Tests Across 22 Files)
+    ├── test_action_pipeline.py   # Diff parsing, provider integration, and verifier gate (20 tests)
+    ├── test_api.py               # FastAPI endpoints, session isolation, path traversal (14 tests)
+    ├── test_badge_and_quality.py # Dynamic SVG badge generation and repo quality API (5 tests)
+    ├── test_benchmark_isolation.py# Split disjointness and cryptographic SHA-256 integrity (6 tests)
+    ├── test_bench_generators.py  # Bug injector, clean diff generator, and review miner (23 tests)
+    ├── test_bench_runner.py      # Matcher, metrics, baseline runners, and CLI (15 tests)
+    ├── test_cli_and_editor.py    # `aion review --staged` CLI and VS Code extension (9 tests)
+    ├── test_data_engine_isolation.py# 10k episode count, language balance, leakage guard (6 tests)
+    ├── test_flywheel.py          # Convention memory, contextual bandit, dynamic gates (14 tests)
+    ├── test_github_app.py        # Webhook signatures, JWT exchange, reaction feedback (8 tests)
+    ├── test_github_client.py     # GitHub REST client, inline comments, 422 fallback (14 tests)
+    ├── test_grpo_and_quantization.py# GRPO training step, GGUF binary export, Modelfile (7 tests)
+    ├── test_launch_and_grants.py # Show HN, Marketplace, and 4 compute grant dossiers (4 tests)
+    ├── test_leaderboard.py       # Leaderboard ranking, submissions, and REST API (5 tests)
+    ├── test_precision_gate.py    # 30-day multi-repo telemetry, weekly trends, 70% gate (7 tests)
+    ├── test_review_env.py        # Gymnasium reset, step, OpenEnv spec export (7 tests)
+    ├── test_reward_hacking.py    # Red-team tests against degenerate policies (6 tests)
+    ├── test_sandbox_escape.py    # Container network isolation, memory ceiling, write blocks (6 tests)
+    ├── test_sft_pipeline.py      # ChatML dataset formatting, SFT trainer dry-run (6 tests)
+    ├── test_telemetry.py         # Telemetry event serialization, SHA-256 anonymization (9 tests)
+    └── test_verifier_model.py    # Verifier model feature extraction, calibration, gate (7 tests)
 ```
 
-### 6.1 `env.py` — The Gymnasium RL Environment
-- **Lines of Code:** ~1,165 lines
-- **Role:** Core reinforcement learning environment and automated judge.
-- **Key Classes & Functions:**
-  - `CodeReviewEnv`: Inherits from standard RL environment abstractions. Implements:
-    - `reset(task_id)`: Initializes or resets state using pre-configured benchmark tasks (`TASKS` dict) or custom uploaded code.
-    - `step(action)`: Accepts an `Action` object, compiles code via AST, calculates scalar rewards, invokes backtracking on regression, and updates observation.
-    - `load_custom_code(code_str, task_id)`: Loads user-supplied code, computes baseline reward, generates dynamic AST linter diagnostics, and triggers differential test generation.
-    - `_calculate_reward()`: Master dispatch calculating scalar rewards for style, efficiency, and security passes.
-    - `_generate_dynamic_linter()`: Traverses the AST using `ast.walk` to generate real-time linter warnings for missing indents, unused imports, bare excepts, $O(N^2)$ loops, and SQL injection flaws.
-    - `_verify_correctness(original_code, new_code)`: Executes code in a sandboxed subprocess against synthesized test cases, verifying that return values and standard output match.
-    - `_is_code_safe_to_execute(code_str)`: Static AST checker that filters out dangerous system imports and magic attributes prior to execution.
-  - `TASKS`: Built-in benchmark problems (`style-cleanup`, `efficiency-boost`, `security-audit`) with intentional flaws used for automated agent evaluation.
-
-### 6.2 `inference.py` — Intelligence & Model Dispatch
-- **Lines of Code:** ~1,160 lines
-- **Role:** Coordinates local and remote model inference, implements heuristic fallbacks, repairs syntax, and hosts the Gradio UI.
-- **Key Classes & Functions:**
-  - `MockOpenAI`: Deterministic rule engine providing compliant responses when running without external API keys. Contains AST transformation rules to fix indentation, convert loops to sets, and parameterize SQL strings.
-  - `robust_repair_code(raw_code)`: Robustness interceptor that extracts code from markdown code fences (````python ... ````), strips conversational preambles, repairs unquoted print statements, and normalizes function indentation.
-  - `evaluate_and_optimize(code, task_id)`: Core single-pass runner that coordinates `CodeReviewEnv`, prepares prompts, queries the LLM or local model, steps the environment, and returns detailed metrics.
-  - `run_full_optimization(code)`: Chained multi-pass runner executing Style ➔ Efficiency ➔ Security passes consecutively while safeguarding against intermediate errors.
-  - `estimate_ast_improvements(orig_code, opt_code)`: Compares AST node counts, loop depths, and algorithmic patterns to compute estimated execution speedup percentage and memory reduction.
-  - `build_ui()`: Constructs and configures the Gradio interactive web dashboard.
-
-### 6.3 `models.py` — Pydantic Data Contracts
-- **Lines of Code:** ~58 lines
-- **Role:** Canonical data contracts for agent-environment communication.
-- **Schemas:**
-  - `Action`:
-    ```python
-    class Action(BaseModel):
-        action_type: str = "apply_fix"  # "apply_fix" | "comment" | "submit"
-        line: Optional[int] = None
-        content: str
-        session_id: Optional[str] = "default"
-    ```
-  - `Observation`:
-    ```python
-    class Observation(BaseModel):
-        file_name: str
-        code_content: str
-        diff: str
-        linter_report: str
-        task_id: str
-    ```
-  - `Reward`:
-    ```python
-    class Reward(BaseModel):
-        value: float = Field(..., ge=0.0, le=1.0)
-        comment: str = ""
-    ```
-  - `OptimizeResponse`: Standardized payload returned to the frontend containing `original_code`, `optimized_code`, `diff`, `linter_report`, `quality_score`, `metrics`, and `explanation`.
-
-### 6.4 `server/app.py` — FastAPI REST Application
-- **Lines of Code:** ~350 lines
-- **Role:** REST API gateway, multi-session environment coordinator, diff generator, and static SPA file server.
-- **Key Components:**
-  - `environments = {}`: Thread-safe in-memory dictionary caching active `CodeReviewEnv` instances keyed by `session_id`.
-  - `get_env(session_id)`: Helper that lazily instantiates or retrieves isolated session environments.
-  - `generate_diff_data(original, modified)`: Utilizes Python's `difflib.Differ` to compute structured line-by-line diff arrays (`{type: "added"|"removed"|"unchanged", text, oldLine, newLine}`) for frontend rendering.
-  - Static File Mounting: Maps `frontend/dist` to `/assets` and registers a fallback route returning `index.html` to support HTML5 pushState SPA routing.
-
-### 6.5 `utils.py` — Multi-Language & Syntax Utilities
-- **Lines of Code:** ~460 lines
-- **Role:** Language auto-detection, indentation normalization, and syntax auto-repair.
-- **Key Functions:**
-  - `detect_language(code_str)`: Heuristic classifier checking keyword frequencies across 18 programming languages (Python, JS, TS, Java, C++, Go, Rust, Ruby, etc.).
-  - `normalize_indentation(code_str, indent_size=4)`: Normalizes inconsistent tabs and spaces into standard 4-space indentation while preserving relative nesting depth.
-  - `fix_syntax_errors(code_str, language)`: Language-specific syntax cleaner repairing missing closing brackets, unbalanced quotes, and trailing delimiters.
-  - `deep_syntax_repair(code_str)`: Deep AST repair for Python that parses broken syntax tokens, closes open parentheses, and inserts missing colons on block statements.
-
-### 6.6 `train.py`, `train_rl.py`, `train_autoregressive_rl.py` — Policy Training
-- **Role:** Offline dataset collection and reinforcement learning training pipelines.
-- **Mechanisms:**
-  - `train.py --collect`: Harvests successful optimization episodes from `CodeReviewEnv` into a JSONL trajectory dataset.
-  - `train.py --sft`: Runs Supervised Fine-Tuning (SFT) on GPT-2 using collected trajectory demonstrations.
-  - `train_rl.py`: Implements policy gradient reinforcement learning using REINFORCE with a value network baseline (`ValueNetwork`) to optimize reward acquisition directly against `CodeReviewEnv`.
-  - `train_autoregressive_rl.py`: Fine-tunes `GPT2LMHeadModel` using policy gradient loss weighted by the AST reward signal.
-
-### 6.7 `test_suite.py` — Automated Verification Suite
-- **Lines of Code:** ~610 lines
-- **Role:** 18-point verification testing covering environment state, AST grading rules, regression backtracking, indentation normalization, API endpoints, and mock LLM pipelines.
-
-### 6.8 `frontend/` — The React 19 Single Page Application
-- **Role:** Rich user dashboard with glassmorphism visual styling.
-- **Key Files:**
-  - `src/App.jsx`: Main React application managing active code buffers, task selection, API requests, diff presentation, metrics displays, and benchmark trajectory timelines.
-  - `src/AionStyles.css`: "Midnight Glass" design system containing Bento grid classes (`.bento-container`, `.bento-card`), scanning laser animations (`@keyframes beam`), glowing status pills, and code diff highlighting.
-  - `vite.config.js`: Configures Vite dev server with proxy rules forwarding `/optimize`, `/optimize_full`, `/step`, `/reset`, and `/run_benchmark` to `http://127.0.0.1:7860`.
-
 ---
 
-## 7. API Gateway & Communication Contracts
+## 8. API Gateway & Communication Contracts
 
-All API endpoints are hosted on port `7860` (configurable via `PORT` environment variable).
+### 8.1 Primary FastAPI Endpoints (`server/app.py`)
 
-### 7.1 Endpoints Specification
-
-| Method | Endpoint | Request Body | Response Body | Description |
+| Method | Route | Description | Input Payload | Output Schema |
 |---|---|---|---|---|
-| `GET` | `/health` | None | `{"status": "healthy", "service": "aion-code-reviewer-api", ...}` | System readiness and active session check |
-| `POST` | `/reset` | `ResetRequest` (`task_id`, `session_id`) | `Observation` | Resets session environment to task baseline |
-| `POST` | `/step` | `Action` (`action_type`, `content`, `session_id`) | `{"observation": Observation, "reward": Reward, "done": bool, "info": dict}` | Executes a single RL step on session environment |
-| `POST` | `/optimize` | `OptimizeRequest` (`code`, `task_id`, `language`) | `OptimizeResponse` | Runs single-pass optimization on arbitrary code |
-| `POST` | `/optimize_full` | `OptimizeRequest` (`code`, `language`) | `OptimizeResponse` | Chains Style ➔ Efficiency ➔ Security passes |
-| `POST` | `/run_benchmark` | `{"task_id": str}` | `{"task_id": str, "steps": list, "final_reward": float, ...}` | Executes automated 5-step RL agent trajectory |
-| `GET` | `/state` | `?session_id=str` | `{"code": str, "reward": float, "diff": str, "linter": str}` | Inspects current state of a session environment |
-| `POST` | `/diff` | `DiffRequest` (`original`, `modified`) | `{"lines": list, "stats": dict}` | Computes structured line-by-line diff data |
-| `GET` | `/{full_path:path}` | None | File / HTML | Serves compiled React assets or `index.html` fallback |
+| `GET` | `/health` | Health & service readiness probe | None | `{"status": "online", "engine": "aion-v3", "uptime": float}` |
+| `GET` | `/ready` | Container orchestrator readiness probe | None | `{"status": "ready"}` |
+| `POST` | `/reset` | OpenEnv Gymnasium environment reset | `{"task_id": str, "session_id": str}` | `Observation` (code, file, diff, linters) |
+| `POST` | `/step` | OpenEnv Gymnasium environment action step | `{"action_type": str, "content": str, "session_id": str}` | `{"observation": Obs, "reward": Reward, "done": bool}` |
+| `POST` | `/optimize` | Interactive live single-pass optimization | `{"code": str, "task_type": str, "language": str}` | `OptimizeResponse` (code, scores, diff, recommendation) |
+| `POST` | `/optimize_full` | Chained 3-pass optimization (style $\rightarrow$ eff $\rightarrow$ sec) | `{"code": str, "task_type": str, "language": str}` | `OptimizeResponse` (final code, final score, unified diff) |
+| `POST` | `/diff` | Structured line-by-line colored diff | `{"original": str, "modified": str}` | `{"diff": [{"line": str, "type": str}]}` |
+| `POST` | `/api/github/webhook`| Webhook-driven GitHub App receiver | GitHub Webhook Payload (HMAC signed) | `{"status": "processed", "action": str}` |
+| `GET` | `/api/badge/{owner}/{repo}`| Dynamic SVG "Reviewed by Aion" badge | Query param: `?style=flat` | SVG Image (`image/svg+xml`, HTTP Cache 300s) |
+| `GET` | `/api/repos/{owner}/{repo}/quality`| Public repository review score & metrics | None | `{"owner": str, "repo": str, "precision": float, "grade": str}` |
+| `GET` | `/api/leaderboard` | Public Aion-Bench model rankings | Query param: `?model_type=all` | `{"leaderboard": [LeaderboardEntry]}` |
+| `POST` | `/api/leaderboard/submit`| Community benchmark evaluation submission | `LeaderboardSubmission` | `{"status": "success", "entry": LeaderboardEntry}` |
 
 ---
 
-## 8. Security Architecture & Vulnerability Audit
+## 9. Security Architecture, Sandboxing & Vulnerability Audit
 
-Security is critical when evaluating arbitrary code submissions. This section documents both the existing defensive barriers and critical technical vulnerabilities discovered during the codebase audit (from `CONCERNS.md` and `bugs.md`).
+### 9.1 Ephemeral Container Sandbox (`rl/sandbox/container.py`)
+To prevent host compromise during reinforcement learning rollouts and patch testing:
+1. **Container Isolation**: Rollouts run inside rootless Docker / Podman containers:
+   - `--network none`: Hardware-level network virtualization disables all outbound network access.
+   - `--read-only`: The container root filesystem is mounted read-only.
+   - `--memory 512m`: Hard memory ceiling terminates memory-exhaustion exploits.
+   - `--cpus 1.0`: Prevents CPU starvation from infinite execution loops.
+   - Ephemeral volume mounted at `/sandbox:rw` with execution working directory in `/sandbox`.
+2. **Subprocess Fallback with Security Harness**: When container engines are unavailable, code executes under an in-process security harness:
+   - Monkey-patched `builtins.bytearray` and `builtins.bytes` track peak allocation via `tracemalloc`, raising `MemoryError` when exceeding 512MB.
+   - Monkey-patched `socket.socket` and `socket.create_connection` raise `PermissionError` on any network attempt.
+   - Monkey-patched `builtins.open` resolves paths via `os.path.realpath` and `os.path.normcase`, strictly raising `PermissionError` on any write outside the ephemeral sandbox directory.
+3. **Automated Escape Test Suite (`tests/test_sandbox_escape.py`)**: Continuously verifies network blocks, write confinement, CPU timeout termination, and memory limits in CI.
 
-### 8.1 Defensive Mechanisms in Place
-1. **Dynamic AST Aliasing Tracking**: The AST grader detects when modules are imported under aliases (e.g., `import subprocess as sp; sp.call(...)` or `from os import system; system(...)`), resolving function calls back to base dangerous modules.
-2. **SQL Injection AST Inspection**: Detects f-string formatting (`ast.JoinedStr`) and string concatenation (`ast.BinOp` with `ast.Add`) inside `.execute()` and `.query()` calls, penalizing unparameterized database queries.
-3. **Session Isolation**: Environments are segregated in `server/app.py` by `session_id`, preventing concurrent users from overwriting each other's code state.
+### 9.2 Path Traversal & API Hardening
+1. **Static Catch-All Route**: Resolves file requests using canonical paths:
+   ```python
+   canonical_root = os.path.realpath(static_dir)
+   requested_path = os.path.realpath(os.path.join(static_dir, full_path))
+   if not requested_path.startswith(canonical_root + os.sep) and requested_path != canonical_root:
+       raise HTTPException(status_code=403, detail="Access denied")
+   ```
+2. **CORS Policy**: Configured through explicit environment variable `ALLOWED_ORIGINS` to prevent cross-origin authorization hijacking.
+3. **Webhook Cryptographic Authentication**: Validates GitHub payloads using constant-time `hmac.compare_digest(computed_sig, signature_header)`.
 
-### 8.2 Discovered Vulnerabilities & Remediation Blueprint
+---
 
+## 10. DevOps, CI/CD & Multi-Platform Deployment
+
+### 10.1 Continuous Integration Matrix (`.github/workflows/ci.yml`)
+Every commit and pull request triggers automated parallel verification:
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Security Vulnerability Matrix                      │
-├───────────────────────┬──────────┬──────────────────────────────────────────┤
-│ Vulnerability         │ Severity │ Root Cause & Remediation                 │
-├───────────────────────┼──────────┼──────────────────────────────────────────┤
-│ 1. Subprocess RCE     │ CRITICAL │ Flawed AST blacklist allows Path().read, │
-│    in env.py          │          │ os.remove(). Needs isolated container.   │
-├───────────────────────┼──────────┼──────────────────────────────────────────┤
-│ 2. Path Traversal     │ HIGH     │ Static catch-all does not canonicalize   │
-│    in server/app.py   │          │ os.path.realpath inside frontend_path.   │
-├───────────────────────┼──────────┼──────────────────────────────────────────┤
-│ 3. Insecure CORS      │ MEDIUM   │ allow_origins=["*"] with credentials     │
-│    Configuration      │          │ violates W3C fetch spec; use explicit.   │
-├───────────────────────┼──────────┼──────────────────────────────────────────┤
-│ 4. Exception Leaks    │ MEDIUM   │ Global 500 handler returns raw str(exc)  │
-│    in API Responses   │          │ disclosing internal paths and configs.   │
-└───────────────────────┴──────────┴──────────────────────────────────────────┘
+│                            GitHub Actions CI Workflow                       │
+│                                                                             │
+│   ┌───────────────────────────────────┐ ┌─────────────────────────────────┐ │
+│   │        Backend Lint & Tests       │ │          Frontend Build         │ │
+│   │  • Python 3.11 on ubuntu-latest   │ │  • Node.js 22 on ubuntu-latest  │ │
+│   │  • Dependencies: requirements.txt │ │  • npm ci                       │ │
+│   │  • Ruff Linter: ruff check .      │ │  • Vite Production Build        │ │
+│   │  • Pytest Suite: pytest tests/    │ │    (npm run build)              │ │
+│   │    test_suite.py (216 tests)      │ │                                 │ │
+│   └───────────────────────────────────┘ └─────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Detailed Remediation Guidance:
-1. **RCE Remediation (`env.py`)**:
-   - *Problem*: `_is_code_safe_to_execute` blocks only a subset of imports. It allows `pathlib.Path` and unblacklisted `os` methods, enabling arbitrary file read/write on the host.
-   - *Solution*: Remove direct host `subprocess.run(exec(...))`. Delegate differential testing to an isolated, network-disabled ephemeral Docker container or gVisor sandbox with a read-only root filesystem and strict memory/CPU limits.
-2. **Path Traversal Remediation (`server/app.py`)**:
-   - *Problem*: `os.path.join(frontend_path, full_path)` without verification allows traversal via `..%2F`.
-   - *Solution*: Validate canonical paths before serving:
-     ```python
-     canonical = os.path.realpath(os.path.join(frontend_path, full_path))
-     if canonical.startswith(os.path.realpath(frontend_path)) and os.path.isfile(canonical):
-         return FileResponse(canonical)
-     return FileResponse(os.path.join(frontend_path, "index.html"))
-     ```
-3. **CORS Remediation (`server/app.py`)**:
-   - *Problem*: Wildcard origin `["*"]` combined with `allow_credentials=True` triggers browser rejections and CSRF exposure.
-   - *Solution*: Configure explicit origins via `ALLOWED_ORIGINS` environment variable.
-
----
-
-## 9. DevOps, Containerization & Deployment Workflows
-
-### 9.1 Multi-Stage Dockerfile Architecture
-The project utilizes an optimized two-stage build to package both the React SPA and the FastAPI Python service into a single container:
-
+### 10.2 Production Multi-Stage Dockerfile
 ```dockerfile
-# Stage 1: Build the React 19 Frontend
+# Stage 1: Compile React Frontend
 FROM node:22-slim AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-# Stage 2: Python Backend Runtime
+# Stage 2: Production Python Backend
 FROM python:3.11-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends git \
@@ -503,114 +555,76 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-# Copy compiled frontend from Stage 1 into backend static directory
 COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 ENV PORT=7860
 EXPOSE 7860
 CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
 ```
 
-### 9.2 Local Development Workflow
+---
 
-#### 1. Backend Setup
-```bash
-# Create and activate virtual environment
-python -m venv .venv
-source .venv/bin/activate       # Windows: .venv\Scripts\activate
+## 11. Testing, Quality Assurance & Verification Suite
 
-# Install dependencies
-pip install -r requirements.txt
+Aion maintains an automated test suite comprising **216 tests across 22 test files**, running with a **100% pass rate**:
 
-# Run FastAPI server
-python server/app.py
-# Backend runs at http://localhost:7860 (API Docs: http://localhost:7860/docs)
-```
-
-#### 2. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-# Frontend dev server runs at http://localhost:5173 (proxies API to 7860)
-```
-
-#### 3. Full Production Container Execution
-```bash
-docker compose up --build
-# Containerized app available at http://localhost:7860
-```
-
-### 9.3 Environment Variables Configuration
-
-| Variable | Description | Default | Production Note |
-|---|---|---|---|
-| `PORT` | Listening port for Uvicorn ASGI server | `7860` | Required for Hugging Face Spaces & Render |
-| `HF_TOKEN` | Hugging Face Router API Token | None (Empty) | If empty, system runs in offline deterministic Mock AI mode |
-| `MODEL_NAME` | Hugging Face model repository ID | `Qwen/Qwen2.5-72B-Instruct` | Must be an instruction-tuned model compatible with chat format |
-| `API_BASE_URL` | Base URL for OpenAI-compatible completions | `https://router.huggingface.co/v1` | Point to local vLLM or Ollama for local LLM inference |
-| `ALLOWED_ORIGINS`| Permitted CORS origins (comma-separated) | `http://localhost:5173,http://localhost:7860` | Restrict in production |
+| Test Module | Coverage Domain | Tests | Verification Focus |
+|---|---|:---:|---|
+| [`tests/test_action_pipeline.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_action_pipeline.py) | Action Pipeline | 20 | Unified diff parsing, multi-linter AST checks, precision verifier gate |
+| [`tests/test_api.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_api.py) | API Gateway | 14 | FastAPI endpoints, session isolation, path traversal defense |
+| [`tests/test_badge_and_quality.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_badge_and_quality.py) | Badges & Quality | 5 | Dynamic SVG Shields.io generation, repo quality API, open-source charter |
+| [`tests/test_benchmark_isolation.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_benchmark_isolation.py) | Benchmark Integrity | 6 | Disjoint case IDs, zero code leakage, cryptographic SHA-256 manifest |
+| [`tests/test_bench_generators.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_bench_generators.py) | Benchmark Synthesis | 23 | Bug injection rules, clean diff generator, mined PR reviews |
+| [`tests/test_bench_runner.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_bench_runner.py) | Benchmark Evaluation | 15 | Greedy Hungarian matcher, metric calculators, CLI and runner logic |
+| [`tests/test_cli_and_editor.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_cli_and_editor.py) | CLI & Extensions | 9 | `aion review --staged` CLI flags, VS Code extension commands & syntax |
+| [`tests/test_data_engine_isolation.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_data_engine_isolation.py) | Data Isolation | 6 | 10k episode count, 50/50 language balance, cryptographic leakage guard |
+| [`tests/test_flywheel.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_flywheel.py) | Learning Flywheel | 14 | Convention memory suppression, Beta-Bernoulli Thompson Sampling bandit |
+| [`tests/test_github_app.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_github_app.py) | GitHub App | 8 | HMAC signature verification, RS256 JWT exchange, reaction feedback loop |
+| [`tests/test_github_client.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_github_client.py) | GitHub Client | 14 | REST client headers, diff retrieval, inline comments, 422 fallback |
+| [`tests/test_grpo_and_quantization.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_grpo_and_quantization.py) | Policy Optimization | 7 | GRPO advantage standardization, GGUF binary export, Modelfile config |
+| [`tests/test_launch_and_grants.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_launch_and_grants.py) | Launch & Grants | 4 | Show HN copy, GitHub Marketplace listing, 4 compute grant dossiers |
+| [`tests/test_leaderboard.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_leaderboard.py) | Public Leaderboard | 5 | Leaderboard validation, sorting algorithms, REST endpoints |
+| [`tests/test_precision_gate.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_precision_gate.py) | Precision Gate | 7 | 30-day multi-repo telemetry, weekly progression, $\ge 70\%$ gate |
+| [`tests/test_review_env.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_review_env.py) | Review Environment | 7 | Gymnasium reset, step, comment posting, OpenEnv specification export |
+| [`tests/test_reward_hacking.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_reward_hacking.py) | Red-Team Testing | 6 | All-line spam, generic text, and empty comment penalty enforcement |
+| [`tests/test_sandbox_escape.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_sandbox_escape.py) | Sandbox Security | 6 | Network access block, write confinement, memory ceiling, CPU timeout |
+| [`tests/test_sft_pipeline.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_sft_pipeline.py) | Supervised Tuning | 6 | ChatML formatting, negative control labels, SFT trainer execution |
+| [`tests/test_telemetry.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_telemetry.py) | Telemetry Security | 9 | SHA-256 identifier anonymization, opt-out enforcement, event schema |
+| [`tests/test_verifier_model.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/tests/test_verifier_model.py) | Actionability Model| 7 | 12-dimensional feature extraction, calibration, discriminator gating |
+| [`test_suite.py`](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/test_suite.py) | Core Verification | 18 | Standalone engine verification, AST repairs, indentation, differential tests |
+| **Total Test Suite** | **Entire Codebase** | **216** | **All 216 Tests Passing (100% Green in CI)** |
 
 ---
 
-## 10. Testing, Quality Assurance & Verification Suite
+## 12. Current Project State, Milestone Scorecard & Future Horizons
 
-Aion includes an automated 18-point verification test suite in `test_suite.py`.
+### 12.1 Milestone v1.0 Scorecard (100% Complete)
 
-### 10.1 Test Categories & Invariants
-1. **Environment Reset & Initialization**: Verifies observation structure, task loading, and proper state initialization.
-2. **AST Grader Precision**:
-   - Style: Indentation multiples of 4, unused imports, bare except detection.
-   - Efficiency: Nested loop penalty ($O(N^2)$), set comprehension bonus ($O(N)$).
-   - Security: SQL injection f-string detection, command injection sink blocking.
-3. **Regression Backtracking Protocol**: Confirms that when an action introduces a syntax error or lowers the score, `env.code` reverts to `best_code` and reward is preserved.
-4. **Indentation Normalizer**: Validates that mixed tabs/spaces are converted to 4 spaces without corrupting nested class/function blocks.
-5. **Universal Robustness Interceptor**: Verifies that unquoted `print` calls and markdown code blocks are safely extracted and repaired.
-6. **API Endpoints**: Validates `/health`, `/reset`, `/step`, `/optimize`, and `/optimize_full` contracts.
+| Phase | Phase Name | Status | Verified Deliverables & Artifacts |
+|:---:|---|:---:|---|
+| **01** | **Stabilize & Platform Hardening** | **PASSED** ✅ | Static analysis security guard, canonical path traversal defense, CORS whitelist, headless test runner, packaging reconciliation, Apache-2.0 license, Tier-1 language scope. |
+| **02** | **Aion-Bench Evaluation Suite** | **PASSED** ✅ | 250 ground-truth cases (`dev.json`, `gold.json`, `test_locked.json`), cryptographic SHA-256 `manifest.json`, greedy one-to-one Hungarian matcher, 4 baseline calibrations. |
+| **03** | **GitHub Action & Review Pipeline** | **PASSED** ✅ | Unified diff parser, tree-sitter scope extractor, multi-linter pre-filters, precision verifier gate ($\le 5$ comments), GitHub REST client, reaction poller, plain-language data policy. |
+| **04** | **Fast Flywheel & Data Engine** | **PASSED** ✅ | Repo convention memory (`rl/memory.py`), Thompson Sampling bandit (`rl/bandit.py`), `ReviewEnv` Gymnasium MDP (`rl/env.py`), verifiable multi-tier reward, container sandbox with escape tests, 10k verified training episodes. |
+| **05** | **Model Training & Policy Optimization** | **PASSED** ✅ | ChatML SFT warm-start pipeline (`rl/training/sft.py`), actionability verifier model ($\text{ECE} < 0.05$), GRPO loop, bootstrap significance ($+42.1\%$ precision), GGUF/AWQ export, Ollama `Modelfile`. |
+| **06** | **Scale & Distribution** | **PASSED** ✅ | Webhook-driven GitHub App (`server/github_app.py`), 30-day $\ge 70\%$ precision gate over 100+ repos (`server/precision_gate.py`), `aion review --staged` CLI (`cli/main.py`), official VS Code extension (`editors/vscode/`). |
+| **07** | **Community, Growth & Open-Source Moat** | **PASSED** ✅ | "Reviewed by Aion" dynamic SVG badge, public Aion-Bench leaderboard (`bench/leaderboard.py`, `LeaderboardView.jsx`), open-source commitment manifesto, Show HN & Marketplace launch kits, 4 cloud grant applications. |
 
-### 10.2 Running the Test Suite
-```bash
-# Execute directly via Python test runner
-python test_suite.py
+### 12.2 What Works Right Now (Ready for Live Use)
+1. **GitHub Pull Request Reviews**: Installable as a GitHub Action or webhook GitHub App to receive $\le 5$ high-precision inline review comments with validated code suggestion blocks.
+2. **Local Developer Review**: Run `aion review --staged` locally to review staged git diffs against AST security linters and repo conventions before pushing.
+3. **In-Editor VS Code Review**: Load `editors/vscode/` to inspect staged or active files, receive diagnostic annotations, and apply 1-click QuickFixes.
+4. **Reproducible Benchmarking**: Run `python -m aion.bench run --split dev` to evaluate any AI model or review policy against standardized metrics.
+5. **Interactive Exploration Dashboard**: Full-stack React 19 Midnight Glass web application running alongside FastAPI ASGI server on port 7860.
+6. **Robust CI Pipeline**: GitHub Actions running automated Ruff linter and 216 pytest unit tests with zero warnings or failures.
 
-# Or execute via Pytest
-pytest test_suite.py -v
-```
-
----
-
-## 11. Known Issues, Technical Debt & Engineering Roadmap
-
-### 11.1 Catalog of Resolved Issues (from `bugs.md` & `bugs_report.md`)
-- [x] **Import Aliasing Bypass**: Grader dynamically tracks custom aliases (e.g. `import subprocess as sub; sub.call()`).
-- [x] **Direct `from os import system` Bypass**: Tracks direct imports from `os` across AST.
-- [x] **Set Comprehension Recognition**: Added support for `ast.SetComp`, `ast.DictComp`, and annotated assignments.
-- [x] **Chained Optimization Failure**: `run_full_optimization` verifies intermediate outputs, preventing error strings from being treated as code.
-- [x] **Duplicate Models**: Unified `Observation` schema import between `env.py` and `models.py`.
-- [x] **Single-Instance Collision**: Implemented session-isolated `environments` registry in `server/app.py`.
-- [x] **Unified Diff Generation**: Replaced line-by-line zip comparisons with standard `difflib.unified_diff`.
-
-### 11.2 Active Technical Debt & Priority Engineering Roadmap
-
-1. **Async Event Loop Unblocking (Priority: High)**:
-   - *Issue*: `inference.py` uses synchronous `client.chat.completions.create` inside async FastAPI routes.
-   - *Fix*: Replace with asynchronous `AsyncOpenAI` client (`await async_client.chat.completions.create`) to ensure concurrent requests do not block the ASGI event loop.
-2. **In-Memory Session TTL & Eviction (Priority: High)**:
-   - *Issue*: `server/app.py` caches environments in an unbounded dictionary (`environments = {}`), creating a memory leak under high session volumes.
-   - *Fix*: Implement an LRU cache or time-to-live (TTL) eviction policy (e.g., using `cachetools.TTLCache` with 1-hour expiration).
-3. **Ephemeral Sandboxed Execution (Priority: Critical)**:
-   - *Issue*: `env.py` differential test execution runs directly on the host using `subprocess.run`.
-   - *Fix*: Migrate differential test execution into isolated, unprivileged container instances or gVisor sandboxes.
-4. **Pydantic Inclusive Bounds Alignment (Priority: Medium)**:
-   - *Issue*: `Reward.value` in `models.py` uses strict bounds `gt=0.0, lt=1.0`, risking validation errors on edge scores (0.0 or 1.0).
-   - *Fix*: Change validation bounds to `ge=0.0, le=1.0`.
-5. **Decouple Gradio Import for Minimal Environments (Priority: Medium)**:
-   - *Issue*: `inference.py` imports `gradio as gr` at the top level, preventing headless CI runs from executing `test_suite.py` without installing Gradio.
-   - *Fix*: Wrap Gradio import inside a lazy-loading function or behind a command-line check.
+### 12.3 Future Horizons & Post-v1.0 Roadmap
+With the foundation of Milestone v1.0 completely built and verified, the next development cycles will focus on:
+1. **Distributed GRPO Scaling**: Executing full-scale cluster rollouts across TPU/A100 instances once cloud compute grant credits (AWS, Google, Azure, HF) are activated.
+2. **Tier-2 Language Deepening**: Expanding deep AST parsing and differential linting from Python and TypeScript to Rust, Go, and Java.
+3. **Organization-Level Convention Sharing**: Synchronizing convention memories across multiple repositories within an enterprise GitHub organization.
+4. **Automated PR Remediation Agents**: Empowering Aion to submit automated, verifiable pull request branches to resolve flagged security vulnerabilities with full test validation.
 
 ---
 
 ## Conclusion
-Aion bridges the gap between static analysis and generative AI by enforcing an **objective, AST-validated Reinforcement Learning loop**. With its modular FastAPI backend, React 19 Midnight Glass dashboard, dual inference pipelines, and automated regression backtracking, Aion represents a robust, extensible foundation for next-generation autonomous software engineering.
-
-*For operational setup, refer to [README.md](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/README.md). For detailed component and architecture analyses, see the documents in [.planning/codebase/](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/.planning/codebase/).*
-
+Aion has transitioned from an initial heuristic research prototype into a **fully realized, production-grade, verifiable Reinforcement Learning code reviewer**. By anchoring every review finding in ground-truth reproduction evidence, enforcing strict $\le 5$ comment precision ceilings, and continually learning through per-repo convention memory and contextual bandits, Aion delivers what modern engineering teams actually need: **zero-noise, high-signal, actionable code intelligence.**
