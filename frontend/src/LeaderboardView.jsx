@@ -28,132 +28,161 @@ export default function LeaderboardView() {
     }
   };
 
-  const getTypeBadgeClass = (type) => {
-    switch (type) {
-      case "open-weights":
-        return "bg-emerald-900/60 text-emerald-300 border-emerald-500/40";
-      case "commercial-api":
-        return "bg-purple-900/60 text-purple-300 border-purple-500/40";
-      case "static-tool":
-        return "bg-blue-900/60 text-blue-300 border-blue-500/40";
-      default:
-        return "bg-slate-800 text-slate-300 border-slate-700";
-    }
-  };
-
   return (
-    <div className="w-full max-w-7xl mx-auto p-6 space-y-8 font-sans">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-        <div className="relative z-10 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              GROWTH-02 Benchmark Hub
-            </span>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              🔒 Locked Private Test Split
-            </span>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-              🛡️ Clean-Diff FPR Evaluated
-            </span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Aion-Bench Public Leaderboard
-          </h1>
-          <p className="text-slate-300 text-base max-w-3xl leading-relaxed">
+    <div>
+      {/* Header Grid Section */}
+      <section className="grid" style={{ borderTop: "none", paddingTop: "1rem" }}>
+        <div className="main">
+          <span className="eyebrow">GROWTH-02 BENCHMARK HUB // HELD-OUT SPLIT</span>
+          <h1>Aion-Bench Public Leaderboard</h1>
+          <p className="lead">
             The objective, reproducible benchmark for AI-native code reviewers. Evaluated across real bug injections, mined maintainer PR corrections, and clean diff negative controls to penalize subjective nitpicking and hallucinations.
           </p>
 
-          <div className="pt-2 flex flex-wrap gap-4">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginTop: "2rem" }}>
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="px-5 py-2.5 rounded-xl font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all text-sm flex items-center gap-2"
+              className="button"
+              aria-label="Open evaluation submission instructions modal"
             >
-              <span>🚀 Submit Evaluation</span>
+              Submit Evaluation
             </button>
             <a
               href="/docs"
-              className="px-5 py-2.5 rounded-xl font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all text-sm flex items-center gap-2"
+              className="button button--outline"
+              aria-label="Read methodology and schema documentation"
             >
-              <span>📖 Methodology & Schema</span>
+              Methodology &amp; Schema
             </a>
           </div>
         </div>
-      </div>
 
-      {/* Summary KPI Cards */}
-      {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
-            <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Total Evaluated</div>
-            <div className="text-2xl font-bold text-white mt-1">{summary.total_models} models</div>
-            <div className="text-xs text-slate-500 mt-1">{summary.open_weights_count} open-weights</div>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
-            <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Top Ranked Model</div>
-            <div className="text-base font-bold text-emerald-400 mt-1 truncate">{summary.top_model}</div>
-            <div className="text-xs text-slate-500 mt-1">Precision: {summary.top_precision}</div>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
-            <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Benchmark Mean Precision</div>
-            <div className="text-2xl font-bold text-indigo-400 mt-1">{summary.average_precision}</div>
-            <div className="text-xs text-slate-500 mt-1">Held-out split</div>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
-            <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Evaluation Gate</div>
-            <div className="text-sm font-semibold text-cyan-400 mt-1">Clean-Diff FPR &lt; 10%</div>
-            <div className="text-xs text-slate-500 mt-1">Anti-hallucination barrier</div>
+        <div className="aside">
+          <div className="meta-panel">
+            <div className="meta-panel__header">BENCHMARK PROTOCOL</div>
+            <div className="meta-row">
+              <span className="meta-label">SPLIT TYPE</span>
+              <span className="meta-value">Locked Private Test</span>
+            </div>
+            <div className="meta-row">
+              <span className="meta-label">NEGATIVE CONTROLS</span>
+              <span className="meta-value">Clean-Diff FPR Evaluated</span>
+            </div>
+            <div className="meta-row">
+              <span className="meta-label">PRECISION GATE</span>
+              <span className="meta-value">Clean FPR &lt; 10%</span>
+            </div>
+            <div className="meta-row">
+              <span className="meta-label">INTEGRITY</span>
+              <span className="meta-value">SHA-256 Manifest</span>
+            </div>
           </div>
         </div>
+      </section>
+
+      {/* Summary KPI Metrics */}
+      {summary && (
+        <section style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 2rem 2.5rem 2rem" }}>
+          <div className="metrics-grid">
+            <div className="metric-cell">
+              <div className="metric-label">Total Evaluated</div>
+              <div className="metric-value">{summary.total_models} Models</div>
+              <div className="caption" style={{ marginTop: "0.25rem" }}>
+                {summary.open_weights_count} open-weights architectures
+              </div>
+            </div>
+
+            <div className="metric-cell">
+              <div className="metric-label">Top Ranked Model</div>
+              <div className="metric-value metric-value--accent" style={{ fontSize: "1.5rem" }}>
+                {summary.top_model}
+              </div>
+              <div className="caption" style={{ marginTop: "0.25rem" }}>
+                Peak Precision: <strong>{summary.top_precision}</strong>
+              </div>
+            </div>
+
+            <div className="metric-cell">
+              <div className="metric-label">Benchmark Mean Precision</div>
+              <div className="metric-value">{summary.average_precision}</div>
+              <div className="caption" style={{ marginTop: "0.25rem" }}>
+                Held-out evaluation split mean
+              </div>
+            </div>
+
+            <div className="metric-cell">
+              <div className="metric-label">Evaluation Gate</div>
+              <div className="metric-value" style={{ fontSize: "1.5rem" }}>
+                Clean FPR &lt; 10%
+              </div>
+              <div className="caption" style={{ marginTop: "0.25rem" }}>
+                Anti-hallucination barrier
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div className="flex items-center gap-2">
-          {["all", "open-weights", "commercial-api", "static-tool"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setFilter(t)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === t
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-800"
-              }`}
-            >
-              {t === "all" ? "All Models" : t.replace("-", " ").toUpperCase()}
-            </button>
-          ))}
-        </div>
-        <span className="text-xs text-slate-400">Ranked by Precision (desc) & Clean-Diff FPR (asc)</span>
-      </div>
+      {/* Table Section */}
+      <section style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 2rem 4rem 2rem" }}>
+        {/* Filter Controls & Caption */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "1rem",
+            paddingBottom: "1.25rem",
+            borderBottom: "1px solid var(--black)"
+          }}
+        >
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+            {["all", "open-weights", "commercial-api", "static-tool"].map((t) => {
+              const isActive = filter === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setFilter(t)}
+                  className={`button button--small ${isActive ? "" : "button--outline"}`}
+                  aria-pressed={isActive}
+                >
+                  {t === "all" ? "All Models" : t.replace("-", " ").toUpperCase()}
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800">
+          <span className="caption" style={{ fontWeight: 600 }}>
+            Ranked by Precision (desc) &amp; Clean-Diff FPR (asc)
+          </span>
+        </div>
+
+        {/* Swiss Data Table */}
+        <div className="swiss-table-wrap">
+          <table className="swiss-table">
+            <thead>
               <tr>
-                <th className="py-4 px-4 text-center">Rank</th>
-                <th className="py-4 px-6">Model & Provider</th>
-                <th className="py-4 px-4">Type</th>
-                <th className="py-4 px-4 text-right">Precision</th>
-                <th className="py-4 px-4 text-right">Recall</th>
-                <th className="py-4 px-4 text-right">Clean FPR</th>
-                <th className="py-4 px-4 text-right">Nitpicks</th>
-                <th className="py-4 px-4 text-right">Latency</th>
+                <th style={{ width: "70px", textAlign: "center" }}>Rank</th>
+                <th>Model &amp; Organization</th>
+                <th>Type</th>
+                <th style={{ textAlign: "right" }}>Precision</th>
+                <th style={{ textAlign: "right" }}>Recall</th>
+                <th style={{ textAlign: "right" }}>Clean FPR</th>
+                <th style={{ textAlign: "right" }}>Nitpicks</th>
+                <th style={{ textAlign: "right" }}>Latency</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-12 text-slate-500">
+                  <td colSpan="8" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-muted)" }}>
                     Loading benchmark submissions...
                   </td>
                 </tr>
               ) : entries.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-12 text-slate-500">
+                  <td colSpan="8" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-muted)" }}>
                     No models matching filter criteria.
                   </td>
                 </tr>
@@ -161,56 +190,54 @@ export default function LeaderboardView() {
                 entries.map((item, idx) => {
                   const isTop = idx === 0;
                   return (
-                    <tr
-                      key={item.model_id}
-                      className={`hover:bg-slate-800/40 transition-colors ${
-                        isTop ? "bg-indigo-950/20 font-semibold" : ""
-                      }`}
-                    >
-                      <td className="py-4 px-4 text-center">
+                    <tr key={item.model_id} className={isTop ? "highlight" : ""}>
+                      <td style={{ textAlign: "center" }}>
                         {isTop ? (
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
-                            🏆 1
-                          </span>
+                          <span className="tag-badge tag-badge--accent">#1 TOP</span>
                         ) : (
-                          <span className="text-slate-400 font-mono text-sm">#{idx + 1}</span>
+                          <span className="swiss-mono">#{idx + 1}</span>
                         )}
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="text-white font-medium flex items-center gap-2">
+                      <td>
+                        <div style={{ fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
                           {item.display_name}
                           {item.verified && (
-                            <span className="text-cyan-400 text-xs" title="Verified by Aion maintainers">
-                              ✓
+                            <span
+                              style={{ color: "var(--red)", fontSize: "0.75rem", fontWeight: 700 }}
+                              title="Verified by Aion maintainers"
+                            >
+                              [VERIFIED]
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-slate-400">
-                          {item.organization} • <span className="font-mono">{item.license}</span>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                          {item.organization} • <span className="swiss-mono">{item.license}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${getTypeBadgeClass(
-                            item.model_type
-                          )}`}
-                        >
+                      <td>
+                        <span className="tag-badge">
                           {item.model_type}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-right font-mono text-emerald-400 font-bold">
-                        {(item.precision * 100).toFixed(1)}%
+                      <td style={{ textAlign: "right" }} className="swiss-mono">
+                        <strong>{(item.precision * 100).toFixed(1)}%</strong>
                       </td>
-                      <td className="py-4 px-4 text-right font-mono text-slate-300">
+                      <td style={{ textAlign: "right" }} className="swiss-mono">
                         {(item.recall * 100).toFixed(1)}%
                       </td>
-                      <td className="py-4 px-4 text-right font-mono text-cyan-400">
+                      <td
+                        style={{
+                          textAlign: "right",
+                          color: item.false_positive_rate < 0.1 ? "var(--black)" : "var(--red)"
+                        }}
+                        className="swiss-mono"
+                      >
                         {(item.false_positive_rate * 100).toFixed(1)}%
                       </td>
-                      <td className="py-4 px-4 text-right font-mono text-amber-400">
+                      <td style={{ textAlign: "right" }} className="swiss-mono">
                         {(item.nitpick_rate * 100).toFixed(1)}%
                       </td>
-                      <td className="py-4 px-4 text-right font-mono text-slate-400 text-xs">
+                      <td style={{ textAlign: "right", color: "var(--text-muted)" }} className="swiss-mono">
                         {Math.round(item.avg_latency_ms)}ms
                       </td>
                     </tr>
@@ -220,26 +247,56 @@ export default function LeaderboardView() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
-      {/* Submission Modal */}
+      {/* Submission Modal Dialog */}
       {showSubmitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <h3 className="text-xl font-bold text-white">Submit to Aion-Bench Leaderboard</h3>
-            <p className="text-slate-300 text-sm">
-              We welcome community model submissions. Evaluations must run against the official held-out test split using the Aion-Bench runner:
-            </p>
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs text-indigo-300 overflow-x-auto">
-              aion bench evaluate --model &lt;model-name&gt; --split test --output results.json
+        <div
+          className="swiss-modal-backdrop"
+          onClick={() => setShowSubmitModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="submit-modal-title"
+        >
+          <div className="swiss-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="swiss-modal__header">
+              <div>
+                <span className="eyebrow">SUBMISSION PROTOCOL</span>
+                <h3 id="submit-modal-title" style={{ marginTop: "0.25rem" }}>
+                  Submit to Aion-Bench Leaderboard
+                </h3>
+              </div>
             </div>
-            <p className="text-slate-400 text-xs">
-              Submissions can be submitted programmatically via <code className="text-indigo-300">POST /api/leaderboard/submit</code> or by opening a PR modifying <code className="text-indigo-300">data/leaderboard.json</code> with replication instructions.
-            </p>
-            <div className="flex justify-end pt-2">
+
+            <div className="swiss-modal__body">
+              <p style={{ marginBottom: "1rem" }}>
+                We welcome community model submissions. Evaluations must run against the official held-out test split using the Aion-Bench runner:
+              </p>
+
+              <div
+                style={{
+                  background: "var(--gray)",
+                  border: "1px solid var(--black)",
+                  padding: "1rem",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.8125rem",
+                  marginBottom: "1rem",
+                  overflowX: "auto"
+                }}
+              >
+                aion bench evaluate --model &lt;model-name&gt; --split test --output results.json
+              </div>
+
+              <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                Submissions can be submitted programmatically via <code style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>POST /api/leaderboard/submit</code> or by opening a PR modifying <code style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>data/leaderboard.json</code> with replication instructions.
+              </p>
+            </div>
+
+            <div className="swiss-modal__footer">
               <button
                 onClick={() => setShowSubmitModal(false)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+                className="button button--outline"
+                aria-label="Close modal dialog"
               >
                 Close
               </button>
@@ -250,4 +307,3 @@ export default function LeaderboardView() {
     </div>
   );
 }
-
