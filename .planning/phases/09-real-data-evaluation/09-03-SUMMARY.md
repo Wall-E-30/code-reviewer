@@ -16,3 +16,4 @@
    - Results: 320/320 clean cases, 0 collisions, 0 repo overlaps, 100% uncontaminated (`bench_real/data/CONTAMINATION_REPORT.md` and `.json`).
 4. **Automated Verification**:
    - `tests/test_bench_real_contamination.py`: 4/4 tests passing in 4.87s.
+

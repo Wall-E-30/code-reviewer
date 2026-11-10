@@ -133,3 +133,4 @@ def test_candidate_miner_produces_300_plus_cases(tmp_path: Path):
     # Verify zero overlap with blacklisted training repos
     for c in cases:
         assert c.repository.lower() not in BLACKLISTED_REPOSITORIES
+

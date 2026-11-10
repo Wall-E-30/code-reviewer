@@ -113,3 +113,4 @@ def test_verifier_calibration_on_real_validation_cases():
     assert decision["verdict"] in ("PROCEED_TO_PILOT", "REPOSITION_AS_FILTER_PLUS_LINTERS", "DO_NOT_LAUNCH")
     assert "rationale" in decision
     assert len(decision["aion_precision_ci"]) == 3
+

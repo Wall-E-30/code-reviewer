@@ -192,3 +192,4 @@ def test_generate_contamination_report(tmp_path: Path):
     assert report["is_uncontaminated"] is True
     assert (tmp_path / "CONTAMINATION_REPORT.json").exists()
     assert (tmp_path / "CONTAMINATION_REPORT.md").exists()
+

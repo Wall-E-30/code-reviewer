@@ -168,3 +168,4 @@ class BaseCollector:
     def close(self) -> None:
         if self.client and not self.client.is_closed:
             self.client.close()
+

@@ -271,3 +271,4 @@ def generate_contamination_report(
             f.write(md_content)
 
     return report_data
+

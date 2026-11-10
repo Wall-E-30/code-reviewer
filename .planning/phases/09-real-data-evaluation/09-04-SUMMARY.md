@@ -22,3 +22,4 @@
    - **Rationale:** Aion's lower 95% CI bound strictly exceeds the upper 95% CI bound of the best alternative baseline (`Plain-Prompt Hosted Model`), proving statistically significant superiority with non-overlapping confidence intervals.
 5. **Automated Verification**:
    - `tests/test_bench_real_runner_and_calibration.py`: 4/4 tests passing in 65.40s.
+

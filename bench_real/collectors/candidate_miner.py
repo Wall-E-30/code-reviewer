@@ -109,3 +109,4 @@ class CandidateMiner:
         cases = self.mine_candidates()
         self.save_candidates(cases)
         return cases
+

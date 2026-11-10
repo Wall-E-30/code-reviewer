@@ -76,3 +76,4 @@ class CleanPRsCollector(BaseCollector):
             )
 
         return cases
+

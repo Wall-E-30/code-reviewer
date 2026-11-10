@@ -19,3 +19,4 @@
 3. **Automated Verification**:
    - `tests/test_bench_real_schema_and_collectors.py`: 4/4 tests passing in 0.68s.
    - Zero overlap with blacklisted repositories verified.
+

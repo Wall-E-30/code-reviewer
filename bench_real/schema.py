@@ -78,3 +78,4 @@ class RealBenchmarkCase(BaseModel):
             return None
         true_votes = sum(1 for v in self.annotator_labels if v.actionable)
         return true_votes > (len(self.annotator_labels) / 2.0)
+

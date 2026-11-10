@@ -152,3 +152,4 @@ def test_cohens_kappa_empty_overlap():
     metrics = compute_cohens_kappa(labels_1, labels_2)
     assert metrics["n_common_cases"] == 0
     assert metrics["cohens_kappa"] == 0.0
+

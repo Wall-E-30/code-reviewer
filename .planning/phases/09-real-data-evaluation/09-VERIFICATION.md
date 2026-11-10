@@ -53,3 +53,4 @@ Under the pre-agreed Milestone v1.1 decision rule:
 
 All tooling is complete and verified. The real evaluation has run on the validation split (`val.json`), the locked test split (`test_locked.json`) remains cryptographically sealed, and independent human labeling tasks are documented in `HUMAN_TODO.md`.
 Phase 9 is complete and ready for Gate 9 approval.
+
