@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-11-10T13:26:46.745668+00:00",
+  "total_cases_audited": 320,
+  "clean_cases": 320,
+  "contaminated_cases": 0,
+  "contamination_rate": 0.0,
+  "is_uncontaminated": true,
+  "post_cutoff_count": 320,
+  "post_cutoff_fraction": 1.0,
+  "fuzzy_threshold_used": 0.7,
+  "violations_summary": []
+}
