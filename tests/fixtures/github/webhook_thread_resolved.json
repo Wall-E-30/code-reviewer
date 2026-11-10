@@ -1,0 +1,21 @@
+{
+  "action": "resolved",
+  "thread": {
+    "node_id": "PRRT_kwDOABCD123",
+    "comments": [
+      {
+        "id": 1001,
+        "body": "### 🛡️ Aion Finding: Security Vulnerability (`SEC-01`)\n\nReported by [Aion Code Reviewer]"
+      }
+    ]
+  },
+  "pull_request": {
+    "number": 12,
+    "head": {
+      "sha": "9a8b7c6d5e4f3a2b1c0d"
+    }
+  },
+  "repository": {
+    "full_name": "octocat/hello-world"
+  }
+}

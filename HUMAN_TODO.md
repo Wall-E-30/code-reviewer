@@ -24,3 +24,4 @@ This document tracks all tasks in Milestone v1.1 that require external human int
 ## 5. Grants & Launch Timing (Phase 12)
 - [ ] **Grant Applications**: Submit prepared grant dossiers to Hugging Face ZeroGPU, Google TRC, AWS Activate, and Microsoft Founders Hub.
 - [ ] **Launch Timing & Show HN**: Authorize timing and execute external submissions (Show HN, GitHub Marketplace listing publication).
+

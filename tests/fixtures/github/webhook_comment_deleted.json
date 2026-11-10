@@ -1,0 +1,12 @@
+{
+  "action": "deleted",
+  "comment": {
+    "id": 1003,
+    "body": "### 🧹 Aion Finding: Stylistic Note (`STYLE-01`)\n\nUnused import `sys`.\n\nReported by [Aion Code Reviewer]",
+    "path": "app/utils.py",
+    "line": 15
+  },
+  "repository": {
+    "full_name": "octocat/hello-world"
+  }
+}

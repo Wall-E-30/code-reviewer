@@ -29,6 +29,7 @@ from action.github_client import GitHubClient
 from action.linters import run_static_linters
 from action.providers import CandidateComment, get_provider
 from action.reactions import poll_previous_reactions
+from action.secret_redactor import redact_secrets
 from action.telemetry import TelemetryEvent, TelemetryLogger, hash_identifier
 from action.verifier import SEVERITY_WEIGHTS, PrecisionVerifier
 from rl.bandit import CategoryBandit
@@ -200,6 +201,9 @@ def run_action(
         diff_text = custom_diff
     else:
         diff_text = gh_client.get_pull_request_diff(repo, pr_number)
+
+    # Enforce HARD-03b: Scrub secrets from diff prior to parsing and provider inference
+    diff_text = redact_secrets(diff_text)
 
     if not diff_text or not diff_text.strip():
         logger.info("Empty diff retrieved for %s PR #%d. Nothing to review.", repo, pr_number)

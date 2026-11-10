@@ -1,7 +1,9 @@
 """
 rl/bandit.py
 
-Online Contextual Bandit for Aion Code Reviewer (FLY-02).
+Adaptive Per-Category Bandit for Aion Code Reviewer (FLY-02, HARD-05).
+Note: This is a per-category Beta-Bernoulli Thompson Sampling optimizer, NOT a contextual bandit,
+as it does not condition on per-pull feature vectors.
 Dynamically adjusts category-specific confidence thresholds theta_c in [0.50, 0.95]
 based on maintainer reaction signals (resolved, dismissed, upvotes, downvotes).
 

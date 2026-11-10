@@ -249,6 +249,59 @@ class GitHubAppHandler:
             "new_threshold": new_threshold,
         }
 
+    def handle_review_thread_event(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle pull_request_review_thread events (resolved, unresolved).
+        Official GitHub webhook for conversation thread state changes.
+        """
+        action = payload.get("action", "")
+        thread_data = payload.get("thread", {})
+        comments = thread_data.get("comments", [])
+
+        # Find first Aion comment in the thread
+        category = "bug"
+        aion_found = False
+        for c in comments:
+            body = c.get("body", "")
+            if "Aion Finding" in body or "Reported by [Aion Code Reviewer]" in body:
+                aion_found = True
+                body_lower = body.lower()
+                if "security" in body_lower:
+                    category = "security"
+                elif "performance" in body_lower:
+                    category = "performance"
+                elif "style" in body_lower or "nitpick" in body_lower:
+                    category = "style"
+                break
+
+        if not aion_found and comments:
+            # Check first comment as fallback
+            body_lower = comments[0].get("body", "").lower()
+            if "security" in body_lower:
+                category = "security"
+            elif "performance" in body_lower:
+                category = "performance"
+            elif "style" in body_lower:
+                category = "style"
+
+        reward = 0.0
+        if action == "resolved":
+            reward = 1.0
+            self.bandit.update(category, reward=reward)
+            logger.info("Review thread resolved: rewarded category '%s' (+1.0)", category)
+        elif action == "unresolved":
+            reward = -0.5
+            self.bandit.update(category, reward=reward)
+            logger.info("Review thread unresolved: penalized category '%s' (-0.5)", category)
+
+        return {
+            "status": "thread_processed",
+            "action": action,
+            "category": category,
+            "reward": reward,
+            "thread_node_id": thread_data.get("node_id"),
+        }
+
     def handle_review_comment_event(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle pull_request_review_comment events (dismissals, replies, resolutions).
@@ -278,6 +331,8 @@ class GitHubAppHandler:
             return self.handle_reaction_event(payload)
         elif event_name in ("pull_request_review_comment", "pull_request_review"):
             return self.handle_review_comment_event(payload)
+        elif event_name == "pull_request_review_thread":
+            return self.handle_review_thread_event(payload)
         elif event_name == "ping":
             return {"status": "pong", "zen": payload.get("zen", "")}
 

@@ -122,3 +122,4 @@ docker run --rm \
 | **HARD-02** | `test_threat_vector_memory_ceiling_exhaustion` | 1GB allocation in 128MB container intercepted | Verified ✅ |
 | **HARD-02** | `test_threat_vector_env_and_token_leakage` | Verifies sensitive host tokens are not in container env | Verified ✅ |
 | **HARD-02** | `test_threat_vector_proc_writes_forbidden` | Writes to `/proc` forbidden | Verified ✅ |
+

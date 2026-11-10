@@ -1,6 +1,9 @@
-version: "1.0.0"
+version: "1.1.0"
 name: "aion-code-reviewer"
-description: "An AI-powered sandbox for evaluating code review and bug-fixing capabilities."
+description: "Verifiable reinforcement learning environment for automated code review."
+environment:
+  entrypoint: "rl.env:ReviewEnv"
+  specification: "openenv.spec.json"
 tasks:
   - id: "style-cleanup"
     name: "Style & Linting"

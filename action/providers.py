@@ -16,6 +16,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
+from action.secret_redactor import redact_secrets
+
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are Aion, an expert high-precision code review intelligence system.
@@ -316,10 +318,14 @@ class OpenAICompatibleProvider(BaseReviewProvider):
             if convention_context and convention_context.strip()
             else ""
         )
+        # Enforce HARD-03b: Redact secrets before constructing LLM prompt
+        clean_diff = redact_secrets(diff_hunk)
+        clean_context = redact_secrets(context)
+
         user_content = (
             f"Review file: `{file_path}` (Language: {language})\n\n"
-            f"DIFF HUNK:\n```diff\n{diff_hunk}\n```\n\n"
-            f"SURROUNDING CONTEXT:\n```{language}\n{context}\n```"
+            f"DIFF HUNK:\n```diff\n{clean_diff}\n```\n\n"
+            f"SURROUNDING CONTEXT:\n```{language}\n{clean_context}\n```"
             f"{convention_block}\n\n"
             "Return valid JSON array only."
         )
