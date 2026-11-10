@@ -7,10 +7,25 @@ This document tracks all tasks in Milestone v1.1 that require external human int
 ## 1. Security Review & Audits
 - [ ] **Outside Developer Security Review**: Have an independent security engineer audit `docs/SANDBOX_THREAT_MODEL.md` and the container sandbox constraints (`--pids-limit`, `--cap-drop ALL`, `--security-opt no-new-privileges`, read-only root, non-root user).
 
-## 2. Real-Data Annotation (Phase 9)
-- [ ] **Independent Annotator 1**: Label collected `bench_real/` candidates using the annotation CLI/web tool.
-- [ ] **Independent Annotator 2**: Independently label the same cases to establish Cohen's kappa agreement and resolve the disagreement list.
-- [ ] **Review Real Disagreements**: Review borderline cases where Annotators 1 & 2 disagreed before finalizing the ground-truth benchmark split.
+## 2. Real-Data Annotation (Phase 9: REAL-02)
+- [ ] **Independent Annotator 1**:
+  - Run the CLI annotation session:
+    ```bash
+    python -m bench_real.annotation.tool --annotator annotator_1 --input bench_real/data/candidates.json --output bench_real/data/labels_annotator_1.json
+    ```
+  - Label all 320 candidates across `actionable` (yes/no), `category` (bug/security/performance/style/clean), and rationale notes.
+- [ ] **Independent Annotator 2**:
+  - Run independent CLI annotation session (without viewing Annotator 1's output):
+    ```bash
+    python -m bench_real.annotation.tool --annotator annotator_2 --input bench_real/data/candidates.json --output bench_real/data/labels_annotator_2.json
+    ```
+  - Label all 320 candidates independently.
+- [ ] **Inter-Annotator Agreement & Disagreement Resolution**:
+  - Compute Cohen's kappa (κ) and extract disagreement cases:
+    ```bash
+    python -m bench_real.annotation.agreement --ann1 bench_real/data/labels_annotator_1.json --ann2 bench_real/data/labels_annotator_2.json --candidates bench_real/data/candidates.json --output bench_real/data/disagreements.json
+    ```
+  - Adjudicate borderline cases in `bench_real/data/disagreements.json` with a third senior reviewer to finalize the ground truth splits (`bench_real/splits/val.json` and `bench_real/splits/test_locked.json`).
 
 ## 3. Live Pilot Recruitment & Interviews (Phase 10)
 - [ ] **Pilot Repo Recruitment**: Reach out to 10-20 active open-source repository maintainers to recruit for Shadow and Visible review pilots.
