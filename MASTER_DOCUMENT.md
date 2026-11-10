@@ -597,17 +597,22 @@ Aion maintains an automated test suite comprising **216 tests across 22 test fil
 
 ## 12. Current Project State, Milestone Scorecard & Future Horizons
 
-### 12.1 Milestone v1.0 Scorecard (100% Complete)
+> [!IMPORTANT]
+> **Data Lineage & Truth Standard (Milestone v1.1):**  
+> To guarantee full scientific honesty, all system metrics and milestones are explicitly audited in [`docs/SCORECARD.md`](file:///docs/SCORECARD.md) using formal data lineage tags: `[SYNTHETIC]`, `[SIMULATED]`, `[REAL-OFFLINE]`, and `[LIVE-PILOT]`. See `docs/SCORECARD.md` for the two-column breakdown comparing code built versus in-the-wild validation.
 
-| Phase | Phase Name | Status | Verified Deliverables & Artifacts |
-|:---:|---|:---:|---|
-| **01** | **Stabilize & Platform Hardening** | **PASSED** ✅ | Static analysis security guard, canonical path traversal defense, CORS whitelist, headless test runner, packaging reconciliation, Apache-2.0 license, Tier-1 language scope. |
-| **02** | **Aion-Bench Evaluation Suite** | **PASSED** ✅ | 250 ground-truth cases (`dev.json`, `gold.json`, `test_locked.json`), cryptographic SHA-256 `manifest.json`, greedy one-to-one Hungarian matcher, 4 baseline calibrations. |
-| **03** | **GitHub Action & Review Pipeline** | **PASSED** ✅ | Unified diff parser, tree-sitter scope extractor, multi-linter pre-filters, precision verifier gate ($\le 5$ comments), GitHub REST client, reaction poller, plain-language data policy. |
-| **04** | **Fast Flywheel & Data Engine** | **PASSED** ✅ | Repo convention memory (`rl/memory.py`), Thompson Sampling bandit (`rl/bandit.py`), `ReviewEnv` Gymnasium MDP (`rl/env.py`), verifiable multi-tier reward, container sandbox with escape tests, 10k verified training episodes. |
-| **05** | **Model Training & Policy Optimization** | **PASSED** ✅ | ChatML SFT warm-start pipeline (`rl/training/sft.py`), actionability verifier model ($\text{ECE} < 0.05$), GRPO loop, bootstrap significance ($+42.1\%$ precision), GGUF/AWQ export, Ollama `Modelfile`. |
-| **06** | **Scale & Distribution** | **PASSED** ✅ | Webhook-driven GitHub App (`server/github_app.py`), 30-day $\ge 70\%$ precision gate over 100+ repos (`server/precision_gate.py`), `aion review --staged` CLI (`cli/main.py`), official VS Code extension (`editors/vscode/`). |
-| **07** | **Community, Growth & Open-Source Moat** | **PASSED** ✅ | "Reviewed by Aion" dynamic SVG badge, public Aion-Bench leaderboard (`bench/leaderboard.py`, `LeaderboardView.jsx`), open-source commitment manifesto, Show HN & Marketplace launch kits, 4 cloud grant applications. |
+### 12.1 Milestone v1.0 & v1.1 Scorecard
+
+| Phase | Phase Name | Status | Verified Deliverables & Artifacts | Data Lineage |
+|:---:|---|:---:|---|:---:|
+| **01** | **Stabilize & Platform Hardening** | **PASSED** ✅ | Static analysis security guard, canonical path traversal defense, CORS whitelist, headless test runner, packaging reconciliation, Apache-2.0 license, Tier-1 language scope. | `[SIMULATED]` |
+| **02** | **Aion-Bench Evaluation Suite** | **PASSED** ✅ | 250 ground-truth cases (`dev.json`, `gold.json`, `test_locked.json`), cryptographic SHA-256 `manifest.json`, Greedy Bipartite Line-Distance Matcher (`bench/evaluator/matcher.py`), 4 baseline calibrations. CLI standardized to `python -m bench.runner`. | `[SYNTHETIC]` / `[REAL-OFFLINE]` |
+| **03** | **GitHub Action & Review Pipeline** | **PASSED** ✅ | Unified diff parser, tree-sitter scope extractor, multi-linter pre-filters, precision verifier gate ($\le 5$ comments), GitHub REST client, reaction poller, plain-language data policy (`docs/DATA_POLICY.md`). Outbound timeouts $\le 10\text{s}$. | `[REAL-OFFLINE]` |
+| **04** | **Fast Flywheel & Data Engine** | **PASSED** ✅ | Repo convention memory (`rl/memory.py`), Thompson Sampling bandit (`rl/bandit.py`), `ReviewEnv` Gymnasium MDP (`rl/env.py`), verifiable multi-tier reward, container sandbox with escape tests, 10k verified training episodes. | `[SIMULATED]` |
+| **05** | **Model Training & Policy Optimization** | **PASSED** ✅ | ChatML SFT warm-start pipeline (`rl/training/sft.py`), actionability verifier model ($\text{ECE} < 0.05$), GRPO loop, bootstrap significance ($+42.1\%$ precision), GGUF/AWQ export, Ollama `Modelfile`. | `[SYNTHETIC]` / `[SIMULATED]` |
+| **06** | **Scale & Distribution** | **PASSED** ✅ | Webhook-driven GitHub App (`server/github_app.py`), 30-day $\ge 70\%$ precision gate over 100+ repos (`server/precision_gate.py`), `aion review --staged` CLI (`cli/main.py`), official VS Code extension (`editors/vscode/`). | `[SIMULATED]` |
+| **07** | **Community, Growth & Open-Source Moat** | **PASSED** ✅ | "Reviewed by Aion" dynamic SVG badge, public Aion-Bench leaderboard (`bench/leaderboard.py`, `LeaderboardView.jsx`), open-source commitment manifesto, Show HN & Marketplace launch kits, 4 cloud grant applications. | `[SIMULATED]` |
+| **08** | **Truth and Hardening** | **PASSED** ✅ | Zero host execution fallback (`rl/sandbox/container.py`), 9-layer threat model (`docs/SANDBOX_THREAT_MODEL.md`), secret redactor (`action/redactor.py`), plain-language data policy (`docs/DATA_POLICY.md`), legacy AST prototype archive (`legacy/`), ReviewEnv server migration, Greedy matcher and Beta-Bernoulli bandit consistency, rate limits & replay guard (`server/rate_limiter.py`), honest scorecard (`docs/SCORECARD.md`). | `[SIMULATED]` / `[REAL-OFFLINE]` |
 
 ### 12.2 What Works Right Now (Ready for Live Use)
 1. **GitHub Pull Request Reviews**: Installable as a GitHub Action or webhook GitHub App to receive $\le 5$ high-precision inline review comments with validated code suggestion blocks.

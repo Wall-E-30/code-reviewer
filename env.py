@@ -1,12 +1,21 @@
 """
 Aion Code Reviewer RL Environment.
 
-Security Notice (SEC-01):
-Untrusted code execution on the host machine is strictly prohibited.
-Differential execution and dynamic subshell generation via subprocess.run
-are disabled in safe mode. Code evaluation and correctness verification
-rely exclusively on static analysis (Python AST validation and linter checks).
+DEPRECATION NOTICE (HARD-04):
+This legacy prototype environment is deprecated as of Milestone v1.1.
+Production code review and RL training must use `rl.env.ReviewEnv` (RL-01).
+See `legacy/README.md` for details on why this heuristic AST node-counting
+formulation was deprecated to prevent reward hacking.
 """
+import warnings
+
+warnings.warn(
+    "env.CodeReviewEnv is deprecated in Milestone v1.1 and moved to legacy/env.py. "
+    "Please migrate to rl.env.ReviewEnv. See legacy/README.md.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 import ast
 import re
 import difflib

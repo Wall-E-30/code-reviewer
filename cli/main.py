@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional
 from action.diff_parser import parse_unified_diff
 from action.linters import run_static_linters
 from action.providers import CandidateComment
+from action.redactor import redact_secrets_from_diff, sanitize_log_message
 from action.verifier import PrecisionVerifier
 from rl.memory import RepoConventionMemory
 
@@ -109,7 +110,12 @@ class AionLocalReviewer:
         if not diff_str or not diff_str.strip():
             return []
 
-        file_diffs = parse_unified_diff(diff_str)
+        # Redact secrets from diff before inspection
+        sanitized_diff, redacted_types = redact_secrets_from_diff(diff_str)
+        if redacted_types:
+            logger.info("Redacted credentials from diff: %s", redacted_types)
+
+        file_diffs = parse_unified_diff(sanitized_diff)
         findings: List[Dict[str, Any]] = []
 
         for fd in file_diffs:

@@ -1,7 +1,9 @@
 """
 bench/evaluator/matcher.py
 
-Objective ground-truth matching engine for code review comments (BENCH-05).
+Objective ground-truth matching engine for code review comments (BENCH-05, HARD-05).
+Matching Algorithm: Greedy Bipartite Line-Distance Matching within the line tolerance window
+(not Hungarian/Kuhn-Munkres).
 Pairs reviewer comments with ground-truth findings using configurable
 line proximity windows and semantic category congruence.
 """
@@ -91,7 +93,8 @@ def match_comments_to_findings(
     line_window: int = 3,
 ) -> Tuple[List[MatchedPair], List[ReviewComment], List[GroundTruthFinding]]:
     """
-    Match review comments to ground-truth findings using 1-to-1 greedy matching.
+    Match review comments to ground-truth findings using Greedy Bipartite Line-Distance Matching
+    within the line tolerance window (not Hungarian/Kuhn-Munkres).
 
     Args:
         comments: List of ReviewComment objects emitted by reviewer engine.

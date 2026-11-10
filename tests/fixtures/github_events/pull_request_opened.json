@@ -1,0 +1,40 @@
+{
+  "action": "opened",
+  "number": 42,
+  "pull_request": {
+    "id": 10042,
+    "number": 42,
+    "title": "Fix security vulnerability in authentication query",
+    "state": "open",
+    "html_url": "https://github.com/aion-ai/demo-repo/pull/42",
+    "diff_url": "https://github.com/aion-ai/demo-repo/pull/42.diff",
+    "head": {
+      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "ref": "fix-auth"
+    },
+    "base": {
+      "sha": "9a0082f429623e1b1d7d084b6de83d6a6a3b2b3a",
+      "ref": "main"
+    },
+    "user": {
+      "login": "developer-alice",
+      "id": 12345
+    }
+  },
+  "repository": {
+    "id": 987654,
+    "name": "demo-repo",
+    "full_name": "aion-ai/demo-repo",
+    "owner": {
+      "login": "aion-ai",
+      "id": 54321
+    },
+    "private": false
+  },
+  "installation": {
+    "id": 12345678
+  },
+  "sender": {
+    "login": "developer-alice"
+  }
+}

@@ -233,7 +233,7 @@ class OpenAICompatibleProvider(BaseReviewProvider):
         base_url: str,
         api_key: Optional[str] = None,
         model: str = "gpt-4o-mini",
-        timeout: float = 30.0,
+        timeout: float = 10.0,
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")

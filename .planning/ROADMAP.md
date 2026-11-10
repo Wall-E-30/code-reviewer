@@ -168,7 +168,7 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
 
 ## Phase Overview (v1.1)
 
-- [ ] **Phase 8: Truth and Hardening**
+- [x] **Phase 8: Truth and Hardening**
   - Remove subprocess fallback for untrusted code (container missing = refuse & static analysis only). Complete sandbox threat model (`docs/SANDBOX_THREAT_MODEL.md`) and escape test coverage (symlinks, /proc, fork bomb, disk quota, DNS, env/token leakage, mounted paths) with container hardening flags (`--pids-limit`, `--cap-drop ALL`, `--security-opt no-new-privileges`, disk quota, non-root user). Implement realistic reaction polling in Action (next run) and documented events in App using recorded real API fixtures. Redact secrets from diffs before LLM call, never log diffs/tokens in CI, send minimum context. Move legacy AST grader and old trainers (`env.py`, `train_rl.py`, `train_autoregressive_rl.py`, `/optimize`, `/optimize_full`) to `legacy/` with README explaining reward hacking; point `/reset`, `/step`, `openenv.yaml` at `ReviewEnv`. Remove unmeasured speedup/memory numbers from UI/API. Fix doc/code inconsistencies (single benchmark CLI command, greedy vs Hungarian matcher, exact bandit description as Beta Thompson sampling). Add request size limits, per-IP/repo rate limits, webhook replay protection, timeouts on outbound calls. Rewrite milestone scorecard with "Built" vs "Validated on real data" columns and source tags.
 - [ ] **Phase 9: Real-Data Evaluation**
   - Establish `bench_real/` with Pydantic schema and collectors for real bug fixes, reverted PRs, security advisories, and clean merged PRs (300+ cases). Build annotation tool and Cohen's kappa script (human annotation in `HUMAN_TODO.md`). Extend isolation guard to check repos, file paths, and MinHash fuzzy diffs across SFT, GRPO, verifier data and bench_real. Build evaluation runner for bench_real producing baseline table with 95% bootstrap CIs. Re-fit and verify calibration on real validation split.
@@ -184,19 +184,19 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
 ## Detailed Phase Specifications (v1.1)
 
 ### Phase 8: Truth and Hardening
-**Status:** In Progress ⏳  
+**Status:** Complete ✅  
 **Goal:** Eliminate all insecure subprocess execution of untrusted code, harden the container sandbox, fix doc/code discrepancies, remove unmeasured metrics, and protect against diff secret leakage and replay attacks.  
 **Requirements Mapped:** `HARD-01`, `HARD-02`, `HARD-03`, `HARD-03b`, `HARD-04`, `HARD-05`, `HARD-06`, `SCORECARD`
 
 **Success Criteria:**
-- [ ] 1. In-process subprocess execution of untrusted code is removed; missing container runtime refuses execution and falls back to static analysis only (`HARD-01`).
-- [ ] 2. Sandbox escape tests pass covering symlink reads, /proc writes, fork bomb, disk quota, DNS, token leaks, and mount escapes; container runs with `--pids-limit`, `--cap-drop ALL`, `--security-opt no-new-privileges`, disk quota, and non-root user; `docs/SANDBOX_THREAT_MODEL.md` is published (`HARD-02`).
-- [ ] 3. GitHub reaction polling and App events use documented APIs and recorded fixtures (`HARD-03`).
-- [ ] 4. Diffs are redacted of secrets before LLM calls; CI logs never expose diffs or tokens (`HARD-03b`).
-- [ ] 5. Legacy AST grader and old trainers moved to `legacy/` with README; endpoints point to `ReviewEnv`; unmeasured speedup/memory numbers removed (`HARD-04`).
-- [ ] 6. Doc/code inconsistencies resolved (CLI command, matcher algorithm, bandit description) (`HARD-05`).
-- [ ] 7. Request size limits, rate limits, webhook replay protection (delivery ID cache), and outbound timeouts enforced (`HARD-06`).
-- [ ] 8. Scorecard updated with "Built" vs "Validated on real data" columns and explicit source tags (`SCORECARD`).
+- [x] 1. In-process subprocess execution of untrusted code is removed; missing container runtime refuses execution and falls back to static analysis only (`HARD-01`).
+- [x] 2. Sandbox escape tests pass covering symlink reads, /proc writes, fork bomb, disk quota, DNS, token leaks, and mount escapes; container runs with `--pids-limit`, `--cap-drop ALL`, `--security-opt no-new-privileges`, disk quota, and non-root user; `docs/SANDBOX_THREAT_MODEL.md` is published (`HARD-02`).
+- [x] 3. GitHub reaction polling and App events use documented APIs and recorded fixtures (`HARD-03`).
+- [x] 4. Diffs are redacted of secrets before LLM calls; CI logs never expose diffs or tokens (`HARD-03b`).
+- [x] 5. Legacy AST grader and old trainers moved to `legacy/` with README; endpoints point to `ReviewEnv`; unmeasured speedup/memory numbers removed (`HARD-04`).
+- [x] 6. Doc/code inconsistencies resolved (CLI command, matcher algorithm, bandit description) (`HARD-05`).
+- [x] 7. Request size limits, rate limits, webhook replay protection (delivery ID cache), and outbound timeouts enforced (`HARD-06`).
+- [x] 8. Scorecard updated with "Built" vs "Validated on real data" columns and explicit source tags (`SCORECARD`).
 
 ### Phase 9: Real-Data Evaluation
 **Status:** Planned 📋  

@@ -1,0 +1,26 @@
+{
+  "action": "created",
+  "comment": {
+    "id": 554433,
+    "pull_request_review_id": 443322,
+    "path": "services/auth.py",
+    "line": 42,
+    "body": "Fixed in subsequent commit 6dcb09b. Thanks!",
+    "in_reply_to_id": 554400,
+    "user": {
+      "login": "developer-alice",
+      "id": 12345
+    }
+  },
+  "pull_request": {
+    "number": 42,
+    "id": 10042
+  },
+  "repository": {
+    "id": 987654,
+    "full_name": "aion-ai/demo-repo"
+  },
+  "sender": {
+    "login": "developer-alice"
+  }
+}

@@ -58,7 +58,8 @@ class BanditState(BaseModel):
 
 class CategoryBandit:
     """
-    Online Multi-Armed Bandit managing confidence thresholds per finding category.
+    Online Multi-Armed Bandit managing confidence thresholds per finding category (FLY-02, HARD-05).
+    Per-Category Beta-Bernoulli Thompson Sampling threshold optimizer with strict boundary clamps [0.50, 0.95].
     """
 
     def __init__(

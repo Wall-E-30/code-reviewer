@@ -27,7 +27,7 @@ class GitHubClient:
         self,
         token: str,
         base_url: str = "https://api.github.com",
-        timeout: float = 30.0,
+        timeout: float = 10.0,
     ) -> None:
         self.token = token.strip() if token else ""
         self.base_url = base_url.rstrip("/")
@@ -147,6 +147,21 @@ class GitHubClient:
             return []
         except Exception as e:
             logger.warning("Failed to parse comments JSON: %s", e)
+            return []
+
+    def get_comment_reactions(self, repo: str, comment_id: int) -> List[Dict[str, Any]]:
+        """
+        Fetch reactions for a specific pull request review comment (HARD-03).
+        Official REST endpoint: GET /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions
+        """
+        url = f"{self.base_url}/repos/{repo}/pulls/comments/{comment_id}/reactions"
+        status, body, _ = self._request(url, method="GET")
+        if status != 200:
+            return []
+        try:
+            data = json.loads(body.decode("utf-8"))
+            return data if isinstance(data, list) else []
+        except Exception:
             return []
 
     def post_review(

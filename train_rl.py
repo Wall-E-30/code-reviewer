@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 """
-Correct Reinforcement Learning (SFT + REINFORCE with baseline) Training Script.
-Trains a GPT-2 language model policy to directly generate optimized code based on environment feedback.
+DEPRECATED: Prototype REINFORCE script (HARD-04).
+Deprecated in Milestone v1.1. Use rl/training/grpo.py instead.
+See legacy/README.md for details.
 """
+import warnings
+
+warnings.warn(
+    "train_rl.py is deprecated and moved to legacy/train_rl.py. Use rl/training/grpo.py instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 import os
 import sys

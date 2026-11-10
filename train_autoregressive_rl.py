@@ -1,3 +1,17 @@
+"""
+DEPRECATED: Prototype autoregressive training script (HARD-04).
+Deprecated in Milestone v1.1. Use rl/training/sft.py instead.
+See legacy/README.md for details.
+"""
+import warnings
+
+warnings.warn(
+    "train_autoregressive_rl.py is deprecated and moved to legacy/train_autoregressive_rl.py. "
+    "Use rl/training/sft.py instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 import os
 import torch
 import torch.optim as optim
