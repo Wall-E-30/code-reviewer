@@ -155,5 +155,80 @@ Phase 5: TRAIN-01, TRAIN-02, TRAIN-03, TRAIN-04                               (4
 Phase 6: APP-01, APP-02, APP-03                                               (3) [100% VERIFIED]
 Phase 7: GROWTH-01, GROWTH-02, GROWTH-03                                       (3) [100% VERIFIED]
 
-Total: 36 / 36 Requirements Mapped & Verified (100% Coverage)
+Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
 ```
+
+---
+
+# Milestone v1.1: Prove It on Real Code
+
+**Goal:** Establish objective evidence and operational hardening on real-world code repositories rather than synthetic/in-distribution benchmarks.
+
+---
+
+## Phase Overview (v1.1)
+
+- [ ] **Phase 8: Truth and Hardening**
+  - Remove subprocess fallback for untrusted code (container missing = refuse & static analysis only). Complete sandbox threat model (`docs/SANDBOX_THREAT_MODEL.md`) and escape test coverage (symlinks, /proc, fork bomb, disk quota, DNS, env/token leakage, mounted paths) with container hardening flags (`--pids-limit`, `--cap-drop ALL`, `--security-opt no-new-privileges`, disk quota, non-root user). Implement realistic reaction polling in Action (next run) and documented events in App using recorded real API fixtures. Redact secrets from diffs before LLM call, never log diffs/tokens in CI, send minimum context. Move legacy AST grader and old trainers (`env.py`, `train_rl.py`, `train_autoregressive_rl.py`, `/optimize`, `/optimize_full`) to `legacy/` with README explaining reward hacking; point `/reset`, `/step`, `openenv.yaml` at `ReviewEnv`. Remove unmeasured speedup/memory numbers from UI/API. Fix doc/code inconsistencies (single benchmark CLI command, greedy vs Hungarian matcher, exact bandit description as Beta Thompson sampling). Add request size limits, per-IP/repo rate limits, webhook replay protection, timeouts on outbound calls. Rewrite milestone scorecard with "Built" vs "Validated on real data" columns and source tags.
+- [ ] **Phase 9: Real-Data Evaluation**
+  - Establish `bench_real/` with Pydantic schema and collectors for real bug fixes, reverted PRs, security advisories, and clean merged PRs (300+ cases). Build annotation tool and Cohen's kappa script (human annotation in `HUMAN_TODO.md`). Extend isolation guard to check repos, file paths, and MinHash fuzzy diffs across SFT, GRPO, verifier data and bench_real. Build evaluation runner for bench_real producing baseline table with 95% bootstrap CIs. Re-fit and verify calibration on real validation split.
+- [ ] **Phase 10: Live Pilots**
+  - Implement shadow mode in Action and App with onboarding guide and install script. Implement visible mode with feedback link, one-click "not useful" reasons, repo-level mute, 5 comments/PR cap, and kill switch. Build audit workflow sampling posted comments weekly, audited live precision report, and enforce real telemetry in `precision_gate.py`. Prepare maintainer interview guide.
+- [ ] **Phase 11: Training v2 on Real Signal**
+  - Data mixing with real mined reviews excluding bench_real repos, opt-in pilot feedback, hard negatives, and synthetic data capped at 50%. Test-verified LLM bug generator mimicking real bug classes with failing test verification. Extend reward hacking audit with degenerate policies (linter proximity, copycat, hedged generic comments) and reward versioning. Prepare Kaggle/Colab training configs and ablation log.
+- [ ] **Phase 12: Launch Preparation**
+  - Draft evidence report template, rewrite Show HN/Marketplace copy with measured results and source tags, and create false-positive issue template. Prepare listings, model/dataset cards, and leaderboard submission flow. Add `scripts/launch_gate_check.py` reading real results and printing pass/fail per gate.
+
+---
+
+## Detailed Phase Specifications (v1.1)
+
+### Phase 8: Truth and Hardening
+**Status:** In Progress ⏳  
+**Goal:** Eliminate all insecure subprocess execution of untrusted code, harden the container sandbox, fix doc/code discrepancies, remove unmeasured metrics, and protect against diff secret leakage and replay attacks.  
+**Requirements Mapped:** `HARD-01`, `HARD-02`, `HARD-03`, `HARD-03b`, `HARD-04`, `HARD-05`, `HARD-06`, `SCORECARD`
+
+**Success Criteria:**
+- [ ] 1. In-process subprocess execution of untrusted code is removed; missing container runtime refuses execution and falls back to static analysis only (`HARD-01`).
+- [ ] 2. Sandbox escape tests pass covering symlink reads, /proc writes, fork bomb, disk quota, DNS, token leaks, and mount escapes; container runs with `--pids-limit`, `--cap-drop ALL`, `--security-opt no-new-privileges`, disk quota, and non-root user; `docs/SANDBOX_THREAT_MODEL.md` is published (`HARD-02`).
+- [ ] 3. GitHub reaction polling and App events use documented APIs and recorded fixtures (`HARD-03`).
+- [ ] 4. Diffs are redacted of secrets before LLM calls; CI logs never expose diffs or tokens (`HARD-03b`).
+- [ ] 5. Legacy AST grader and old trainers moved to `legacy/` with README; endpoints point to `ReviewEnv`; unmeasured speedup/memory numbers removed (`HARD-04`).
+- [ ] 6. Doc/code inconsistencies resolved (CLI command, matcher algorithm, bandit description) (`HARD-05`).
+- [ ] 7. Request size limits, rate limits, webhook replay protection (delivery ID cache), and outbound timeouts enforced (`HARD-06`).
+- [ ] 8. Scorecard updated with "Built" vs "Validated on real data" columns and explicit source tags (`SCORECARD`).
+
+### Phase 9: Real-Data Evaluation
+**Status:** Planned 📋  
+**Goal:** Create an untainted real-world code review benchmark (`bench_real/`), annotation pipeline, and evaluation harness with bootstrap confidence intervals.  
+**Requirements Mapped:** `REAL-01`, `REAL-02`, `REAL-03`, `REAL-04`, `REAL-05`
+
+### Phase 10: Live Pilots
+**Status:** Planned 📋  
+**Goal:** Deploy shadow and visible review modes in live partner repositories with audit workflows and strict feedback telemetry.  
+**Requirements Mapped:** `PILOT-01`, `PILOT-02`, `PILOT-03`, `PILOT-04`, `PILOT-05`
+
+### Phase 11: Training v2 on Real Signal
+**Status:** Planned 📋  
+**Goal:** Train next-generation models on real mined reviews, pilot feedback, and test-verified bugs with anti-reward-hacking audits.  
+**Requirements Mapped:** `TRAIN2-01`, `TRAIN2-02`, `TRAIN2-03`, `TRAIN2-04`
+
+### Phase 12: Launch Preparation
+**Status:** Planned 📋  
+**Goal:** Produce measured-only evidence reports, listings, and automated release verification gate (`scripts/launch_gate_check.py`).  
+**Requirements Mapped:** `LAUNCH-01`, `LAUNCH-02`, `LAUNCH-03`, `LAUNCH-04`
+
+---
+
+## Requirement Coverage Map (v1.1)
+
+```
+Phase 8:  HARD-01, HARD-02, HARD-03, HARD-03b, HARD-04, HARD-05, HARD-06, SCORECARD (8)
+Phase 9:  REAL-01, REAL-02, REAL-03, REAL-04, REAL-05                               (5)
+Phase 10: PILOT-01, PILOT-02, PILOT-03, PILOT-04, PILOT-05                          (5)
+Phase 11: TRAIN2-01, TRAIN2-02, TRAIN2-03, TRAIN2-04                               (4)
+Phase 12: LAUNCH-01, LAUNCH-02, LAUNCH-03, LAUNCH-04                               (4)
+
+Total v1.1: 26 Requirements Mapped
+```
+

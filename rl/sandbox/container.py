@@ -1,21 +1,30 @@
 """
 rl/sandbox/container.py
 
-Ephemeral Container Sandbox for Aion Code Reviewer (RL-03).
-Provides isolated execution boundaries for patch verification and security testing:
-- Resource constraints: 512MB RAM, 1.0 CPU, 10-second timeout.
-- Security constraints: Network access disabled (--network none), read-only root, ephemeral tmpfs.
-- Fallback: Restricted, rootless subprocess execution with sanitized environment, memory ceiling,
-  network blocks, and filesystem confinement when container engines are unavailable.
+Ephemeral Container Sandbox for Aion Code Reviewer (RL-03, HARD-01, HARD-02).
+Enforces strict execution isolation boundaries for untrusted code:
+- Primary backend: Containerized execution (Docker / Podman) with:
+  * Network isolation: --network none
+  * Dropped capabilities: --cap-drop ALL
+  * Privilege escalation lock: --security-opt no-new-privileges
+  * Process limit (anti-fork bomb): --pids-limit 64
+  * Memory ceiling: --memory 512m
+  * CPU limit: --cpus 1.0
+  * Read-only root filesystem: --read-only
+  * Non-root user: --user 1000:1000
+  * Ephemeral tmpfs: /tmp:rw,size=64m,mode=1777
+- Zero Untrusted Host Execution Policy (HARD-01):
+  If no container engine is available, direct subprocess execution of untrusted code on the
+  host is strictly REFUSED. Patch verification safely falls back to static AST analysis.
 """
 
 from __future__ import annotations
 
+import ast
 import logging
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import time
 from typing import Any, Dict, Optional
@@ -26,6 +35,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_TIMEOUT_SEC = 10.0
 DEFAULT_MEMORY_LIMIT_MB = 512
 DEFAULT_CPU_LIMIT = 1.0
+DEFAULT_PIDS_LIMIT = 64
+DEFAULT_DISK_QUOTA_MB = 64
 
 
 class PatchResult(BaseModel):
@@ -39,7 +50,7 @@ class PatchResult(BaseModel):
     timed_out: bool = False
     oom_killed: bool = False
     security_violation: Optional[str] = None
-    backend: str = "restricted_subprocess"
+    backend: str = "static_analysis"
 
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
@@ -55,12 +66,16 @@ class SandboxRunner:
         timeout: float = DEFAULT_TIMEOUT_SEC,
         memory_limit_mb: int = DEFAULT_MEMORY_LIMIT_MB,
         cpu_limit: float = DEFAULT_CPU_LIMIT,
+        pids_limit: int = DEFAULT_PIDS_LIMIT,
+        disk_quota_mb: int = DEFAULT_DISK_QUOTA_MB,
         force_fallback: bool = False,
         container_engine: Optional[str] = None,
     ) -> None:
         self.timeout = max(0.5, float(timeout))
         self.memory_limit_mb = max(16, int(memory_limit_mb))
         self.cpu_limit = max(0.1, float(cpu_limit))
+        self.pids_limit = max(16, int(pids_limit))
+        self.disk_quota_mb = max(16, int(disk_quota_mb))
         self.force_fallback = force_fallback
         self.container_engine = container_engine or self._detect_container_engine()
 
@@ -74,7 +89,6 @@ class SandboxRunner:
             if not cmd:
                 continue
             try:
-                # Check if daemon is active
                 res = subprocess.run(
                     [cmd, "info"],
                     stdout=subprocess.PIPE,
@@ -92,154 +106,138 @@ class SandboxRunner:
         """Check if an active container runtime is functional."""
         return self.container_engine is not None
 
-    def _generate_restricted_harness(
+    def _verify_patch_statically(
         self,
-        user_code: str,
-        sandbox_dir: str,
-    ) -> str:
+        original_code: str,
+        patch: str,
+        language: str = "python",
+    ) -> PatchResult:
         """
-        Generate a sandboxed Python execution harness enforcing:
-        1. Memory limits (raising MemoryError when threshold exceeded).
-        2. Network isolation (blocking socket creation and connections).
-        3. Filesystem write isolation (forbidding writes outside ephemeral sandbox).
-        """
-        escaped_sandbox_dir = os.path.normcase(os.path.realpath(sandbox_dir)).replace("\\", "\\\\")
-        memory_bytes = self.memory_limit_mb * 1024 * 1024
-
-        harness = f'''# Ephemeral Sandbox Security Harness
-import os
-import sys
-import builtins
-import tracemalloc
-
-# 1. Memory Ceiling Enforcement
-MEMORY_LIMIT_BYTES = {memory_bytes}
-tracemalloc.start()
-
-def _check_memory_usage():
-    current, peak = tracemalloc.get_traced_memory()
-    if peak > MEMORY_LIMIT_BYTES or current > MEMORY_LIMIT_BYTES:
-        raise MemoryError(f"Security violation: Memory limit exceeded (peak={{peak}} bytes > {{MEMORY_LIMIT_BYTES}} bytes)")
-
-_orig_bytearray = builtins.bytearray
-class _sandboxed_bytearray(_orig_bytearray):
-    def __new__(cls, *args, **kwargs):
-        if args and isinstance(args[0], int) and args[0] > MEMORY_LIMIT_BYTES:
-            raise MemoryError(f"Security violation: Allocation of {{args[0]}} bytes exceeds limit {{MEMORY_LIMIT_BYTES}} bytes")
-        res = super().__new__(cls, *args, **kwargs)
-        _check_memory_usage()
-        return res
-builtins.bytearray = _sandboxed_bytearray
-
-_orig_bytes = builtins.bytes
-class _sandboxed_bytes(_orig_bytes):
-    def __new__(cls, *args, **kwargs):
-        if args and isinstance(args[0], int) and args[0] > MEMORY_LIMIT_BYTES:
-            raise MemoryError(f"Security violation: Allocation of {{args[0]}} bytes exceeds limit {{MEMORY_LIMIT_BYTES}} bytes")
-        res = super().__new__(cls, *args, **kwargs)
-        _check_memory_usage()
-        return res
-builtins.bytes = _sandboxed_bytes
-
-# 2. Outbound Network Isolation
-import socket
-def _blocked_socket(*args, **kwargs):
-    raise PermissionError("Security violation: Outbound network access is strictly prohibited in sandbox")
-
-socket.socket = _blocked_socket
-socket.create_connection = _blocked_socket
-
-# 3. Filesystem Confinement
-SANDBOX_DIR = "{escaped_sandbox_dir}"
-_orig_open = builtins.open
-
-def _sandboxed_open(file, *args, **kwargs):
-    mode = args[0] if args else kwargs.get("mode", "r")
-    if any(m in str(mode) for m in ("w", "a", "+", "x")):
-        abs_target = os.path.normcase(os.path.realpath(os.path.abspath(str(file))))
-        # Allow writes ONLY inside ephemeral sandbox dir or container /sandbox
-        allowed_dirs = [d for d in [SANDBOX_DIR, "/sandbox"] if d]
-        cwd = os.path.normcase(os.path.realpath(os.getcwd()))
-        if cwd == "/sandbox" or cwd.startswith(SANDBOX_DIR):
-            allowed_dirs.append(cwd)
-        is_allowed = any(
-            abs_target == d
-            or abs_target.startswith(d.rstrip("/\\\\") + "/")
-            or abs_target.startswith(d.rstrip("/\\\\") + "\\\\")
-            for d in allowed_dirs
-        )
-        if not is_allowed:
-            raise PermissionError(f"Security violation: Write outside ephemeral sandbox is forbidden: {{file}}")
-    return _orig_open(file, *args, **kwargs)
-
-builtins.open = _sandboxed_open
-
-# 4. User Code Execution
-{user_code}
-'''
-        return harness
-
-    def run_code(self, code: str, language: str = "python") -> PatchResult:
-        """
-        Execute arbitrary code inside the ephemeral sandbox.
+        Safe static analysis fallback for patch verification when container runtime is unavailable.
+        Validates syntax tree integrity without executing any untrusted code on the host.
         """
         start_time = time.time()
+        target_code = patch if (patch is not None and patch.strip() != "") else original_code
 
-        with tempfile.TemporaryDirectory(prefix="aion_sandbox_") as tmpdir:
-            if language.lower() != "python":
-                # For non-python languages without container runtime
+        if language.lower() == "python":
+            try:
+                ast.parse(target_code)
+                duration = time.time() - start_time
+                return PatchResult(
+                    success=True,
+                    exit_code=0,
+                    stdout="STATIC_ANALYSIS_VERIFIED: Python AST valid (syntax confirmed)",
+                    stderr="",
+                    duration_sec=round(duration, 4),
+                    timed_out=False,
+                    oom_killed=False,
+                    security_violation=None,
+                    backend="static_analysis",
+                )
+            except SyntaxError as exc:
+                duration = time.time() - start_time
                 return PatchResult(
                     success=False,
                     exit_code=1,
-                    stderr=f"Language '{language}' requires active container engine",
-                    duration_sec=0.0,
+                    stdout="",
+                    stderr=f"SyntaxError during static analysis: {exc}",
+                    duration_sec=round(duration, 4),
+                    timed_out=False,
+                    oom_killed=False,
+                    security_violation=None,
+                    backend="static_analysis",
+                )
+            except Exception as exc:
+                duration = time.time() - start_time
+                return PatchResult(
+                    success=False,
+                    exit_code=1,
+                    stdout="",
+                    stderr=f"Static analysis error: {exc}",
+                    duration_sec=round(duration, 4),
+                    timed_out=False,
+                    oom_killed=False,
+                    security_violation=None,
+                    backend="static_analysis",
                 )
 
-            use_container = self.is_container_available() and not self.force_fallback
-            harness_sandbox_dir = "/sandbox" if use_container else tmpdir
+        # Non-python fallback: ensure non-empty
+        duration = time.time() - start_time
+        has_content = bool(target_code and target_code.strip())
+        return PatchResult(
+            success=has_content,
+            exit_code=0 if has_content else 1,
+            stdout="STATIC_ANALYSIS_VERIFIED" if has_content else "",
+            stderr="" if has_content else "Empty patch rejected by static check",
+            duration_sec=round(duration, 4),
+            timed_out=False,
+            oom_killed=False,
+            security_violation=None,
+            backend="static_analysis",
+        )
 
-            # Generate and write restricted harness
-            harness_code = self._generate_restricted_harness(code, harness_sandbox_dir)
+    def run_code(self, code: str, language: str = "python") -> PatchResult:
+        """
+        Execute arbitrary code inside the ephemeral container sandbox.
+        Refuses host execution if no container engine is active.
+        """
+        start_time = time.time()
+
+        # Enforce HARD-01: Zero Untrusted Host Execution
+        if not self.is_container_available():
+            duration = time.time() - start_time
+            logger.warning("Untrusted execution refused: No active container engine (Docker/Podman). Host fallback disabled.")
+            return PatchResult(
+                success=False,
+                exit_code=126,
+                stdout="",
+                stderr="Untrusted code execution refused on host: Docker or Podman container engine is required. In-process host execution is strictly disabled (HARD-01).",
+                duration_sec=round(duration, 4),
+                timed_out=False,
+                oom_killed=False,
+                security_violation="Container runtime missing; execution refused on host",
+                backend="refused",
+            )
+
+        if language.lower() != "python":
+            return PatchResult(
+                success=False,
+                exit_code=1,
+                stderr=f"Language '{language}' container execution environment is not yet configured",
+                duration_sec=0.0,
+                backend="container_refused",
+            )
+
+        engine = self.container_engine
+        with tempfile.TemporaryDirectory(prefix="aion_sandbox_") as tmpdir:
             script_path = os.path.join(tmpdir, "entrypoint.py")
             with open(script_path, "w", encoding="utf-8") as f:
-                f.write(harness_code)
+                f.write(code)
 
-            if use_container:
-                # Docker / Podman execution
-                engine = self.container_engine
-                cmd = [
-                    engine,
-                    "run",
-                    "--rm",
-                    "--network",
-                    "none",
-                    "--read-only",
-                    "--memory",
-                    f"{self.memory_limit_mb}m",
-                    "--cpus",
-                    f"{self.cpu_limit}",
-                    "-v",
-                    f"{os.path.abspath(tmpdir)}:/sandbox:rw",
-                    "-w",
-                    "/sandbox",
-                    "python:3.10-slim",
-                    "python",
-                    "/sandbox/entrypoint.py",
-                ]
-                backend = f"container({engine})"
-            else:
-                # Restricted subprocess execution
-                cmd = [sys.executable, script_path]
-                backend = "restricted_subprocess"
+            # Build hardened container command with HARD-02 security flags
+            cmd = [
+                engine,
+                "run",
+                "--rm",
+                "--network", "none",
+                "--cap-drop", "ALL",
+                "--security-opt", "no-new-privileges",
+                "--pids-limit", str(self.pids_limit),
+                "--memory", f"{self.memory_limit_mb}m",
+                "--cpus", str(self.cpu_limit),
+                "--read-only",
+                "--user", "1000:1000",
+                "--tmpfs", f"/tmp:rw,size={self.disk_quota_mb}m,mode=1777",
+                "-v", f"{os.path.abspath(tmpdir)}:/sandbox:ro",
+                "-w", "/tmp",
+                "python:3.10-slim",
+                "python", "/sandbox/entrypoint.py",
+            ]
+            backend = f"container({engine})"
 
-            # Sanitized environment
             clean_env = {
                 "PATH": os.environ.get("PATH", ""),
                 "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
-                "TMP": tmpdir,
-                "TEMP": tmpdir,
-                "PYTHONUNBUFFERED": "1",
-                "PYTHONHASHSEED": "0",
             }
 
             try:
@@ -257,15 +255,16 @@ builtins.open = _sandboxed_open
                 stderr = proc.stderr
                 exit_code = proc.returncode
 
-                # Security violation inspection
                 sec_violation = None
                 oom = False
-                if "Security violation: Outbound network access" in stderr or "PermissionError" in stderr and "network" in stderr.lower():
-                    sec_violation = "Network access prohibited"
-                elif "Security violation: Write outside ephemeral sandbox" in stderr or "PermissionError" in stderr and "sandbox" in stderr.lower():
-                    sec_violation = "Filesystem write outside sandbox prohibited"
-                elif "Memory limit exceeded" in stderr or "MemoryError" in stderr:
+                if exit_code == 137 or "Killed" in stderr:
                     oom = True
+                elif "Resource temporarily unavailable" in stderr:
+                    sec_violation = "PIDs limit exceeded (fork bomb prevented)"
+                elif "Read-only file system" in stderr:
+                    sec_violation = "Filesystem write prohibited"
+                elif "Permission denied" in stderr:
+                    sec_violation = "Capability or permission denied"
 
                 success = (exit_code == 0) and (sec_violation is None) and not oom
 
@@ -311,8 +310,12 @@ builtins.open = _sandboxed_open
     ) -> PatchResult:
         """
         Verify that a code replacement/patch compiles and passes tests inside the sandbox.
+        If container engine is missing, falls back to safe static analysis (ast.parse)
+        and refuses untrusted host execution (HARD-01).
         """
-        # Formulate test payload
+        if not self.is_container_available():
+            return self._verify_patch_statically(original_code, patch, language="python")
+
         payload = (
             f"# Target Code Under Test\n{patch or original_code}\n\n"
             f"# Verification Execution\n"
