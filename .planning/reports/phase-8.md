@@ -61,3 +61,4 @@ All automated test suites, type/lint checks, and containment verifications pass 
 
 1. **Host-Side Container Requirement:** On machines where Docker/Podman is not installed or active, code execution is refused by design (`HARD-01`), and patch verification uses static AST analysis. While completely secure, full dynamic execution in local developer environments requires Docker Desktop or Podman.
 2. **External Data Blockers (Documented in `HUMAN_TODO.md`):** Real-world benchmark annotation (`bench_real/`) requires dual-human labeling (Phase 9). Live pilots require partner repo outreach and maintainer permissions (Phase 10).
+

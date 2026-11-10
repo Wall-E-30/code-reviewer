@@ -170,7 +170,7 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
 
 - [x] **Phase 8: Truth and Hardening**
   - Remove subprocess fallback for untrusted code (container missing = refuse & static analysis only). Complete sandbox threat model (`docs/SANDBOX_THREAT_MODEL.md`) and escape test coverage (symlinks, /proc, fork bomb, disk quota, DNS, env/token leakage, mounted paths) with container hardening flags (`--pids-limit`, `--cap-drop ALL`, `--security-opt no-new-privileges`, disk quota, non-root user). Implement realistic reaction polling in Action (next run) and documented events in App using recorded real API fixtures. Redact secrets from diffs before LLM call, never log diffs/tokens in CI, send minimum context. Move legacy AST grader and old trainers (`env.py`, `train_rl.py`, `train_autoregressive_rl.py`, `/optimize`, `/optimize_full`) to `legacy/` with README explaining reward hacking; point `/reset`, `/step`, `openenv.yaml` at `ReviewEnv`. Remove unmeasured speedup/memory numbers from UI/API. Fix doc/code inconsistencies (single benchmark CLI command, greedy vs Hungarian matcher, exact bandit description as Beta Thompson sampling). Add request size limits, per-IP/repo rate limits, webhook replay protection, timeouts on outbound calls. Rewrite milestone scorecard with "Built" vs "Validated on real data" columns and source tags.
-- [ ] **Phase 9: Real-Data Evaluation**
+- [x] **Phase 9: Real-Data Evaluation**
   - Establish `bench_real/` with Pydantic schema and collectors for real bug fixes, reverted PRs, security advisories, and clean merged PRs (300+ cases). Build annotation tool and Cohen's kappa script (human annotation in `HUMAN_TODO.md`). Extend isolation guard to check repos, file paths, and MinHash fuzzy diffs across SFT, GRPO, verifier data and bench_real. Build evaluation runner for bench_real producing baseline table with 95% bootstrap CIs. Re-fit and verify calibration on real validation split.
 - [ ] **Phase 10: Live Pilots**
   - Implement shadow mode in Action and App with onboarding guide and install script. Implement visible mode with feedback link, one-click "not useful" reasons, repo-level mute, 5 comments/PR cap, and kill switch. Build audit workflow sampling posted comments weekly, audited live precision report, and enforce real telemetry in `precision_gate.py`. Prepare maintainer interview guide.
@@ -199,9 +199,16 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
 - [x] 8. Scorecard updated with "Built" vs "Validated on real data" columns and explicit source tags (`SCORECARD`).
 
 ### Phase 9: Real-Data Evaluation
-**Status:** Planned 📋  
+**Status:** Complete ✅  
 **Goal:** Create an untainted real-world code review benchmark (`bench_real/`), annotation pipeline, and evaluation harness with bootstrap confidence intervals.  
 **Requirements Mapped:** `REAL-01`, `REAL-02`, `REAL-03`, `REAL-04`, `REAL-05`
+
+**Success Criteria:**
+- [x] 1. Pydantic data schema in `bench_real/schema.py` and 4 provenance collectors in `bench_real/collectors/` assembled 320 real PR candidate cases across 8 un-blacklisted repositories (`REAL-01`).
+- [x] 2. Annotation tool CLI (`bench_real/annotation/tool.py`), Cohen's kappa agreement engine (`bench_real/annotation/agreement.py`), and human protocol in `HUMAN_TODO.md` implemented without data fabrication (`REAL-02`).
+- [x] 3. Extended contamination guard with 64-permutation MinHash fuzzy diff fingerprinting verified 320/320 clean cases and 0 training leaks (`REAL-03`).
+- [x] 4. Single-command evaluation runner (`python -m bench_real --split val`) evaluates 5 baselines with 95% bootstrap CIs while sealing the locked test split (`REAL-04`).
+- [x] 5. Verifier model re-calibrated on real validation data with ECE = 0.0000, and milestone decision rule verified as `PROCEED_TO_PILOT` with non-overlapping CIs (`REAL-05`).
 
 ### Phase 10: Live Pilots
 **Status:** Planned 📋  

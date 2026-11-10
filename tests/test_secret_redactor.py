@@ -61,3 +61,4 @@ def test_contains_secrets_detector():
 
     assert not contains_secrets(clean_code)
     assert contains_secrets(dirty_code)
+

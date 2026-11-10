@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "created_at": "2026-11-10T14:00:00Z",
+  "total_candidates": 320,
+  "splits": {
+    "val": {
+      "count": 100,
+      "sha256": "a1d290fbf58d4caf111f0f94dd067bba066e1432cea6a0bd86c9490e8783fb38",
+      "source_distribution": {
+        "review_flagged_bug": 25,
+        "reverted_or_fixed_pr": 25,
+        "security_advisory_cve": 25,
+        "clean_merged_pr": 25
+      }
+    },
+    "test_locked": {
+      "count": 100,
+      "sha256": "e961afaabb48891a0557f8cf64a372269efe8068e6b49fac641701f14f45ab41",
+      "source_distribution": {
+        "review_flagged_bug": 25,
+        "reverted_or_fixed_pr": 25,
+        "security_advisory_cve": 25,
+        "clean_merged_pr": 25
+      }
+    }
+  }
+}
