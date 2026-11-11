@@ -5,12 +5,12 @@
 
 ## Document Metadata
 - **Project Name:** Aion (Autonomous AI-Driven Code Reviewer & Verifiable RL Sandbox)
-- **Document Version:** 2.2.0 (Milestone v1.1 — "Prove It on Real Code", Phases 8 & 9 Complete)
-- **Document Date:** 2026-11-10
-- **Current Milestone:** v1.1 — Prove It on Real Code (Zero-Budget, RL-Driven, Hardened & Ground-Truth Verified)
+- **Document Version:** 2.3.0 (Milestone v1.1 — "Prove It on Real Code", Phases 8, 9 & 10 Complete)
+- **Document Date:** 2026-11-11
+- **Current Milestone:** v1.1 — Prove It on Real Code (Zero-Budget, RL-Driven, Hardened, Ground-Truth Verified & Pilot-Ready)
 - **Milestone Progress:**
   - **Milestone v1.0:** 100% Completed & Verified (Phases 1 through 7, 36/36 Requirements)
-  - **Milestone v1.1:** Phases 8 & 9 Complete (13/13 Requirements: `HARD-01` through `HARD-06`, `SCORECARD`, `REAL-01` through `REAL-05`); Phases 10 through 12 Scheduled
+  - **Milestone v1.1:** Phases 8, 9 & 10 Complete (18/18 Requirements: `HARD-01` through `HARD-06`, `SCORECARD`, `REAL-01` through `REAL-05`, `PILOT-01` through `PILOT-05`); Phases 11 & 12 Scheduled
 - **Repository Root:** `c:\Users\Sharanya Nagar\Desktop\Projects\code-reviewer`
 - **Applicable Profiles:** Full-Stack Web (React 19, Swiss Modernism 2.0), Reinforcement Learning (Gymnasium / OpenEnv / GRPO), Large Language Models (LLMs / SFT), Abstract Syntax Tree (AST) Static Analysis, GitHub Apps & Actions, Container Security (OCI Sandbox / 9-Layer Isolation), Real-Data Evaluation (`bench_real` / MinHash / Cohen's Kappa)
 
@@ -741,10 +741,14 @@ Evaluated across 100 real pull requests (75 buggy/advisory PRs across Sources A,
 │   • REAL-04: 1-command runner with 95% bootstrap CIs on 5 baselines         │
 │   • REAL-05: Verifier re-calibration (ECE = 0.0000, PROCEED_TO_PILOT)       │
 │                                                                             │
-│   Phase 10: In-the-Wild Maintainer Pilot [NEXT UP ⏳]                        │
-│   • PILOT-01..05: Shadow/visible review modes across 5-10 active OSS repos  │
+│   Phase 10: In-the-Wild Maintainer Pilot Tooling [COMPLETED ✅]             │
+│   • PILOT-01: Shadow mode in Action and App (silent candidate logging)      │
+│   • PILOT-02: 1-page onboarding guide & automated install script            │
+│   • PILOT-03: Visible safeguards (1-click dismiss, @aion mute, kill switch) │
+│   • PILOT-04: Stratified weekly sampling, bootstrap CI audit, telemetry gate│
+│   • PILOT-05: 20-min qualitative interview protocol & HUMAN_TODO tracker    │
 │                                                                             │
-│   Phase 11: Train on Real Distributions                                     │
+│   Phase 11: Train on Real Distributions [NEXT UP ⏳]                         │
 │   • TRAIN2-01..04: Fine-tune & GRPO policy using real maintainer feedback   │
 │                                                                             │
 │   Phase 12: Honest Launch & True Moat                                       │
@@ -754,7 +758,7 @@ Evaluated across 100 real pull requests (75 buggy/advisory PRs across Sources A,
 
 ### 12.4 How to Run and Verify Right Now
 
-1. **Run Full Test Suite (268 Tests)**:
+1. **Run Full Test Suite (286 Tests)**:
    ```bash
    python -m pytest tests/ test_suite.py
    ```
@@ -762,33 +766,44 @@ Evaluated across 100 real pull requests (75 buggy/advisory PRs across Sources A,
    ```bash
    python -m ruff check .
    ```
-3. **Execute Real-Data Benchmark on Validation Split (5 Baselines & 95% CIs)**:
+3. **Run Pilot Modes & Safeguards Tests**:
+   ```bash
+   python -m pytest tests/test_pilot_modes_and_safeguards.py tests/test_pilot_audit_workflow.py -v
+   ```
+4. **Generate Pilot Workflow for Target Repository**:
+   ```bash
+   python scripts/install_pilot.py --mode shadow --provider groq
+   ```
+5. **Sample Pilot Comments for Human Auditing**:
+   ```bash
+   python scripts/sample_pilot_comments.py --input .aion/shadow_reviews.jsonl --sample-size 50
+   ```
+6. **Generate Weekly Audited Precision Report (with 95% Bootstrap CIs)**:
+   ```bash
+   python scripts/pilot_audit_report.py --input docs/pilots/audit_samples/weekly_audit_sample.csv --output-md docs/pilots/AUDIT_REPORT_WEEKLY.md
+   ```
+7. **Execute Real-Data Benchmark on Validation Split (5 Baselines & 95% CIs)**:
    ```bash
    python -m bench_real --split val
    ```
-4. **Run Verifier Calibration & Decision Rule Check**:
+8. **Run Verifier Calibration & Decision Rule Check**:
    ```bash
    python -m bench_real.calibration --split val
    ```
-5. **Run Synthetic Benchmark Evaluation**:
-   ```bash
-   python -m bench --split dev
-   ```
-6. **Run Local Developer Review on Staged Changes**:
+9. **Run Local Developer Review on Staged Changes**:
    ```bash
    python -m cli.main review --staged
    ```
-7. **Launch Backend Server**:
-   ```bash
-   uvicorn server.app:app --host 0.0.0.0 --port 7860
-   ```
-8. **Launch React Frontend (Swiss Modernism 2.0)**:
-   ```bash
-   cd frontend && npm run dev
-   ```
-   ```
+10. **Launch Backend Server**:
+    ```bash
+    uvicorn server.app:app --host 0.0.0.0 --port 7860
+    ```
+11. **Launch React Frontend (Swiss Modernism 2.0)**:
+    ```bash
+    cd frontend && npm run dev
+    ```
 
 ---
 
 ## Conclusion
-Aion stands today as a hardened, verifiable code review engine. Through the execution of **Milestone v1.1 Phase 8 (Truth and Hardening)**, the project has eliminated host-execution risks, retired vulnerable reward-hacked prototypes, implemented credential scrubbing, hardened API endpoints, restyled the frontend to Swiss Modernism 2.0, and established an unflinching standard of data lineage honesty. With 251 automated tests passing green, Aion is primed to enter **Phase 9: Real-Data Evaluation (`bench_real`)**.
+Aion stands today as a hardened, verifiable code review engine. Through the execution of **Milestone v1.1 Phase 10 (Live Pilots)**, the project has built production-ready shadow and visible review modes, responsive maintainer controls (`@aion mute`, emergency kill switch, 1-click dismiss reasons), an audited human verification workflow with bootstrap confidence intervals, and a hardened precision gate that refuses simulated telemetry. With **286 automated tests passing green** and **0 lint errors**, Aion is ready for Gate 10 review and approval before starting **Phase 11: Training v2 on Real Signal**.

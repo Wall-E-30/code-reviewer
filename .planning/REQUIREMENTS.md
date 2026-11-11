@@ -66,11 +66,11 @@
 | **REAL-03** | Extended Contamination & MinHash Guard | P0 | Phase 9 | Complete ✅ | Check repos, file paths, and MinHash fuzzy diff hashes across SFT, GRPO, verifier data and bench_real with post-cutoff slice. Contamination report generator & tests. |
 | **REAL-04** | Real-Data Benchmark Evaluation Runner | P0 | Phase 9 | Complete ✅ | One-command evaluation runner producing baseline table with bootstrap 95% CIs. Validation split only until decisions frozen. |
 | **REAL-05** | Verifier Calibration on Real Validation Split | P0 | Phase 9 | Complete ✅ | Re-fit and verify verifier calibration on real validation split; generate reliability curves and ECE. |
-| **PILOT-01** | Shadow Review Mode | P0 | Phase 10 | Planned 📋 | Implement shadow review mode in Action and App (silent review, no comments on PR). |
-| **PILOT-02** | Shadow Mode Onboarding & Install Script | P1 | Phase 10 | Planned 📋 | Provide one-page onboarding guide and installation script for pilot repositories. |
-| **PILOT-03** | Visible Mode with Safeguards | P0 | Phase 10 | Planned 📋 | Visible mode with feedback link, one-click "not useful" reasons, repo mute, 5 comments/PR hard cap, and kill switch. |
-| **PILOT-04** | Pilot Audit Workflow & Real Telemetry Gate | P0 | Phase 10 | Planned 📋 | Weekly sampling script, audited live precision report with CIs, acceptance rate, mute rate. Ensure `precision_gate.py` rejects simulated telemetry. |
-| **PILOT-05** | Maintainer Interview Guide & Recruitment | P1 | Phase 10 | Planned 📋 | Draft interview guide. Put recruiting, outreach, and interviews into `HUMAN_TODO.md`. |
+| **PILOT-01** | Shadow Review Mode | P0 | Phase 10 | Complete ✅ | Implement shadow review mode in Action and App (silent review, no comments on PR). |
+| **PILOT-02** | Shadow Mode Onboarding & Install Script | P1 | Phase 10 | Complete ✅ | Provide one-page onboarding guide and installation script for pilot repositories. |
+| **PILOT-03** | Visible Mode with Safeguards | P0 | Phase 10 | Complete ✅ | Visible mode with feedback link, one-click "not useful" reasons, repo mute, 5 comments/PR hard cap, and kill switch. |
+| **PILOT-04** | Pilot Audit Workflow & Real Telemetry Gate | P0 | Phase 10 | Complete ✅ | Weekly sampling script, audited live precision report with CIs, acceptance rate, mute rate. Ensure `precision_gate.py` rejects simulated telemetry. |
+| **PILOT-05** | Maintainer Interview Guide & Recruitment | P1 | Phase 10 | Complete ✅ | Draft interview guide. Put recruiting, outreach, and interviews into `HUMAN_TODO.md`. |
 | **TRAIN2-01**| Real Signal Data Mixing | P0 | Phase 11 | Planned 📋 | Mix real mined reviews, pilot feedback, and hard negatives; cap synthetic data at 50%; log data hashes. |
 | **TRAIN2-02**| Test-Verified LLM Bug Generator | P0 | Phase 11 | Planned 📋 | Synthetic bugs with test/reproduction failure verification; evaluation bugs from different source than training bugs. |
 | **TRAIN2-03**| Expanded Reward Hacking & Versioning | P0 | Phase 11 | Planned 📋 | Red-team degenerate policies (linter hit proximity, linter copycat, hedged generic comments). Track reward versions. |

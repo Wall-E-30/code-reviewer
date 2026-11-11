@@ -172,7 +172,7 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
   - Remove subprocess fallback for untrusted code (container missing = refuse & static analysis only). Complete sandbox threat model (`docs/SANDBOX_THREAT_MODEL.md`) and escape test coverage (symlinks, /proc, fork bomb, disk quota, DNS, env/token leakage, mounted paths) with container hardening flags (`--pids-limit`, `--cap-drop ALL`, `--security-opt no-new-privileges`, disk quota, non-root user). Implement realistic reaction polling in Action (next run) and documented events in App using recorded real API fixtures. Redact secrets from diffs before LLM call, never log diffs/tokens in CI, send minimum context. Move legacy AST grader and old trainers (`env.py`, `train_rl.py`, `train_autoregressive_rl.py`, `/optimize`, `/optimize_full`) to `legacy/` with README explaining reward hacking; point `/reset`, `/step`, `openenv.yaml` at `ReviewEnv`. Remove unmeasured speedup/memory numbers from UI/API. Fix doc/code inconsistencies (single benchmark CLI command, greedy vs Hungarian matcher, exact bandit description as Beta Thompson sampling). Add request size limits, per-IP/repo rate limits, webhook replay protection, timeouts on outbound calls. Rewrite milestone scorecard with "Built" vs "Validated on real data" columns and source tags.
 - [x] **Phase 9: Real-Data Evaluation**
   - Establish `bench_real/` with Pydantic schema and collectors for real bug fixes, reverted PRs, security advisories, and clean merged PRs (300+ cases). Build annotation tool and Cohen's kappa script (human annotation in `HUMAN_TODO.md`). Extend isolation guard to check repos, file paths, and MinHash fuzzy diffs across SFT, GRPO, verifier data and bench_real. Build evaluation runner for bench_real producing baseline table with 95% bootstrap CIs. Re-fit and verify calibration on real validation split.
-- [ ] **Phase 10: Live Pilots**
+- [x] **Phase 10: Live Pilots**
   - Implement shadow mode in Action and App with onboarding guide and install script. Implement visible mode with feedback link, one-click "not useful" reasons, repo-level mute, 5 comments/PR cap, and kill switch. Build audit workflow sampling posted comments weekly, audited live precision report, and enforce real telemetry in `precision_gate.py`. Prepare maintainer interview guide.
 - [ ] **Phase 11: Training v2 on Real Signal**
   - Data mixing with real mined reviews excluding bench_real repos, opt-in pilot feedback, hard negatives, and synthetic data capped at 50%. Test-verified LLM bug generator mimicking real bug classes with failing test verification. Extend reward hacking audit with degenerate policies (linter proximity, copycat, hedged generic comments) and reward versioning. Prepare Kaggle/Colab training configs and ablation log.
@@ -211,9 +211,16 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
 - [x] 5. Verifier model re-calibrated on real validation data with ECE = 0.0000, and milestone decision rule verified as `PROCEED_TO_PILOT` with non-overlapping CIs (`REAL-05`).
 
 ### Phase 10: Live Pilots
-**Status:** Planned 📋  
+**Status:** Complete ✅  
 **Goal:** Deploy shadow and visible review modes in live partner repositories with audit workflows and strict feedback telemetry.  
 **Requirements Mapped:** `PILOT-01`, `PILOT-02`, `PILOT-03`, `PILOT-04`, `PILOT-05`
+
+**Success Criteria:**
+- [x] 1. Shadow review mode in Action and App executes silently, logging candidate comments to `.aion/shadow_reviews.jsonl` without posting PR comments (`PILOT-01`).
+- [x] 2. Maintainer onboarding guide (`docs/pilots/ONBOARDING_GUIDE.md`) and automated workflow installer (`scripts/install_pilot.py`) published (`PILOT-02`).
+- [x] 3. Visible mode safeguards enforced: feedback footer with 1-click dismiss reasons (`wrong`, `nitpick`, `already_known`, `out_of_scope`), repo-level mute commands (`@aion mute`), global kill switch (`AION_KILL_SWITCH`), and $\le 5$ comments/PR ceiling (`PILOT-03`).
+- [x] 4. Weekly stratified comment sampling (`scripts/sample_pilot_comments.py`) and audited live precision reports with 95% bootstrap CIs (`scripts/pilot_audit_report.py`) implemented; `precision_gate.py` hardened to strictly reject simulated telemetry (`PILOT-04`).
+- [x] 5. 20-minute maintainer interview protocol published (`docs/pilots/MAINTAINER_INTERVIEW_GUIDE.md`) and human outreach tracked in `HUMAN_TODO.md` (`PILOT-05`).
 
 ### Phase 11: Training v2 on Real Signal
 **Status:** Planned 📋  
