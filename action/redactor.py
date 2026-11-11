@@ -110,3 +110,4 @@ def sanitize_log_message(msg: str) -> str:
     """
     redacted, _ = redact_secrets_from_diff(msg)
     return redacted
+

@@ -1,0 +1,29 @@
+# configs/training_v2/sft.yaml
+# Ablation Condition 1: Supervised Fine-Tuning Only (SFT)
+condition: sft_only
+description: "Base policy fine-tuned on real signal training_v2 dataset without verifier discrimination or RL."
+model:
+  base_model: "Qwen/Qwen2.5-Coder-7B-Instruct"
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"]
+data:
+  train_data: "data/training_v2/train_v2.json"
+  val_data: "data/training_v2/val_v2.json"
+  max_length: 2048
+  synthetic_cap_ratio: 0.50
+training:
+  epochs: 3
+  learning_rate: 2.0e-5
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  warmup_ratio: 0.03
+  fp16: true
+  logging_steps: 10
+  eval_steps: 50
+ablation_toggles:
+  use_verifier_filter: false
+  use_grpo: false
+  reward_version: null
+  sandbox_verification: false

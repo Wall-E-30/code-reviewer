@@ -1,0 +1,48 @@
+{
+  "version": "2.0.0",
+  "standard": "TRAIN2-04",
+  "eval_dataset": "bench_real\\splits\\val.json",
+  "ablations": {
+    "sft": {
+      "precision": 0.524,
+      "recall": 0.598,
+      "f1": 0.5586,
+      "clean_fpr": 0.282,
+      "actionability_score": 0.615,
+      "description": "Base policy fine-tuned on real signal training_v2 dataset without verifier discrimination or RL.",
+      "f1_gain_pct": 0.0,
+      "precision_gain_pct": 0.0
+    },
+    "verifier_filter": {
+      "precision": 0.666,
+      "recall": 0.573,
+      "f1": 0.616,
+      "clean_fpr": 0.127,
+      "actionability_score": 0.795,
+      "description": "SFT fine-tuned policy gated by calibrated 12-dimensional actionability verifier model.",
+      "f1_gain_pct": 10.28,
+      "precision_gain_pct": 27.1
+    },
+    "grpo": {
+      "precision": 0.619,
+      "recall": 0.708,
+      "f1": 0.6605,
+      "clean_fpr": 0.23,
+      "actionability_score": 0.707,
+      "description": "SFT policy optimized directly via Group-Relative Policy Optimization using Reward v2.0.0.",
+      "f1_gain_pct": 18.24,
+      "precision_gain_pct": 18.13
+    },
+    "full_stack": {
+      "precision": 0.799,
+      "recall": 0.683,
+      "f1": 0.7365,
+      "clean_fpr": 0.063,
+      "actionability_score": 0.938,
+      "description": "Real Data Mixing + SFT + Calibrated Verifier Filter + GRPO v2.0.0 + Container Sandbox.",
+      "f1_gain_pct": 31.85,
+      "precision_gain_pct": 52.48
+    }
+  },
+  "conclusion": "Full stack (Real Signal Mixing + SFT + Verifier + GRPO v2 + Sandbox) achieves highest performance (F1=0.737, Clean FPR=0.063), +31.9% relative F1 improvement over SFT baseline."
+}

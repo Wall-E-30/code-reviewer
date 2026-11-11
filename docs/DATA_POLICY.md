@@ -39,3 +39,4 @@ In accordance with official GitHub documentation:
 - Reactions are fetched via `GET /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions`.
 - Action workflows poll previous reactions on subsequent commit/PR runs without long-running background daemons.
 - App webhooks verify `X-Hub-Signature-256` HMAC signatures before ingesting any review reaction payloads.
+

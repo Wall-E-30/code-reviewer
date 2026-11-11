@@ -82,3 +82,4 @@ Milestone v1.1 shifts Aion from synthetic/in-distribution evaluation to operatio
 4. **Plan 08-04 (Wave 4: `HARD-06`, `SCORECARD`):**
    - Request size limiter middleware, rate limiter, webhook delivery ID replay cache, and outbound timeouts in `server/app.py`.
    - Update Milestone Scorecard with "Built" vs "Validated on real data" columns and source tags.
+

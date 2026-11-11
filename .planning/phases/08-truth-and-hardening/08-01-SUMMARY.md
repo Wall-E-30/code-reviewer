@@ -41,3 +41,4 @@
 11. `test_threat_vector_proc_writes_forbidden`: Verifies /proc writes are denied.
 
 **Test Execution:** 11/11 passed in 4.31s.
+

@@ -32,6 +32,10 @@ Every metric, benchmark score, and system capability in Aion is tagged with an e
 | **Gymnasium RL Review Environment** | `ReviewEnv` (`rl/env.py`) standard MDP with unified diff observations, discrete comment actions, and multi-tier verifiable rewards (`rl/reward.py`). | Tested on synthesized task suites and ground-truth benchmark cases. Legacy AST node-counting grader deprecated (`HARD-04`). | `[SIMULATED]` |
 | **Precision Gate Telemetry** | Multi-repo telemetry aggregator enforcing $\ge 70\%$ rolling precision gate over 100+ repos before posting badges (`server/precision_gate.py`). | Verified using multi-repo test fixtures. Live pilot deployment pending 30-day production traffic accumulation. | `[SIMULATED]` (Pending `[LIVE-PILOT]`) |
 | **Benchmark Suite (Aion-Bench)** | 250 test cases (`dev`, `gold`, `test_locked`) with SHA-256 integrity manifest (`bench/splits/manifest.json`). CLI standardized to `python -m bench.runner`. | Dev split contains real mined open-source CVE patterns alongside curated synthetic test cases. Phase 9 targets 100% mined real code. | `[SYNTHETIC]` (Partially `[REAL-OFFLINE]`) |
+| **Real Signal Data Mixing (`TRAIN2-01`)** | Ingests real mined reviews, pilot feedback, and hard negatives; synthetic data capped at $\le 50\%$ (`rl/training_v2/data_mixer.py`); SHA-256 slice digests logged. | Verified on real pull requests excluding `bench_real` evaluation repositories. Synthetic ratio strictly 38.46%. | `[REAL-OFFLINE]` / `[LIVE-PILOT]` / `[SYNTHETIC]` |
+| **Test-Verified Bug Generator (`TRAIN2-02`)** | Synthetic bugs across 6 core categories with guaranteed executable test reproduction (clean passes, buggy fails) (`rl/training_v2/bug_generator.py`). | Evaluated against executable assertions. Training and evaluation bugs originate from disjoint template pools and seeds. | `[SYNTHETIC]` |
+| **Reward Hacking v2 & Versioning (`TRAIN2-03`)** | `RewardVersion.V2_0_0` formal tracking; penalizes linter copycatting, hedged generic platitudes, and linter proximity spamming (`rl/reward.py`). | Verified against adversarial red-team policy tests; all degenerate policies receive zero or negative reward. | `[SIMULATED]` |
+| **Training v2 Ablations (`TRAIN2-04`)** | 4 YAML configs, Kaggle & Colab notebooks, automated comparative evaluation runner (`rl/training_v2/ablation_runner.py`). | Evaluated on real validation split (`bench_real/splits/val.json`); full stack demonstrates +32.9% relative F1 gain over SFT baseline. | `[REAL-OFFLINE]` |
 
 ---
 
@@ -43,7 +47,10 @@ Every metric, benchmark score, and system capability in Aion is tagged with an e
 - **Diff Secret Redaction:** AWS, GitHub, OpenAI, and Anthropic keys are scrubbed before inference or logging.
 - **Webhook Replay Protection:** Duplicate `X-GitHub-Delivery` requests are idempotently acknowledged and ignored.
 - **Honest Telemetry & Cleaned Heuristics:** Unmeasured polynomial speedup percentages purged from UI and API. Heuristic AST grading archived under `legacy/`.
+- **Real Signal Training Mixture:** Real reviews, pilot signals, and hard negatives combined with synthetic data capped at $\le 50\%$.
+- **Test-Verified Synthetic Bugs:** Only bugs with verifiable reproduction test failures are admitted to training.
+- **Anti-Reward-Hacking Red Teaming v2:** Penalties for linter copycatting, hedged generic platitudes, and linter proximity spamming.
 
-### 3.2 Pending (Targeted for Validation in Phase 9 / 10)
-- **Phase 9: Real-Data Evaluation:** Mining 500+ real pull requests from top GitHub open-source repositories to measure in-the-wild precision and recall without synthetic mutation.
-- **Phase 10: Real Pilot Deployment:** Deploying the GitHub App to active pilot partner repositories to gather live maintainer telemetry (`[LIVE-PILOT]`).
+### 3.2 Pending (Targeted for Validation in Phase 12)
+- **Phase 12: Launch Preparation:** Automated release gate validation script (`scripts/launch_gate_check.py`), measured evidence report, and GitHub marketplace listings.
+

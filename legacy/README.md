@@ -42,3 +42,4 @@ Milestone v1.0 and v1.1 replaced this prototype with **`ReviewEnv`**:
 | `legacy/train_rl.py` (Q-Learning) | `rl/training/grpo.py` (Group-Relative Policy Optimization) |
 | `legacy/train_autoregressive_rl.py` | `rl/training/sft.py` (ChatML SFT Warm-Start) |
 | Synthetic speedup/memory metrics | Directly measured execution / AST verified diagnostics |
+

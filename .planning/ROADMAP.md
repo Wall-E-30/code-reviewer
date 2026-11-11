@@ -174,7 +174,7 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
   - Establish `bench_real/` with Pydantic schema and collectors for real bug fixes, reverted PRs, security advisories, and clean merged PRs (300+ cases). Build annotation tool and Cohen's kappa script (human annotation in `HUMAN_TODO.md`). Extend isolation guard to check repos, file paths, and MinHash fuzzy diffs across SFT, GRPO, verifier data and bench_real. Build evaluation runner for bench_real producing baseline table with 95% bootstrap CIs. Re-fit and verify calibration on real validation split.
 - [x] **Phase 10: Live Pilots**
   - Implement shadow mode in Action and App with onboarding guide and install script. Implement visible mode with feedback link, one-click "not useful" reasons, repo-level mute, 5 comments/PR cap, and kill switch. Build audit workflow sampling posted comments weekly, audited live precision report, and enforce real telemetry in `precision_gate.py`. Prepare maintainer interview guide.
-- [ ] **Phase 11: Training v2 on Real Signal**
+- [x] **Phase 11: Training v2 on Real Signal**
   - Data mixing with real mined reviews excluding bench_real repos, opt-in pilot feedback, hard negatives, and synthetic data capped at 50%. Test-verified LLM bug generator mimicking real bug classes with failing test verification. Extend reward hacking audit with degenerate policies (linter proximity, copycat, hedged generic comments) and reward versioning. Prepare Kaggle/Colab training configs and ablation log.
 - [ ] **Phase 12: Launch Preparation**
   - Draft evidence report template, rewrite Show HN/Marketplace copy with measured results and source tags, and create false-positive issue template. Prepare listings, model/dataset cards, and leaderboard submission flow. Add `scripts/launch_gate_check.py` reading real results and printing pass/fail per gate.
@@ -223,9 +223,15 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
 - [x] 5. 20-minute maintainer interview protocol published (`docs/pilots/MAINTAINER_INTERVIEW_GUIDE.md`) and human outreach tracked in `HUMAN_TODO.md` (`PILOT-05`).
 
 ### Phase 11: Training v2 on Real Signal
-**Status:** Planned 📋  
+**Status:** Complete ✅  
 **Goal:** Train next-generation models on real mined reviews, pilot feedback, and test-verified bugs with anti-reward-hacking audits.  
 **Requirements Mapped:** `TRAIN2-01`, `TRAIN2-02`, `TRAIN2-03`, `TRAIN2-04`
+
+**Success Criteria:**
+- [x] 1. Data mixing pipeline in `rl/training_v2/data_mixer.py` merges real mined reviews, pilot feedback, and hard negatives; synthetic data is strictly capped at $\le 50\%$; evaluation repos are cleanly excluded; slice hashes are logged in `data/training_v2/manifest.json` (`TRAIN2-01`).
+- [x] 2. Test-verified bug generator in `rl/training_v2/bug_generator.py` generates synthetic bugs verified by reproduction test failure (clean passes, buggy fails); training and evaluation bugs use disjoint generator sources/seeds (`TRAIN2-02`).
+- [x] 3. Verifiable reward engine upgraded to `RewardVersion.V2_0_0` in `rl/reward.py` with penalties for linter copycatting, hedged generic platitudes, and linter proximity spamming; red-team tests pass (`TRAIN2-03`).
+- [x] 4. Four structured ablation configs (`sft.yaml`, `verifier_filter.yaml`, `grpo.yaml`, `full_stack.yaml`), Kaggle & Colab notebooks, and automated ablation runner (`rl/training_v2/ablation_runner.py`) generate comparative results in `data/training_v2/ablation_results.json` (`TRAIN2-04`).
 
 ### Phase 12: Launch Preparation
 **Status:** Planned 📋  

@@ -71,10 +71,10 @@
 | **PILOT-03** | Visible Mode with Safeguards | P0 | Phase 10 | Complete ✅ | Visible mode with feedback link, one-click "not useful" reasons, repo mute, 5 comments/PR hard cap, and kill switch. |
 | **PILOT-04** | Pilot Audit Workflow & Real Telemetry Gate | P0 | Phase 10 | Complete ✅ | Weekly sampling script, audited live precision report with CIs, acceptance rate, mute rate. Ensure `precision_gate.py` rejects simulated telemetry. |
 | **PILOT-05** | Maintainer Interview Guide & Recruitment | P1 | Phase 10 | Complete ✅ | Draft interview guide. Put recruiting, outreach, and interviews into `HUMAN_TODO.md`. |
-| **TRAIN2-01**| Real Signal Data Mixing | P0 | Phase 11 | Planned 📋 | Mix real mined reviews, pilot feedback, and hard negatives; cap synthetic data at 50%; log data hashes. |
-| **TRAIN2-02**| Test-Verified LLM Bug Generator | P0 | Phase 11 | Planned 📋 | Synthetic bugs with test/reproduction failure verification; evaluation bugs from different source than training bugs. |
-| **TRAIN2-03**| Expanded Reward Hacking & Versioning | P0 | Phase 11 | Planned 📋 | Red-team degenerate policies (linter hit proximity, linter copycat, hedged generic comments). Track reward versions. |
-| **TRAIN2-04**| Ablation Configurations & Notebooks | P1 | Phase 11 | Planned 📋 | Prepare configs and Kaggle/Colab notebooks for SFT, verifier filter, GRPO, and full stack ablations. |
+| **TRAIN2-01**| Real Signal Data Mixing | P0 | Phase 11 | Complete ✅ | Mix real mined reviews, pilot feedback, and hard negatives; cap synthetic data at 50%; log data hashes. |
+| **TRAIN2-02**| Test-Verified LLM Bug Generator | P0 | Phase 11 | Complete ✅ | Synthetic bugs with test/reproduction failure verification; evaluation bugs from different source than training bugs. |
+| **TRAIN2-03**| Expanded Reward Hacking & Versioning | P0 | Phase 11 | Complete ✅ | Red-team degenerate policies (linter hit proximity, linter copycat, hedged generic comments). Track reward versions. |
+| **TRAIN2-04**| Ablation Configurations & Notebooks | P1 | Phase 11 | Complete ✅ | Prepare configs and Kaggle/Colab notebooks for SFT, verifier filter, GRPO, and full stack ablations. |
 | **LAUNCH-01**| Measured Evidence Report Template | P0 | Phase 12 | Planned 📋 | Evidence report template with measured numbers and source tags only; placeholders for pending data. |
 | **LAUNCH-02**| False-Positive Issue Template | P1 | Phase 12 | Planned 📋 | Structured issue template for reporting false-positive review comments. |
 | **LAUNCH-03**| Publication Assets & Submission Flow | P1 | Phase 12 | Planned 📋 | Model/dataset cards, marketplace copy, and reproducible leaderboard submission flow. |

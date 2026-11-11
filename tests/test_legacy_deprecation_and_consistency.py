@@ -160,3 +160,4 @@ def test_architecture_doc_consistency():
     assert "Beta-Bernoulli Thompson Sampling" in arch_content
     assert "HARD-04" in arch_content
     assert "HARD-05" in arch_content
+

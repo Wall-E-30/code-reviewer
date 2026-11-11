@@ -1,0 +1,40 @@
+# configs/training_v2/full_stack.yaml
+# Ablation Condition 4: Complete End-to-End Stack (Production Model)
+condition: full_stack
+description: "Real Data Mixing + SFT + Calibrated Verifier Filter + GRPO v2.0.0 + Container Sandbox."
+model:
+  base_model: "Qwen/Qwen2.5-Coder-7B-Instruct"
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+verifier:
+  model_type: "gradient_boosted_classifier"
+  feature_dimensions: 12
+  confidence_threshold: 0.70
+  calibration: "isotonic"
+  max_comments_per_pr: 5
+grpo:
+  group_size: 4
+  epsilon_clip: 0.2
+  kl_coeff: 0.05
+  learning_rate: 1.0e-6
+  reward_version: "2.0.0"
+  anti_hacking_penalties:
+    linter_copycat: -0.75
+    hedged_generic: -0.75
+    linter_proximity: -0.75
+sandbox:
+  rootless: true
+  pids_limit: 64
+  memory_limit_mb: 512
+  timeout_seconds: 1.0
+data:
+  train_data: "data/training_v2/train_v2.json"
+  val_data: "data/training_v2/val_v2.json"
+  manifest: "data/training_v2/manifest.json"
+  synthetic_cap_ratio: 0.50
+ablation_toggles:
+  use_verifier_filter: true
+  use_grpo: true
+  reward_version: "2.0.0"
+  sandbox_verification: true

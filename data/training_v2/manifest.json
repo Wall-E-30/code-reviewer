@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "standard": "TRAIN2-01",
+  "total_items": 260,
+  "train_count": 221,
+  "val_count": 39,
+  "synthetic_ratio": 0.3846,
+  "synthetic_capped_at_50_pct": true,
+  "stream_breakdown": {
+    "real_mined": 80,
+    "pilot_feedback": 40,
+    "hard_negative": 40,
+    "synthetic": 100
+  },
+  "reserved_repos_excluded": [
+    "aio-libs/aiohttp",
+    "bottlepy/bottle",
+    "simonw/datasette",
+    "starlette/starlette",
+    "tornadoweb/tornado"
+  ],
+  "contamination_detected": false,
+  "slices": {
+    "train_v2": {
+      "path": "train_v2.json",
+      "count": 221,
+      "sha256": "7010572b44c5d131f5e821893ee3426e9482e330a91b8d9916974f502eb2d75e"
+    },
+    "val_v2": {
+      "path": "val_v2.json",
+      "count": 39,
+      "sha256": "273c16991b4840268cb77cc097e8a9f185a6105e1daa4830796e9dba531cdb76"
+    }
+  }
+}

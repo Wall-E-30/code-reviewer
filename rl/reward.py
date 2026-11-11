@@ -18,12 +18,21 @@ from __future__ import annotations
 import ast
 import logging
 import textwrap
+from enum import Enum
+import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from bench.evaluator.matcher import match_comments_to_findings
 from bench.schema import FindingCategory, GroundTruthFinding, ReviewComment
 
 logger = logging.getLogger(__name__)
+
+
+class RewardVersion(str, Enum):
+    """Reward function version tracking for reproducible RLVR audits (TRAIN2-03)."""
+    V1_0_0 = "1.0.0"
+    V2_0_0 = "2.0.0"
+
 
 # Standard reward weights
 REWARD_BUG_HIT = 1.00
@@ -34,6 +43,23 @@ PENALTY_NITPICK = -0.25
 BONUS_SUGGESTION_VALID = 0.50
 PENALTY_ZERO_DELTA = -0.50
 PENALTY_MISSED_BUG = -0.50
+
+# Reward v2 anti-hacking penalties (TRAIN2-03)
+PENALTY_LINTER_COPYCAT = -0.75
+PENALTY_HEDGED_GENERIC = -0.75
+PENALTY_LINTER_PROXIMITY_SPAM = -0.75
+
+# Common generic non-actionable platitudes
+HEDGED_GENERIC_PATTERNS = [
+    r"consider checking for edge cases",
+    r"ensure proper error handling",
+    r"verify thread safety",
+    r"check for null pointer exceptions?",
+    r"verify that this works as expected",
+    r"consider adding more tests",
+    r"ensure input validation",
+    r"make sure this behaves properly",
+]
 
 
 def _coerce_to_review_comment(raw: Union[ReviewComment, Dict[str, Any], Any]) -> ReviewComment:
@@ -88,7 +114,7 @@ def _coerce_to_ground_truth(raw: Union[GroundTruthFinding, Dict[str, Any], Any])
 class VerifiableRewardCalculator:
     """
     Computes objective, verifiable multi-tier rewards for code review actions.
-    Eliminates subjective bias and protects against reward hacking.
+    Eliminates subjective bias and protects against reward hacking (RL-02, TRAIN2-03).
     """
 
     def __init__(
@@ -102,6 +128,10 @@ class VerifiableRewardCalculator:
         suggestion_bonus: float = BONUS_SUGGESTION_VALID,
         zero_delta_penalty: float = PENALTY_ZERO_DELTA,
         missed_bug_penalty: float = PENALTY_MISSED_BUG,
+        version: RewardVersion = RewardVersion.V2_0_0,
+        linter_copycat_penalty: float = PENALTY_LINTER_COPYCAT,
+        hedged_generic_penalty: float = PENALTY_HEDGED_GENERIC,
+        linter_proximity_penalty: float = PENALTY_LINTER_PROXIMITY_SPAM,
     ) -> None:
         self.line_window = line_window
         self.bug_hit_reward = bug_hit_reward
@@ -112,6 +142,59 @@ class VerifiableRewardCalculator:
         self.suggestion_bonus = suggestion_bonus
         self.zero_delta_penalty = zero_delta_penalty
         self.missed_bug_penalty = missed_bug_penalty
+        self.version = version
+        self.linter_copycat_penalty = linter_copycat_penalty
+        self.hedged_generic_penalty = hedged_generic_penalty
+        self.linter_proximity_penalty = linter_proximity_penalty
+
+    def _detect_linter_copycat(self, comment_text: str, linter_messages: Optional[List[str]]) -> bool:
+        """Detect if comment repeats or mimics a raw linter message without substantive insight."""
+        if not comment_text or not linter_messages:
+            return False
+        clean_comm = comment_text.lower().strip()
+        for msg in linter_messages:
+            clean_msg = msg.lower().strip()
+            # Direct substring or exact phrasing
+            if clean_msg in clean_comm or clean_comm in clean_msg:
+                return True
+            # Check high word token overlap (> 65%)
+            words_comm = set(re.findall(r"\w+", clean_comm))
+            words_msg = set(re.findall(r"\w+", clean_msg))
+            if words_comm and words_msg:
+                overlap = len(words_comm.intersection(words_msg)) / min(len(words_comm), len(words_msg))
+                if overlap > 0.65 and len(words_comm) < 15:
+                    return True
+        return False
+
+    def _detect_hedged_generic(self, comment_text: str) -> bool:
+        """Detect non-actionable hedged generic platitudes."""
+        if not comment_text:
+            return False
+        clean_comm = comment_text.lower().strip()
+        for pat in HEDGED_GENERIC_PATTERNS:
+            if re.search(pat, clean_comm):
+                # Flag if short/vacuous or lacks concrete code syntax identifiers
+                if len(clean_comm) < 100 or not re.search(r"[`'\"()]", comment_text):
+                    return True
+        return False
+
+    def _detect_linter_proximity_spam(
+        self,
+        comments: List[ReviewComment],
+        linter_lines: Optional[List[int]],
+    ) -> int:
+        """Count comments clustering within 1 line of a linter hit without providing a valid code suggestion."""
+        if not linter_lines or not comments:
+            return 0
+        spam_count = 0
+        for comm in comments:
+            if comm.suggestion and comm.suggestion.strip():
+                continue
+            for l_line in linter_lines:
+                if abs(comm.line_number - l_line) <= 1:
+                    spam_count += 1
+                    break
+        return spam_count
 
     def evaluate_suggestion(
         self,
@@ -155,6 +238,8 @@ class VerifiableRewardCalculator:
         ground_truth: List[Union[GroundTruthFinding, Dict[str, Any], Any]],
         is_clean_diff: bool = False,
         file_content: Optional[str] = None,
+        linter_messages: Optional[List[str]] = None,
+        linter_lines: Optional[List[int]] = None,
     ) -> Tuple[float, Dict[str, Any]]:
         """
         Compute verifiable scalar reward and detailed metrics breakdown.
@@ -164,6 +249,8 @@ class VerifiableRewardCalculator:
             ground_truth: Known defect specifications
             is_clean_diff: True if PR diff contains no real defects
             file_content: Content of modified file for syntax & duplicate checks
+            linter_messages: Optional list of raw linter messages for copycat detection
+            linter_lines: Optional list of line numbers flagged by linters
 
         Returns:
             Tuple of (total_scalar_reward, metrics_dict)
@@ -173,6 +260,7 @@ class VerifiableRewardCalculator:
 
         total_reward = 0.0
         breakdown = {
+            "reward_version": self.version.value,
             "bug_hits": 0,
             "security_hits": 0,
             "false_positives": 0,
@@ -182,6 +270,9 @@ class VerifiableRewardCalculator:
             "zero_delta_penalties": 0,
             "missed_bugs": 0,
             "matched_pairs": 0,
+            "linter_copycat_penalties": 0,
+            "hedged_generic_penalties": 0,
+            "linter_proximity_penalties": 0,
         }
 
         # 1. Clean Diff Evaluation
@@ -242,6 +333,26 @@ class VerifiableRewardCalculator:
             elif is_valid:
                 breakdown["syntax_bonuses"] += 1
                 total_reward += self.suggestion_bonus
+
+        # 7. Reward v2.0.0 Anti-Reward-Hacking Audits (TRAIN2-03)
+        if self.version == RewardVersion.V2_0_0:
+            # (a) Linter Copycat Penalties
+            for comm in typed_comments:
+                if self._detect_linter_copycat(comm.comment, linter_messages):
+                    breakdown["linter_copycat_penalties"] += 1
+                    total_reward += self.linter_copycat_penalty
+
+            # (b) Hedged Generic Platitudes
+            for comm in typed_comments:
+                if self._detect_hedged_generic(comm.comment):
+                    breakdown["hedged_generic_penalties"] += 1
+                    total_reward += self.hedged_generic_penalty
+
+            # (c) Linter Proximity Spamming
+            proximity_count = self._detect_linter_proximity_spam(typed_comments, linter_lines)
+            if proximity_count > 0:
+                breakdown["linter_proximity_penalties"] = proximity_count
+                total_reward += proximity_count * self.linter_proximity_penalty
 
         breakdown["total_reward"] = round(total_reward, 4)
         return round(total_reward, 4), breakdown

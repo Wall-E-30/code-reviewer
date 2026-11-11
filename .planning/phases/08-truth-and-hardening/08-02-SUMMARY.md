@@ -30,3 +30,4 @@
 7. `test_github_app_process_recorded_fixtures`: Confirms GitHubAppHandler processes real recorded GitHub event fixtures.
 
 **Test Execution:** 7/7 passed in 0.78s.
+

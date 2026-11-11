@@ -1,0 +1,677 @@
+[
+  {
+    "item_id": "synthetic_0079",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    with open('data.txt') as f:\n        return f.read()\n+    f = open('data.txt')\n    return f.read()\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Resource leak: file handle not safely closed.",
+    "target_suggestion": "    with open('data.txt') as f:\n        return f.read()\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "resource_leak"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0009",
+    "repository": "urllib3/urllib3",
+    "file_path": "src/urllib3/poolmanager.py",
+    "language": "python",
+    "diff": "--- a/src/urllib3/poolmanager.py\n+++ b/src/urllib3/poolmanager.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Verify SNI hostname matching under custom SSL contexts",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "pilot_fb_0023",
+    "repository": "pilot-partner-gamma/api",
+    "file_path": "api/auth.py",
+    "language": "python",
+    "diff": "--- a/api/auth.py\n+++ b/api/auth.py\n@@ -40,3 +40,3 @@\n-    data = request.json()\n+    data = request.get_json(silent=True) or {}\n",
+    "stream_type": "pilot_feedback",
+    "is_clean_diff": false,
+    "line_number": 41,
+    "category": "bug",
+    "target_comment": "Use safe json parsing with fallback dictionary to avoid UnhandledException.",
+    "target_suggestion": "    data = request.get_json(silent=True) or {}\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "pilot_reaction": "+1",
+      "dismiss_reason": null,
+      "maintainer_accepted": true
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0060",
+    "repository": "psf/requests",
+    "file_path": "requests/sessions.py",
+    "language": "python",
+    "diff": "--- a/requests/sessions.py\n+++ b/requests/sessions.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Fix connection pool exhaustion on redirect loop",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0005",
+    "repository": "psf/requests",
+    "file_path": "requests/sessions.py",
+    "language": "python",
+    "diff": "--- a/requests/sessions.py\n+++ b/requests/sessions.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Fix connection pool exhaustion on redirect loop",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0079",
+    "repository": "urllib3/urllib3",
+    "file_path": "src/urllib3/poolmanager.py",
+    "language": "python",
+    "diff": "--- a/src/urllib3/poolmanager.py\n+++ b/src/urllib3/poolmanager.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Verify SNI hostname matching under custom SSL contexts",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "synthetic_0077",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    if user:\n        return user.name\n+    user = None\n    return user.name\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "bug",
+    "target_comment": "AttributeError: user is None dereference.",
+    "target_suggestion": "    if user:\n        return user.name\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "null_dereference"
+    }
+  },
+  {
+    "item_id": "synthetic_0027",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    with open('data.txt') as f:\n        return f.read()\n+    f = open('data.txt')\n    return f.read()\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Resource leak: file handle not safely closed.",
+    "target_suggestion": "    with open('data.txt') as f:\n        return f.read()\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "resource_leak"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0045",
+    "repository": "psf/requests",
+    "file_path": "requests/sessions.py",
+    "language": "python",
+    "diff": "--- a/requests/sessions.py\n+++ b/requests/sessions.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Fix connection pool exhaustion on redirect loop",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0051",
+    "repository": "pallets/flask",
+    "file_path": "src/flask/app.py",
+    "language": "python",
+    "diff": "--- a/src/flask/app.py\n+++ b/src/flask/app.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Ensure context locals are teardown-safe during exceptions",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "hard_neg_0012",
+    "repository": "psf/requests",
+    "file_path": "requests/models.py",
+    "language": "python",
+    "diff": "--- a/requests/models.py\n+++ b/requests/models.py\n@@ -20,3 +20,3 @@\n-# Clean internal comment refactor\n+# Clarified internal comment refactor and docstring\n def execute():\n",
+    "stream_type": "hard_negative",
+    "is_clean_diff": true,
+    "line_number": null,
+    "category": null,
+    "target_comment": null,
+    "target_suggestion": null,
+    "feedback_score": 0.0,
+    "metadata": {
+      "reason": "clean_diff_negative_control"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0003",
+    "repository": "encode/httpx",
+    "file_path": "httpx/_transports/default.py",
+    "language": "python",
+    "diff": "--- a/httpx/_transports/default.py\n+++ b/httpx/_transports/default.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Properly propagate read timeout on streamed responses",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "synthetic_0012",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    for i in range(len(items)):\n+    for i in range(len(items) - 1):\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Off-by-one error: skips final element.",
+    "target_suggestion": "    for i in range(len(items)):\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "off_by_one"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0029",
+    "repository": "urllib3/urllib3",
+    "file_path": "src/urllib3/poolmanager.py",
+    "language": "python",
+    "diff": "--- a/src/urllib3/poolmanager.py\n+++ b/src/urllib3/poolmanager.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Verify SNI hostname matching under custom SSL contexts",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "synthetic_0014",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    cursor.execute('SELECT * FROM u WHERE id=?', (uid,))\n+    cursor.execute(f'SELECT * FROM u WHERE id={uid}')\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "SQL injection vulnerability: unparameterized query formatting.",
+    "target_suggestion": "    cursor.execute('SELECT * FROM u WHERE id=?', (uid,))\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "sql_injection"
+    }
+  },
+  {
+    "item_id": "synthetic_0060",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    for i in range(len(items)):\n+    for i in range(len(items) - 1):\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Off-by-one error: skips final element.",
+    "target_suggestion": "    for i in range(len(items)):\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "off_by_one"
+    }
+  },
+  {
+    "item_id": "pilot_fb_0019",
+    "repository": "pilot-partner-beta/core",
+    "file_path": "core/engine.py",
+    "language": "python",
+    "diff": "--- a/core/engine.py\n+++ b/core/engine.py\n@@ -40,3 +40,3 @@\n-    data = request.json()\n+    data = request.get_json(silent=True) or {}\n",
+    "stream_type": "pilot_feedback",
+    "is_clean_diff": false,
+    "line_number": 41,
+    "category": "bug",
+    "target_comment": "Use safe json parsing with fallback dictionary to avoid UnhandledException.",
+    "target_suggestion": "    data = request.get_json(silent=True) or {}\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "pilot_reaction": "+1",
+      "dismiss_reason": null,
+      "maintainer_accepted": true
+    }
+  },
+  {
+    "item_id": "hard_neg_0018",
+    "repository": "psf/requests",
+    "file_path": "requests/models.py",
+    "language": "python",
+    "diff": "--- a/requests/models.py\n+++ b/requests/models.py\n@@ -20,3 +20,3 @@\n-# Clean internal comment refactor\n+# Clarified internal comment refactor and docstring\n def execute():\n",
+    "stream_type": "hard_negative",
+    "is_clean_diff": true,
+    "line_number": null,
+    "category": null,
+    "target_comment": null,
+    "target_suggestion": null,
+    "feedback_score": 0.0,
+    "metadata": {
+      "reason": "clean_diff_negative_control"
+    }
+  },
+  {
+    "item_id": "pilot_fb_0031",
+    "repository": "pilot-partner-beta/core",
+    "file_path": "core/engine.py",
+    "language": "python",
+    "diff": "--- a/core/engine.py\n+++ b/core/engine.py\n@@ -40,3 +40,3 @@\n-    data = request.json()\n+    data = request.get_json(silent=True) or {}\n",
+    "stream_type": "pilot_feedback",
+    "is_clean_diff": false,
+    "line_number": 41,
+    "category": "bug",
+    "target_comment": "Use safe json parsing with fallback dictionary to avoid UnhandledException.",
+    "target_suggestion": "    data = request.get_json(silent=True) or {}\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "pilot_reaction": "+1",
+      "dismiss_reason": null,
+      "maintainer_accepted": true
+    }
+  },
+  {
+    "item_id": "synthetic_0048",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    for i in range(len(items)):\n+    for i in range(len(items) - 1):\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Off-by-one error: skips final element.",
+    "target_suggestion": "    for i in range(len(items)):\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "off_by_one"
+    }
+  },
+  {
+    "item_id": "synthetic_0051",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    with open('data.txt') as f:\n        return f.read()\n+    f = open('data.txt')\n    return f.read()\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Resource leak: file handle not safely closed.",
+    "target_suggestion": "    with open('data.txt') as f:\n        return f.read()\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "resource_leak"
+    }
+  },
+  {
+    "item_id": "synthetic_0039",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    with open('data.txt') as f:\n        return f.read()\n+    f = open('data.txt')\n    return f.read()\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Resource leak: file handle not safely closed.",
+    "target_suggestion": "    with open('data.txt') as f:\n        return f.read()\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "resource_leak"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0078",
+    "repository": "encode/httpx",
+    "file_path": "httpx/_transports/default.py",
+    "language": "python",
+    "diff": "--- a/httpx/_transports/default.py\n+++ b/httpx/_transports/default.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Properly propagate read timeout on streamed responses",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "pilot_fb_0009",
+    "repository": "pilot-partner-alpha/service",
+    "file_path": "service/handler.py",
+    "language": "python",
+    "diff": "--- a/service/handler.py\n+++ b/service/handler.py\n@@ -40,3 +40,3 @@\n-    data = request.json()\n+    data = request.get_json(silent=True) or {}\n",
+    "stream_type": "pilot_feedback",
+    "is_clean_diff": false,
+    "line_number": 41,
+    "category": "bug",
+    "target_comment": "Use safe json parsing with fallback dictionary to avoid UnhandledException.",
+    "target_suggestion": "    data = request.get_json(silent=True) or {}\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "pilot_reaction": "+1",
+      "dismiss_reason": null,
+      "maintainer_accepted": true
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0072",
+    "repository": "tiangolo/fastapi",
+    "file_path": "fastapi/routing.py",
+    "language": "python",
+    "diff": "--- a/fastapi/routing.py\n+++ b/fastapi/routing.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Resolve dependency resolution race condition in async handler",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "synthetic_0053",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    if user:\n        return user.name\n+    user = None\n    return user.name\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "bug",
+    "target_comment": "AttributeError: user is None dereference.",
+    "target_suggestion": "    if user:\n        return user.name\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "null_dereference"
+    }
+  },
+  {
+    "item_id": "synthetic_0064",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    for i in range(len(items)):\n+    for i in range(len(items) - 1):\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Off-by-one error: skips final element.",
+    "target_suggestion": "    for i in range(len(items)):\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "off_by_one"
+    }
+  },
+  {
+    "item_id": "pilot_fb_0039",
+    "repository": "pilot-partner-alpha/service",
+    "file_path": "service/handler.py",
+    "language": "python",
+    "diff": "--- a/service/handler.py\n+++ b/service/handler.py\n@@ -40,3 +40,3 @@\n-    data = request.json()\n+    data = request.get_json(silent=True) or {}\n",
+    "stream_type": "pilot_feedback",
+    "is_clean_diff": false,
+    "line_number": 41,
+    "category": "bug",
+    "target_comment": "Use safe json parsing with fallback dictionary to avoid UnhandledException.",
+    "target_suggestion": "    data = request.get_json(silent=True) or {}\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "pilot_reaction": "+1",
+      "dismiss_reason": null,
+      "maintainer_accepted": true
+    }
+  },
+  {
+    "item_id": "synthetic_0036",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    for i in range(len(items)):\n+    for i in range(len(items) - 1):\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Off-by-one error: skips final element.",
+    "target_suggestion": "    for i in range(len(items)):\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "off_by_one"
+    }
+  },
+  {
+    "item_id": "synthetic_0093",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    if user:\n        return user.name\n+    user = None\n    return user.name\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "bug",
+    "target_comment": "AttributeError: user is None dereference.",
+    "target_suggestion": "    if user:\n        return user.name\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "null_dereference"
+    }
+  },
+  {
+    "item_id": "synthetic_0008",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    for i in range(len(items)):\n+    for i in range(len(items) - 1):\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Off-by-one error: skips final element.",
+    "target_suggestion": "    for i in range(len(items)):\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "off_by_one"
+    }
+  },
+  {
+    "item_id": "hard_neg_0015",
+    "repository": "psf/requests",
+    "file_path": "requests/models.py",
+    "language": "python",
+    "diff": "--- a/requests/models.py\n+++ b/requests/models.py\n@@ -20,3 +20,3 @@\n-# Clean internal comment refactor\n+# Clarified internal comment refactor and docstring\n def execute():\n",
+    "stream_type": "hard_negative",
+    "is_clean_diff": true,
+    "line_number": null,
+    "category": null,
+    "target_comment": null,
+    "target_suggestion": null,
+    "feedback_score": 0.0,
+    "metadata": {
+      "reason": "clean_diff_negative_control"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0021",
+    "repository": "pallets/flask",
+    "file_path": "src/flask/app.py",
+    "language": "python",
+    "diff": "--- a/src/flask/app.py\n+++ b/src/flask/app.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Ensure context locals are teardown-safe during exceptions",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0061",
+    "repository": "pallets/flask",
+    "file_path": "src/flask/app.py",
+    "language": "python",
+    "diff": "--- a/src/flask/app.py\n+++ b/src/flask/app.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Ensure context locals are teardown-safe during exceptions",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "synthetic_0072",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    for i in range(len(items)):\n+    for i in range(len(items) - 1):\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Off-by-one error: skips final element.",
+    "target_suggestion": "    for i in range(len(items)):\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "off_by_one"
+    }
+  },
+  {
+    "item_id": "real_mined_curated_0015",
+    "repository": "psf/requests",
+    "file_path": "requests/sessions.py",
+    "language": "python",
+    "diff": "--- a/requests/sessions.py\n+++ b/requests/sessions.py\n@@ -10,4 +10,5 @@\n-    conn = pool.get()\n+    conn = pool.get(timeout=self.timeout)\n+    if conn is None:\n+        raise ConnectionTimeout('Acquisition timeout')\n",
+    "stream_type": "real_mined",
+    "is_clean_diff": false,
+    "line_number": 12,
+    "category": "bug",
+    "target_comment": "Fix connection pool exhaustion on redirect loop",
+    "target_suggestion": "    conn = pool.get(timeout=self.timeout)\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "source": "mined_curated"
+    }
+  },
+  {
+    "item_id": "synthetic_0089",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    if user:\n        return user.name\n+    user = None\n    return user.name\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "bug",
+    "target_comment": "AttributeError: user is None dereference.",
+    "target_suggestion": "    if user:\n        return user.name\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "null_dereference"
+    }
+  },
+  {
+    "item_id": "pilot_fb_0020",
+    "repository": "pilot-partner-gamma/api",
+    "file_path": "api/auth.py",
+    "language": "python",
+    "diff": "--- a/api/auth.py\n+++ b/api/auth.py\n@@ -40,3 +40,3 @@\n-    data = request.json()\n+    data = request.get_json(silent=True) or {}\n",
+    "stream_type": "pilot_feedback",
+    "is_clean_diff": false,
+    "line_number": 41,
+    "category": "security",
+    "target_comment": "Use safe json parsing with fallback dictionary to avoid UnhandledException.",
+    "target_suggestion": "    data = request.get_json(silent=True) or {}\n",
+    "feedback_score": -1.0,
+    "metadata": {
+      "pilot_reaction": "-1",
+      "dismiss_reason": "wrong",
+      "maintainer_accepted": false
+    }
+  },
+  {
+    "item_id": "synthetic_0075",
+    "repository": "synthetic/mutator",
+    "file_path": "mutated_sample.py",
+    "language": "python",
+    "diff": "--- a/mutated_sample.py\n+++ b/mutated_sample.py\n@@ -5,2 +5,2 @@\n-    with open('data.txt') as f:\n        return f.read()\n+    f = open('data.txt')\n    return f.read()\n",
+    "stream_type": "synthetic",
+    "is_clean_diff": false,
+    "line_number": 6,
+    "category": "security",
+    "target_comment": "Resource leak: file handle not safely closed.",
+    "target_suggestion": "    with open('data.txt') as f:\n        return f.read()\n",
+    "feedback_score": 1.0,
+    "metadata": {
+      "synthetic_mutation": "resource_leak"
+    }
+  }
+]

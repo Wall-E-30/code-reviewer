@@ -1,0 +1,26 @@
+# configs/training_v2/grpo.yaml
+# Ablation Condition 3: SFT + GRPO Reinforcement Learning
+condition: grpo_rl
+description: "SFT policy optimized directly via Group-Relative Policy Optimization using Reward v2.0.0."
+model:
+  base_model: "Qwen/Qwen2.5-Coder-7B-Instruct"
+  lora_r: 16
+  lora_alpha: 32
+grpo:
+  group_size: 4
+  epsilon_clip: 0.2
+  kl_coeff: 0.05
+  learning_rate: 1.0e-6
+  reward_version: "2.0.0"
+  anti_hacking_penalties:
+    linter_copycat: -0.75
+    hedged_generic: -0.75
+    linter_proximity: -0.75
+data:
+  train_data: "data/training_v2/train_v2.json"
+  val_data: "data/training_v2/val_v2.json"
+ablation_toggles:
+  use_verifier_filter: false
+  use_grpo: true
+  reward_version: "2.0.0"
+  sandbox_verification: false

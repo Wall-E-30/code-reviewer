@@ -63,3 +63,4 @@ graph TD
 ### 2.5 Security Containment & Redaction
 - **Container Sandbox (`rl/sandbox/container.py`):** 9-layer defense in depth (`--cap-drop ALL`, `--security-opt no-new-privileges`, read-only root, `--pids-limit 64`, non-root execution). Host subprocess execution is strictly refused if container runtime is unavailable (`HARD-01`).
 - **Secret Redaction (`action/redactor.py`):** Scans for AWS keys, GitHub PATs, OpenAI/Anthropic API keys, private keys, and bearer tokens in diffs before inference (`HARD-03b`).
+
