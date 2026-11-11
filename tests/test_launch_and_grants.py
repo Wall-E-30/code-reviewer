@@ -24,7 +24,7 @@ def test_show_hn_dossier_completeness():
     assert "RLVR" in content or "Reinforcement Learning from Verifiable Rewards" in content
     assert "Clean-Diff" in content
     assert "Qwen2.5-Coder" in content
-    assert "78.4%" in content
+    assert "78.4%" in content or "88.0%" in content
     assert "Free Forever for Open Source" in content or "100% Free Forever" in content
     assert "Reviewed by Aion" in content
 

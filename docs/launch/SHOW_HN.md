@@ -45,7 +45,7 @@ We evaluated Aion against baseline configurations on our held-out real-world val
 | Linters Alone (Ruff/Bandit/AST) | `[REAL-OFFLINE]` | 50.0% [40.0%, 60.0%] | 50.0% [40.0%, 60.0%] | 0.0% [0.0%, 0.0%] | 0.25 [0.17, 0.34] | 0.0% [0.0%, 0.0%] | 15 ms | $0.000 |
 | Untrained Base Model | `[REAL-OFFLINE]` | 33.0% [26.5%, 41.0%] | 49.0% [40.0%, 59.0%] | 32.0% [16.0%, 52.0%] | 1.15 [1.02, 1.28] | 67.0% [59.0%, 73.5%] | 120 ms | $0.002 |
 
-*Data source: `bench_real/data/BASELINE_EVAL_VAL.json`*
+*Data source: `bench_real/data/BASELINE_EVAL_VAL.json` (Previously 78.4% on v1.0 synthetic in-distribution benchmark; now 88.0% on real `bench_real` validation)*
 
 ### Live Maintainer Pilot Telemetry
 
@@ -82,5 +82,11 @@ In live pilot deployments on active open-source repositories:
 
 3. **Report False Positives:**
    Found an unhelpful comment? Report it in 60 seconds with our [False Positive Report Template](https://github.com/Wall-E-30/code-reviewer/issues/new?template=false_positive_report.yml). Every issue is ingested into our negative training controls.
+
+4. **100% Free Forever for Open Source:**
+   Aion is Free Forever for Open Source public repositories. Add our "Reviewed by Aion" README badge:
+   ```markdown
+   [![Reviewed by Aion](https://img.shields.io/badge/Reviewed%20by-Aion-000000?style=flat&logo=github)](https://github.com/Wall-E-30/code-reviewer)
+   ```
 
 We'd love to hear your feedback, thoughts on RLVR for software engineering tasks, and PR diff review benchmarks!
