@@ -155,3 +155,4 @@ def test_reward_version_backward_compatibility(sample_findings):
 
     assert breakdown["reward_version"] == "1.0.0"
     assert breakdown["hedged_generic_penalties"] == 0
+

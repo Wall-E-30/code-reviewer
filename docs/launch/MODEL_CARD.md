@@ -109,3 +109,4 @@ print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 - **Contamination Guard:** Zero overlap between training sets and locked test benchmarks.
 - **Privacy & Security:** Diffs are sanitized for AWS, GitHub, OpenAI, and SSH secrets prior to tokenization via `action/redactor.py`.
 - **False-Positive Reporting:** Users can submit false-positive findings via the official issue template at `.github/ISSUE_TEMPLATE/false_positive_report.yml`.
+

@@ -86,3 +86,4 @@ def test_leaderboard_submission_guide_structure():
     assert "bench_real" in content
     assert "GROWTH-02" in content or "LAUNCH-03" in content
     assert "python -m bench_real" in content
+

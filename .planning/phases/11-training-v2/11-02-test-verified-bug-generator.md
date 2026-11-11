@@ -59,3 +59,4 @@ pytest tests/test_bug_generator_v2.py -v
 </task>
 
 </tasks>
+

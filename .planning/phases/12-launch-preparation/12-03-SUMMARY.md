@@ -30,3 +30,4 @@
 
 ## 2. Verification Results
 - `pytest tests/test_publication_assets.py -v`: 6 passed in 0.34s.
+

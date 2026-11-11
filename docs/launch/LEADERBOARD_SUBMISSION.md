@@ -105,3 +105,4 @@ The evaluator computes:
    - Title: `[Leaderboard Submission]: <Model Name>`
    - Description must include reproducibility instructions, hardware used, and licensing confirmation.
    - GitHub Actions CI will automatically evaluate your predictions against the locked test split (`bench_real/splits/test_locked.json`) and append your score to the official leaderboard upon merge.
+

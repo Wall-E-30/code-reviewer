@@ -77,3 +77,4 @@ def test_generated_bug_diff_and_fix_validity(generator):
     assert len(bug.suggested_fix) > 0
     assert bug.line_number > 0
     assert bug.category in [c for c in BugCategory]
+

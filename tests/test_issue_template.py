@@ -80,3 +80,4 @@ def test_dropdown_options():
     assert "nitpick" in options_text
     assert "known" in options_text
     assert "scope" in options_text
+

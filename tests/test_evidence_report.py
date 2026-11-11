@@ -101,3 +101,4 @@ def test_pending_production_placeholders():
     # Must have pending tags for 30-day retention and large production volume
     assert "[PENDING-PILOT-PRODUCTION]" in content
     assert "Requires 100+ active repos for 30d" in content
+

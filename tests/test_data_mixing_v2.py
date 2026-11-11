@@ -96,3 +96,4 @@ def test_hard_negatives_and_pilot_feedback_integrity(mixer):
     for pilot in pilot_items:
         assert "pilot_reaction" in pilot["metadata"]
         assert pilot["feedback_score"] in (1.0, -1.0)
+
