@@ -94,3 +94,4 @@ When this variable is detected, Aion halts instantly without posting or updating
 2. **Secret Redaction**: Diff text is scrubbed before processing. High-entropy API tokens (AWS, OpenAI, Anthropic, GitHub, Slack) are automatically replaced with `[REDACTED_SECRET]`.
 3. **No Code Retention**: Diffs are ephemeral and evaluated in memory. Code is never logged to external servers or used for public model training.
 4. **Strict Comment Ceiling**: Never exceeds 5 comments on any PR, protecting contributors from notification fatigue.
+

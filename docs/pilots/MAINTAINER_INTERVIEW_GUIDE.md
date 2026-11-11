@@ -88,3 +88,4 @@
 - [ ] Save notes directly to private interview records (no public exposure of unconsented maintainer statements).
 - [ ] Log qualitative findings and NPS score in `HUMAN_TODO.md`.
 - [ ] Send thank-you note and attribution acknowledgment if maintainer opted in.
+

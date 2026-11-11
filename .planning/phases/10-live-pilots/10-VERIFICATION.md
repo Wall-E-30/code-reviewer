@@ -65,3 +65,4 @@ Every metric and dataset in Phase 10 has been rigorously labeled according to Ru
 - `scripts/pilot_audit_report.py`: `[AUDITED-PILOT]` (95% bootstrap CIs)
 - `server/precision_gate.py`: `[LIVE-TELEMETRY-GATE]` (`status: PENDING_PILOT_DATA` when awaiting live pilot telemetry)
 - Pilot maintainer recruitment, outreach, and interviews: Strictly recorded in `HUMAN_TODO.md` (`[HUMAN-ACTION-REQUIRED]`). Zero synthetic feedback.
+

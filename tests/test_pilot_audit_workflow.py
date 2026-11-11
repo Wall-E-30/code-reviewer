@@ -228,3 +228,4 @@ def test_precision_gate_passes_on_live_telemetry():
     assert metrics["simulated_records_count"] == 0
 
     assert agg.assert_precision_gate(window_days=30, reference_time=now) is True
+
