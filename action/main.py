@@ -55,6 +55,8 @@ def parse_action_inputs() -> Dict[str, Any]:
     parser.add_argument("--min-confidence", dest="min_confidence", type=float, default=None, help="Min confidence")
     parser.add_argument("--enable-telemetry", dest="enable_telemetry", default=None, help="Enable telemetry")
     parser.add_argument("--aion-state-dir", dest="aion_state_dir", default=None, help="Aion state directory")
+    parser.add_argument("--mode", dest="mode", default=None, help="Review mode: visible (posts comments) or shadow (silent log)")
+    parser.add_argument("--kill-switch", dest="kill_switch", action="store_true", help="Force emergency abort")
 
     args, _ = parser.parse_known_args()
 
@@ -117,7 +119,14 @@ def parse_action_inputs() -> Dict[str, Any]:
         else aion_dir_env if aion_dir_env else ".aion"
     )
 
-    # 4. GitHub Context
+    # 4. Pilot & Operational Controls
+    mode_env = os.getenv("INPUT_MODE") or os.getenv("AION_MODE") or "visible"
+    mode = (args.mode if args.mode is not None else mode_env).strip().lower()
+
+    kill_switch_env = os.getenv("AION_KILL_SWITCH", "").strip().lower()
+    kill_switch = args.kill_switch or (kill_switch_env in ("true", "1", "yes"))
+
+    # 5. GitHub Context
     repo = args.repo or os.getenv("GITHUB_REPOSITORY") or ""
     pr_number = args.pr_number
     commit_sha = os.getenv("GITHUB_SHA") or ""
@@ -150,6 +159,8 @@ def parse_action_inputs() -> Dict[str, Any]:
         "min_confidence": min_confidence,
         "enable_telemetry": enable_telemetry,
         "aion_state_dir": aion_state_dir,
+        "mode": mode,
+        "kill_switch": kill_switch,
     }
 
 
@@ -182,6 +193,11 @@ def run_action(
         )
         return 0
 
+    # PILOT-03: Global Kill Switch
+    if cfg.get("kill_switch", False) or os.getenv("AION_KILL_SWITCH", "").lower() in ("true", "1", "yes"):
+        logger.warning("Aion review aborted: global kill switch AION_KILL_SWITCH is active.")
+        return 0
+
     gh_client = client or GitHubClient(token=token)
 
     # Initialize Flywheel components (FLY-01 RepoConventionMemory & FLY-02 CategoryBandit)
@@ -191,6 +207,12 @@ def run_action(
 
     conv_memory = memory or RepoConventionMemory.load_or_create(conventions_path)
     cat_bandit = bandit or CategoryBandit.load_or_create(bandit_path)
+
+    # PILOT-03: Repository-level Mute check
+    if conv_memory.is_muted():
+        logger.info("Aion review skipped: repository %s is muted (%s).", repo, conv_memory.state.muted_reason)
+        return 0
+
     bandit_thresholds = cat_bandit.get_all_thresholds(sample=False)
     convention_prompt = conv_memory.build_prompt_context()
 
@@ -363,6 +385,39 @@ def run_action(
         logger.warning("Failed to persist Aion flywheel state: %s", e)
 
     existing_comments = gh_client.get_existing_review_comments(repo, pr_number)
+
+    # PILOT-03: Process Maintainer Inline Commands (@aion mute / unmute / dismiss reasons)
+    for ec in existing_comments:
+        c_body = str(ec.get("body", "")).lower()
+        if "@aion mute" in c_body or "/aion mute" in c_body:
+            conv_memory.mute(reason="Maintainer comment issued @aion mute")
+            try:
+                os.makedirs(aion_dir, exist_ok=True)
+                conv_memory.save(conventions_path)
+            except Exception:
+                pass
+            logger.info("Aion review aborted: Repository %s was muted by maintainer command.", repo)
+            return 0
+        elif "@aion unmute" in c_body or "/aion unmute" in c_body:
+            conv_memory.unmute()
+            try:
+                os.makedirs(aion_dir, exist_ok=True)
+                conv_memory.save(conventions_path)
+            except Exception:
+                pass
+            logger.info("Repository %s was unmuted by maintainer command.", repo)
+
+        # One-click dismiss reasons
+        for reason_tag in ("wrong", "nitpick", "already_known", "out_of_scope"):
+            if f"`{reason_tag}`" in c_body or f" {reason_tag}" in c_body or c_body == reason_tag:
+                cat_bandit.update("bug" if reason_tag == "wrong" else "style", reward=-1.0)
+                conv_memory.record_dismissal(
+                    category="bug" if reason_tag == "wrong" else "style",
+                    rule_id=None,
+                    pattern=reason_tag,
+                    reason=f"One-click dismiss: {reason_tag}",
+                )
+
     existing_line_paths: Set[tuple[str, int]] = {
         (str(ec.get("path")), int(ec.get("line")))
         for ec in existing_comments
@@ -401,14 +456,41 @@ def run_action(
         duration_sec=duration_sec,
     )
 
-    # 7. Post Pull Request Review
-    resp = gh_client.post_review(
-        repo=repo,
-        pr_number=pr_number,
-        commit_sha=commit_sha,
-        body=summary_body,
-        comments=formatted_inline,
-    )
+    # PILOT-01: Check review mode (visible vs shadow)
+    is_shadow = cfg.get("mode", "visible").strip().lower() == "shadow"
+
+    if is_shadow:
+        # Shadow mode: Log what would have been posted without posting to PR
+        logger.info(
+            "Aion SHADOW MODE active: %d comments verified (logged silently, no PR comments posted).",
+            len(fresh_candidates),
+        )
+        shadow_log_path = os.path.join(aion_dir, "shadow_reviews.jsonl")
+        try:
+            os.makedirs(aion_dir, exist_ok=True)
+            with open(shadow_log_path, "a", encoding="utf-8") as f:
+                f.write(
+                    json.dumps({
+                        "repo": repo,
+                        "pr_number": pr_number,
+                        "timestamp": time.time(),
+                        "comments_count": len(fresh_candidates),
+                        "comments": [c.to_dict() for c in fresh_candidates],
+                        "summary": summary_body,
+                    }) + "\n"
+                )
+        except Exception as e:
+            logger.warning("Failed to append to shadow reviews log: %s", e)
+        resp = {"status": "shadow_logged", "comments_count": len(fresh_candidates)}
+    else:
+        # 7. Post Pull Request Review
+        resp = gh_client.post_review(
+            repo=repo,
+            pr_number=pr_number,
+            commit_sha=commit_sha,
+            body=summary_body,
+            comments=formatted_inline,
+        )
 
     # 8. Record Anonymized Telemetry
     if cfg.get("enable_telemetry", True):

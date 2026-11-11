@@ -34,6 +34,10 @@ inputs:
     description: 'Enable anonymized review and telemetry logging'
     required: false
     default: 'true'
+  mode:
+    description: 'Review mode: visible (posts inline comments to PR) or shadow (silent analysis, logs only, no PR comments)'
+    required: false
+    default: 'visible'
 
 runs:
   using: 'composite'
@@ -59,5 +63,6 @@ runs:
         INPUT_MAX_COMMENTS: ${{ inputs.max-comments }}
         INPUT_MIN_CONFIDENCE: ${{ inputs.min-confidence }}
         INPUT_ENABLE_TELEMETRY: ${{ inputs.enable-telemetry }}
+        INPUT_MODE: ${{ inputs.mode }}
       run: python -m action.main
 
