@@ -237,3 +237,36 @@ class GitHubClient:
         except Exception:
             return {"status": status, "success": True}
 
+    def post_issue_comment(
+        self,
+        repo: str,
+        pr_number: int,
+        body: str,
+    ) -> Dict[str, Any]:
+        """
+        Post a comment directly to the PR conversation thread using the issue comments API.
+
+        Endpoint: POST /repos/{repo}/issues/{pr_number}/comments
+        Useful as a direct timeline comment or fallback when post_review is restricted.
+        """
+        url = f"{self.base_url}/repos/{repo}/issues/{pr_number}/comments"
+        headers = self._headers(accept="application/vnd.github.v3+json")
+        headers["Content-Type"] = "application/json"
+        data = json.dumps({"body": body}).encode("utf-8")
+        status, resp_body, _ = self._request(url, method="POST", headers=headers, data=data)
+
+        if status not in (200, 201):
+            logger.warning(
+                "Failed to post issue comment on %s PR #%d (status %d): %s",
+                repo,
+                pr_number,
+                status,
+                resp_body[:200],
+            )
+            return {"status": status, "error": resp_body.decode("utf-8", errors="replace")}
+
+        try:
+            return json.loads(resp_body.decode("utf-8"))
+        except Exception:
+            return {"status": status, "success": True}
+

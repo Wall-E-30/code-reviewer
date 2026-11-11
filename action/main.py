@@ -515,6 +515,37 @@ def run_action(
             event=review_event,
         )
 
+        # Fallback to direct PR conversation comment if post_review failed
+        if resp.get("status") not in (200, 201):
+            logger.warning(
+                "post_review failed with status %s (%s). Attempting direct issue comment fallback...",
+                resp.get("status"),
+                resp.get("error", "")[:100],
+            )
+            fallback_resp = gh_client.post_issue_comment(
+                repo=repo,
+                pr_number=pr_number,
+                body=summary_body,
+            )
+            if fallback_resp.get("status") in (200, 201):
+                logger.info("Successfully posted review summary as a direct PR conversation comment.")
+                resp = fallback_resp
+            elif resp.get("status") == 403 or fallback_resp.get("status") == 403:
+                print(
+                    "::error::GitHub Actions does not have permission to comment on this Pull Request (403 Forbidden). "
+                    "To fix this, go to repo Settings -> Actions -> General -> Workflow permissions and select 'Read and write permissions', "
+                    "or ensure your workflow YAML has 'permissions: pull-requests: write'."
+                )
+
+    # Always write review summary to GitHub Step Summary
+    step_summary_path = os.getenv("GITHUB_STEP_SUMMARY")
+    if step_summary_path and os.path.exists(os.path.dirname(step_summary_path)):
+        try:
+            with open(step_summary_path, "a", encoding="utf-8") as f:
+                f.write(summary_body + "\n\n")
+        except Exception as e:
+            logger.debug("Failed to write summary to GITHUB_STEP_SUMMARY: %s", e)
+
     # 8. Record Anonymized Telemetry
     if cfg.get("enable_telemetry", True):
         t_logger = TelemetryLogger(enabled=True)
