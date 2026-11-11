@@ -28,6 +28,8 @@ class RepoReviewRecord:
     comments_accepted: int
     comments_rejected: int
     category: str = "bug"
+    is_real: bool = True
+    provenance: str = "live"
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
@@ -44,6 +46,9 @@ class RepoReviewRecord:
         else:
             ts = datetime.now(timezone.utc)
 
+        provenance = str(data.get("provenance", "live"))
+        is_real = bool(data.get("is_real", provenance != "simulated"))
+
         return cls(
             repo_id=str(data.get("repo_id", "")),
             timestamp=ts,
@@ -51,6 +56,8 @@ class RepoReviewRecord:
             comments_accepted=int(data.get("comments_accepted", 0)),
             comments_rejected=int(data.get("comments_rejected", 0)),
             category=str(data.get("category", "bug")),
+            is_real=is_real,
+            provenance=provenance,
         )
 
 
@@ -126,6 +133,12 @@ class MultiRepoTelemetryAggregator:
             total_accepted / evaluated_comments if evaluated_comments > 0 else 1.0
         )
 
+        simulated_count = sum(
+            1 for r in in_window if (not r.is_real) or (r.provenance == "simulated")
+        )
+        real_count = len(in_window) - simulated_count
+        has_simulated = simulated_count > 0
+
         # Per category metrics
         category_stats: Dict[str, Dict[str, int]] = {}
         for r in in_window:
@@ -141,6 +154,12 @@ class MultiRepoTelemetryAggregator:
             tot = stats["accepted"] + stats["rejected"]
             cat_precisions[cat] = round(stats["accepted"] / tot if tot > 0 else 1.0, 4)
 
+        gate_status = (
+            "PENDING_PILOT_DATA"
+            if (has_simulated or active_repos < 100)
+            else ("PASS" if live_precision >= 0.70 else "FAIL")
+        )
+
         return {
             "window_days": window_days,
             "active_repos": active_repos,
@@ -149,6 +168,11 @@ class MultiRepoTelemetryAggregator:
             "total_rejected": total_rejected,
             "live_precision": round(live_precision, 4),
             "category_precisions": cat_precisions,
+            "simulated_records_count": simulated_count,
+            "real_records_count": real_count,
+            "has_simulated_telemetry": has_simulated,
+            "status": gate_status,
+            "provenance": "simulated" if has_simulated else "live",
         }
 
     def compute_weekly_progression(
@@ -196,13 +220,22 @@ class MultiRepoTelemetryAggregator:
         metrics = self.compute_rolling_precision(window_days=30, reference_time=reference_time)
         weekly = self.compute_weekly_progression(num_weeks=4, reference_time=reference_time)
 
+        has_simulated = metrics.get("has_simulated_telemetry", False)
+        status_display = (
+            "PENDING_PILOT_DATA ⚠️ (Simulated telemetry present — awaiting live pilot completion)"
+            if has_simulated
+            else ("PASS ✅" if metrics["live_precision"] >= 0.70 else "FAIL ❌")
+        )
+
         lines: List[str] = [
             "# Aion Multi-Repository 30-Day Precision Report (APP-02)",
             "",
             f"**Report Date:** {(reference_time or datetime.now(timezone.utc)).strftime('%Y-%m-%d')}",
             f"**Active Repositories (30-day):** {metrics['active_repos']}",
             f"**Overall Live Precision:** {metrics['live_precision']:.1%}",
-            f"**Precision Target:** >= 70.0% (Status: {'PASS ✅' if metrics['live_precision'] >= 0.70 else 'FAIL ❌'})",
+            f"**Precision Target:** >= 70.0% (Status: {status_display})",
+            f"**Data Provenance:** `{metrics.get('provenance', 'live')}` "
+            f"(Real: {metrics.get('real_records_count', 0)}, Simulated: {metrics.get('simulated_records_count', 0)})",
             "",
             "## 1. 30-Day Performance Summary",
             "",
@@ -212,7 +245,7 @@ class MultiRepoTelemetryAggregator:
             f"| Total Comments Posted | {metrics['total_comments_posted']} | - | - |",
             f"| Accepted Comments | {metrics['total_accepted']} | - | - |",
             f"| Rejected Comments | {metrics['total_rejected']} | - | - |",
-            f"| Live Precision | {metrics['live_precision']:.1%} | >= 70.0% | {'PASS ✅' if metrics['live_precision'] >= 0.70 else 'FAIL ❌'} |",
+            f"| Live Precision | {metrics['live_precision']:.1%} | >= 70.0% | {status_display} |",
             "",
             "## 2. Weekly Improvement Progression",
             "",
@@ -252,14 +285,24 @@ class MultiRepoTelemetryAggregator:
         min_repos: int = 100,
         min_precision: float = 0.70,
         reference_time: Optional[datetime] = None,
+        allow_simulated: bool = False,
     ) -> bool:
         """
         Enforce strict precision gate:
-        - Active repositories in window >= min_repos (default: 100)
-        - Live review precision in window >= min_precision (default: 0.70)
-        Raises AssertionError if either condition fails.
+        - Rejects simulated telemetry (PILOT-04: refuses to report passed on simulated data).
+        - Active repositories in window >= min_repos (default: 100).
+        - Live review precision in window >= min_precision (default: 0.70).
+        Raises ValueError if telemetry contains simulated records.
+        Raises AssertionError if repo scale or precision targets fail.
         """
         metrics = self.compute_rolling_precision(window_days, reference_time)
+
+        if not allow_simulated and metrics.get("has_simulated_telemetry", False):
+            raise ValueError(
+                f"Precision gate rejected: Telemetry contains {metrics.get('simulated_records_count', 0)} "
+                "simulated or unverified records. The gate strictly refuses to report 'passed' on simulated data. "
+                "Current Gate Status: PENDING_PILOT_DATA."
+            )
 
         if metrics["active_repos"] < min_repos:
             raise AssertionError(
