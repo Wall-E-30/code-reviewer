@@ -26,7 +26,13 @@ def test_launch_gate_checker_current_repo_passes():
     checker = LaunchGateChecker(repo_root=REPO_ROOT)
     results = checker.run_all_gates()
 
-    assert results["overall_passed"] is True, f"Failed gates: {[c for c in results['categories']]}"
+    failed_gates = [
+        f"{cat} -> {r['name']}: {r.get('message', '')}"
+        for cat, r_list in results["categories"].items()
+        for r in r_list
+        if not r["passed"]
+    ]
+    assert results["overall_passed"] is True, f"Failed gates: {failed_gates}"
     assert results["failed_gates"] == 0
     assert results["total_gates"] >= 18
     assert results["passed_gates"] == results["total_gates"]

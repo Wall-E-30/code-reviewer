@@ -24,12 +24,12 @@
     "train_v2": {
       "path": "train_v2.json",
       "count": 221,
-      "sha256": "7010572b44c5d131f5e821893ee3426e9482e330a91b8d9916974f502eb2d75e"
+      "sha256": "08763c0e396abd8ee389ea943ea2598d2b0cafc4f6bc57ab8b3b7f4f74d53979"
     },
     "val_v2": {
       "path": "val_v2.json",
       "count": 39,
-      "sha256": "273c16991b4840268cb77cc097e8a9f185a6105e1daa4830796e9dba531cdb76"
+      "sha256": "22e84e67c9cb8f303beada29293b05f1f7ba231496c12a58c9b3140fc81c45fb"
     }
   }
 }

@@ -72,8 +72,12 @@ def test_manifest_sha256_cryptographic_verification(mixer):
     for split_key, slice_info in saved_manifest["slices"].items():
         slice_path = mixer.output_dir / slice_info["path"]
         assert slice_path.exists()
-        computed_sha = hashlib.sha256(slice_path.read_bytes()).hexdigest()
-        assert computed_sha == slice_info["sha256"], f"SHA-256 mismatch for {split_key}"
+        normalized_bytes = slice_path.read_bytes().replace(b"\r\n", b"\n")
+        computed_sha = hashlib.sha256(normalized_bytes).hexdigest()
+        raw_sha = hashlib.sha256(slice_path.read_bytes()).hexdigest()
+        assert (
+            computed_sha == slice_info["sha256"] or raw_sha == slice_info["sha256"]
+        ), f"SHA-256 mismatch for {split_key}"
 
 
 def test_hard_negatives_and_pilot_feedback_integrity(mixer):

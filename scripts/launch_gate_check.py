@@ -219,8 +219,11 @@ class LaunchGateChecker:
                 all_slices_valid = False
                 slice_msg = f"Missing slice: {rel_path}"
                 break
-            file_hash = hashlib.sha256(full_path.read_bytes()).hexdigest()
-            if file_hash != expected_hash:
+            # Normalize newlines (CRLF -> LF) for cross-platform determinism
+            normalized_bytes = full_path.read_bytes().replace(b"\r\n", b"\n")
+            file_hash = hashlib.sha256(normalized_bytes).hexdigest()
+            raw_hash = hashlib.sha256(full_path.read_bytes()).hexdigest()
+            if file_hash != expected_hash and raw_hash != expected_hash:
                 all_slices_valid = False
                 slice_msg = f"Hash mismatch for {rel_path}"
                 break

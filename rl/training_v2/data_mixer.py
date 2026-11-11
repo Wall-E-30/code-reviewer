@@ -366,19 +366,19 @@ class DataMixer:
         val_path = self.output_dir / "val_v2.json"
         manifest_path = self.output_dir / "manifest.json"
 
-        # Serialize train
+        # Serialize train (enforce Unix LF newlines across all platforms)
         train_dicts = [item.model_dump() for item in train_items]
-        with open(train_path, "w", encoding="utf-8") as f:
+        with open(train_path, "w", encoding="utf-8", newline="\n") as f:
             json.dump(train_dicts, f, indent=2)
 
-        # Serialize val
+        # Serialize val (enforce Unix LF newlines across all platforms)
         val_dicts = [item.model_dump() for item in val_items]
-        with open(val_path, "w", encoding="utf-8") as f:
+        with open(val_path, "w", encoding="utf-8", newline="\n") as f:
             json.dump(val_dicts, f, indent=2)
 
-        # Compute SHA-256 digests
-        train_sha = hashlib.sha256(train_path.read_bytes()).hexdigest()
-        val_sha = hashlib.sha256(val_path.read_bytes()).hexdigest()
+        # Compute SHA-256 digests (normalizing CRLF -> LF for cross-platform determinism)
+        train_sha = hashlib.sha256(train_path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+        val_sha = hashlib.sha256(val_path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
         stream_counts = {
             StreamType.REAL_MINED.value: len(clean_real_mined),
