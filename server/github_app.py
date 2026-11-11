@@ -17,6 +17,7 @@ import hmac
 import json
 import logging
 import os
+from pathlib import Path
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -141,11 +142,25 @@ class GitHubAppHandler:
         if action not in ("opened", "synchronize", "reopened"):
             return {"status": "ignored", "reason": f"Unhandled PR action: {action}"}
 
+        # PILOT-03: Global Kill Switch Check
+        if os.getenv("AION_KILL_SWITCH", "").lower() in ("true", "1", "yes") or payload.get("kill_switch"):
+            logger.warning("GitHub App review aborted: AION_KILL_SWITCH is active.")
+            return {"status": "killed", "reason": "AION_KILL_SWITCH is active"}
+
         pr_data = payload.get("pull_request", {})
         repo_data = payload.get("repository", {})
         repo_full_name = repo_data.get("full_name", "unknown/repo")
         pr_number = pr_data.get("number", 0)
         head_sha = pr_data.get("head", {}).get("sha", "")
+
+        # PILOT-03: Check if repository is currently muted
+        if self.convention_memory.is_muted():
+            logger.info("GitHub App review skipped: Repository %s is muted.", repo_full_name)
+            return {
+                "status": "muted",
+                "repository": repo_full_name,
+                "reason": self.convention_memory.state.muted_reason or "Repository is muted",
+            }
 
         # Extract diff if present in payload or simulate standard PR review
         diff_text = payload.get("diff", "")
@@ -179,8 +194,46 @@ class GitHubAppHandler:
                     for cat in ["bug", "security", "performance", "style"]
                 },
             )
+            # PILOT-03: Strict comment cap (<= 5 per PR)
+            filtered_comments = filtered_comments[:5]
         else:
             filtered_comments = []
+
+        # PILOT-01: Shadow Mode execution
+        mode = payload.get("mode") or os.getenv("INPUT_MODE") or os.getenv("AION_MODE", "visible")
+        if mode == "shadow":
+            shadow_log_path = Path(".aion/shadow_reviews.jsonl")
+            shadow_log_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(shadow_log_path, "a", encoding="utf-8") as f:
+                f.write(
+                    json.dumps(
+                        {
+                            "timestamp": time.time(),
+                            "repository": repo_full_name,
+                            "pr_number": pr_number,
+                            "head_sha": head_sha,
+                            "mode": "shadow",
+                            "comments_generated": len(candidates),
+                            "candidate_comments": [c.to_dict() for c in filtered_comments],
+                        }
+                    )
+                    + "\n"
+                )
+            logger.info(
+                "Shadow review executed for %s PR #%d (logged %d candidate comments)",
+                repo_full_name,
+                pr_number,
+                len(filtered_comments),
+            )
+            return {
+                "status": "shadow_logged",
+                "repository": repo_full_name,
+                "pr_number": pr_number,
+                "head_sha": head_sha,
+                "comments_generated": len(candidates),
+                "comments_logged": len(filtered_comments),
+                "comments": [c.to_dict() for c in filtered_comments],
+            }
 
         logger.info(
             "Reviewed PR #%d for %s (posted %d comments)",
@@ -302,6 +355,68 @@ class GitHubAppHandler:
             "thread_node_id": thread_data.get("node_id"),
         }
 
+    def _process_comment_commands(
+        self, body: str, sender: str, repo_name: str
+    ) -> Dict[str, Any]:
+        """Process inline bot commands (@aion mute / unmute) and feedback reasons."""
+        body_lower = body.lower().strip()
+
+        # PILOT-03: Repo-level mute/unmute commands
+        if "@aion mute" in body_lower or "/aion mute" in body_lower:
+            self.convention_memory.mute(reason=f"Muted via comment by {sender}")
+            logger.info("Repository %s muted via comment by %s", repo_name, sender)
+            return {"status": "muted", "repository": repo_name, "by": sender}
+
+        if "@aion unmute" in body_lower or "/aion unmute" in body_lower:
+            self.convention_memory.unmute()
+            logger.info("Repository %s unmuted via comment by %s", repo_name, sender)
+            return {"status": "unmuted", "repository": repo_name, "by": sender}
+
+        # PILOT-03: Feedback footer one-click dismiss reasons
+        for reason in ["wrong", "nitpick", "already_known", "out_of_scope"]:
+            if (
+                f"@aion {reason}" in body_lower
+                or f"reason={reason}" in body_lower
+                or f"dismiss:{reason}" in body_lower
+            ):
+                cat = "style" if reason == "nitpick" else "bug"
+                self.bandit.update(cat, reward=-1.0)
+                self.convention_memory.record_dismissal(
+                    category=cat,
+                    rule_id=None,
+                    pattern=body[:80],
+                    reason=f"Dismissed as {reason} by {sender}",
+                )
+                logger.info(
+                    "Recorded feedback dismissal '%s' for repository %s",
+                    reason,
+                    repo_name,
+                )
+                return {"status": "feedback_recorded", "reason": reason, "by": sender}
+
+        return {"status": "comment_processed", "body_preview": body[:50]}
+
+    def handle_issue_comment_event(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle issue_comment events (for PR comments containing @aion mute / commands).
+        """
+        action = payload.get("action", "")
+        if action not in ("created", "edited"):
+            return {
+                "status": "ignored",
+                "reason": f"Unhandled issue_comment action: {action}",
+            }
+
+        comment_data = payload.get("comment", {})
+        body = comment_data.get("body", "")
+        sender = payload.get("sender", {}).get("login", "unknown")
+        repo_data = payload.get("repository", {})
+        repo_full_name = repo_data.get("full_name", "unknown/repo")
+
+        return self._process_comment_commands(
+            body=body, sender=sender, repo_name=repo_full_name
+        )
+
     def handle_review_comment_event(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle pull_request_review_comment events (dismissals, replies, resolutions).
@@ -309,6 +424,14 @@ class GitHubAppHandler:
         action = payload.get("action", "")
         comment_data = payload.get("comment", {})
         body = comment_data.get("body", "")
+        sender = payload.get("sender", {}).get("login", "unknown")
+        repo_data = payload.get("repository", {})
+        repo_full_name = repo_data.get("full_name", "unknown/repo")
+
+        if action in ("created", "edited"):
+            return self._process_comment_commands(
+                body=body, sender=sender, repo_name=repo_full_name
+            )
 
         if action == "deleted":
             # Comment was deleted/dismissed
@@ -327,6 +450,8 @@ class GitHubAppHandler:
         """Route event payload to appropriate handler based on GitHub event header."""
         if event_name == "pull_request":
             return self.handle_pull_request_event(payload)
+        elif event_name == "issue_comment":
+            return self.handle_issue_comment_event(payload)
         elif event_name in ("reaction", "pull_request_review_comment_reaction"):
             return self.handle_reaction_event(payload)
         elif event_name in ("pull_request_review_comment", "pull_request_review"):
@@ -367,3 +492,7 @@ class GitHubAppHandler:
         # Dispatch event
         result = self.dispatch_event(event_name, payload)
         return 200, result
+
+
+# Alias for backward and pilot compatibility
+AionGitHubAppHandler = GitHubAppHandler

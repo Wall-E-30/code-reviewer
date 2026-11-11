@@ -73,7 +73,7 @@ class CandidateComment(BaseModel):
     ) -> None:
         if file_path or "file_path" in data:
             data.setdefault("file_path", file_path)
-        if line_number or "line_number" in data:
+        if line_number is not None or "line_number" in data:
             data.setdefault("line_number", line_number)
         if category or "category" in data:
             data.setdefault("category", category)

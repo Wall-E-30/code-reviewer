@@ -35,15 +35,25 @@ CATEGORY_METADATA = {
     },
 }
 
+DEFAULT_FEEDBACK_FOOTER = (
+    "<sub>\n"
+    "💬 **Not useful?** Reply with: `wrong` • `nitpick` • `already_known` • `out_of_scope` | "
+    "[Feedback Link](https://github.com/Wall-E-30/code-reviewer/issues/new?template=feedback.md) | "
+    "Mute: `@aion mute`\n"
+    "</sub>"
+)
+
 DEFAULT_FOOTER = (
     "*Reported by [Aion Code Reviewer](https://github.com/Wall-E-30/code-reviewer) "
-    "• [Data & Privacy Policy](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/DATA_POLICY.md)*"
+    "• [Data & Privacy Policy](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/DATA_POLICY.md)*\n\n"
+    + DEFAULT_FEEDBACK_FOOTER
 )
 
 PRIVACY_STATEMENT = (
     "*🔒 Zero-Retention Guarantee: Source code is examined strictly in-memory "
     "within your GitHub Action runner. No code is stored, logged, or retained. "
-    "Read our [Data & Privacy Policy](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/DATA_POLICY.md).*"
+    "Read our [Data & Privacy Policy](file:///c:/Users/Sharanya%20Nagar/Desktop/Projects/code-reviewer/DATA_POLICY.md).*\n\n"
+    + DEFAULT_FEEDBACK_FOOTER
 )
 
 

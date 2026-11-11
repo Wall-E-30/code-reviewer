@@ -53,6 +53,9 @@ class RepoMemoryState(BaseModel):
     custom_rules: List[CustomRule] = Field(default_factory=list)
     suppressed_categories: List[str] = Field(default_factory=list)
     dismissal_threshold: int = 2
+    muted: bool = False
+    muted_reason: str = ""
+    muted_at: Optional[float] = None
 
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
@@ -67,10 +70,19 @@ class RepoConventionMemory:
         self,
         suppression_threshold: int = 2,
         auto_save_path: Optional[str] = None,
+        storage_path: Optional[str] = None,
+        repo_id: Optional[str] = None,
     ) -> None:
+        self.repo_id = repo_id
         self.threshold = max(1, suppression_threshold)
-        self.auto_save_path = auto_save_path
+        save_p = auto_save_path or storage_path
+        self.auto_save_path = str(save_p) if save_p else None
         self.state = RepoMemoryState(dismissal_threshold=self.threshold)
+        if self.auto_save_path and os.path.exists(self.auto_save_path):
+            try:
+                self.load(self.auto_save_path)
+            except Exception:
+                pass
 
     def record_dismissal(
         self,
@@ -153,6 +165,28 @@ class RepoConventionMemory:
             self.save(self.auto_save_path)
 
         return new_rule
+
+    def mute(self, reason: str = "Maintainer mute command") -> None:
+        """Mutes all review actions for this repository."""
+        self.state.muted = True
+        self.state.muted_reason = reason
+        self.state.muted_at = time.time()
+        logger.info("Repository convention memory marked muted: %s", reason)
+        if self.auto_save_path:
+            self.save(self.auto_save_path)
+
+    def unmute(self) -> None:
+        """Unmutes review actions for this repository."""
+        self.state.muted = False
+        self.state.muted_reason = ""
+        self.state.muted_at = None
+        logger.info("Repository convention memory unmuted.")
+        if self.auto_save_path:
+            self.save(self.auto_save_path)
+
+    def is_muted(self) -> bool:
+        """Check if repository reviews are muted."""
+        return bool(self.state.muted)
 
     def is_suppressed(
         self,
