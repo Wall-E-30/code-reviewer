@@ -339,3 +339,80 @@ def test_install_pilot_workflow(tmp_path):
     assert "provider: openrouter" in content
     assert "max_comments: 4" in content
     assert "OPENROUTER_API_KEY" in content
+
+
+# ---------------------------------------------------------------------------
+# Test 6: Fail on Findings Gate (Merge Block)
+# ---------------------------------------------------------------------------
+def test_action_fail_on_findings_blocks_merge_when_defects_present(tmp_path):
+    diff_content = """diff --git a/app.py b/app.py
+--- a/app.py
++++ b/app.py
+@@ -1,3 +1,4 @@
++import os
++eval(input())
+"""
+    mock_client = MagicMock()
+    mock_client.get_existing_review_comments.return_value = []
+    mock_client.post_review.return_value = {"status": "ok"}
+    aion_dir = tmp_path / ".aion"
+
+    config = {
+        "token": "fake-token",
+        "repo": "test/repo",
+        "pr_number": 42,
+        "mode": "visible",
+        "provider": "mock",
+        "aion_state_dir": str(aion_dir),
+        "enable_telemetry": False,
+        "fail_on_findings": True,
+    }
+
+    exit_code = run_action(
+        config=config,
+        client=mock_client,
+        custom_diff=diff_content,
+    )
+
+    assert exit_code == 1
+    mock_client.post_review.assert_called_once()
+    assert mock_client.post_review.call_args[1]["event"] == "REQUEST_CHANGES"
+
+
+def test_action_fail_on_findings_passes_when_clean_diff(tmp_path):
+    from action.providers import MockReviewProvider
+    clean_diff = """diff --git a/clean.py b/clean.py
+--- a/clean.py
++++ b/clean.py
+@@ -1,2 +1,3 @@
++# clean documentation comment
+ def add(a, b):
++    return a + b
+"""
+    mock_client = MagicMock()
+    mock_client.get_existing_review_comments.return_value = []
+    mock_client.post_review.return_value = {"status": "ok"}
+    aion_dir = tmp_path / ".aion"
+
+    config = {
+        "token": "fake-token",
+        "repo": "test/repo",
+        "pr_number": 42,
+        "mode": "visible",
+        "provider": "mock",
+        "aion_state_dir": str(aion_dir),
+        "enable_telemetry": False,
+        "fail_on_findings": True,
+    }
+
+    with patch("action.main.get_provider", return_value=MockReviewProvider(canned_comments=[])):
+        exit_code = run_action(
+            config=config,
+            client=mock_client,
+            custom_diff=clean_diff,
+        )
+
+    assert exit_code == 0
+    mock_client.post_review.assert_called_once()
+    assert mock_client.post_review.call_args[1]["event"] == "COMMENT"
+

@@ -58,6 +58,18 @@ inputs:
     description: 'Review mode: visible (posts inline comments to PR) or shadow (silent analysis, logs only, no PR comments)'
     required: false
     default: 'visible'
+  fail-on-findings:
+    description: 'Exit with code 1 if actionable defects are detected (stops PR merge when required status checks are active)'
+    required: false
+    default: 'false'
+  fail_on_findings:
+    description: 'Alias for fail-on-findings'
+    required: false
+    default: ''
+  block-on-findings:
+    description: 'Alias for fail-on-findings'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -85,5 +97,6 @@ runs:
         INPUT_MIN_CONFIDENCE: ${{ inputs.min-confidence || inputs.min_confidence || '0.7' }}
         INPUT_ENABLE_TELEMETRY: ${{ inputs.enable-telemetry || inputs.enable_telemetry || 'true' }}
         INPUT_MODE: ${{ inputs.mode }}
+        INPUT_FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings || inputs.fail_on_findings || inputs.block-on-findings || 'false' }}
       run: python -m action.main
 

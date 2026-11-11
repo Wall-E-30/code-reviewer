@@ -198,19 +198,21 @@ class GitHubClient:
         data = json.dumps(payload).encode("utf-8")
         status, resp_body, _ = self._request(url, method="POST", headers=headers, data=data)
 
-        # Handle inline comment placement errors (e.g. 422 if line is outside diff)
-        if status == 422 and comments:
+        # Handle 422 errors (e.g. inline comment placement error or self-review REQUEST_CHANGES/APPROVE)
+        if status == 422:
             logger.warning(
-                "GitHub API rejected inline comments (422). Retrying with summary body only..."
+                "GitHub API returned 422. Retrying review as COMMENT with summary fallback..."
             )
             # Append findings to review body as fallback
-            fallback_body = body + "\n\n### 📝 Inline Findings (Summary Fallback)\n"
-            for c in comments:
-                fallback_body += f"\n- **{c.get('path')}:{c.get('line')}**\n{c.get('body')}\n"
+            fallback_body = body
+            if comments:
+                fallback_body += "\n\n### 📝 Inline Findings (Summary Fallback)\n"
+                for c in comments:
+                    fallback_body += f"\n- **{c.get('path')}:{c.get('line')}**\n{c.get('body')}\n"
 
             payload_fallback = {
                 "body": fallback_body,
-                "event": event,
+                "event": "COMMENT",
             }
             if commit_sha:
                 payload_fallback["commit_id"] = commit_sha

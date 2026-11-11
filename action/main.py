@@ -57,6 +57,7 @@ def parse_action_inputs() -> Dict[str, Any]:
     parser.add_argument("--aion-state-dir", dest="aion_state_dir", default=None, help="Aion state directory")
     parser.add_argument("--mode", dest="mode", default=None, help="Review mode: visible (posts comments) or shadow (silent log)")
     parser.add_argument("--kill-switch", dest="kill_switch", action="store_true", help="Force emergency abort")
+    parser.add_argument("--fail-on-findings", dest="fail_on_findings", action="store_true", help="Exit with code 1 if actionable defects are detected")
 
     args, _ = parser.parse_known_args()
 
@@ -130,6 +131,17 @@ def parse_action_inputs() -> Dict[str, Any]:
     kill_switch_env = os.getenv("AION_KILL_SWITCH", "").strip().lower()
     kill_switch = args.kill_switch or (kill_switch_env in ("true", "1", "yes"))
 
+    fail_on_findings_env = (
+        os.getenv("INPUT_FAIL_ON_FINDINGS")
+        or os.getenv("INPUT_FAIL-ON-FINDINGS")
+        or os.getenv("AION_FAIL_ON_FINDINGS")
+        or ""
+    )
+    fail_on_findings = (
+        args.fail_on_findings
+        or fail_on_findings_env.strip().lower() in ("true", "1", "yes")
+    )
+
     # 5. GitHub Context
     repo = args.repo or os.getenv("GITHUB_REPOSITORY") or ""
     pr_number = args.pr_number
@@ -167,6 +179,7 @@ def parse_action_inputs() -> Dict[str, Any]:
         "aion_state_dir": aion_state_dir,
         "mode": mode,
         "kill_switch": kill_switch,
+        "fail_on_findings": fail_on_findings,
     }
 
 
@@ -462,6 +475,8 @@ def run_action(
         duration_sec=duration_sec,
     )
 
+    fail_on_findings = cfg.get("fail_on_findings", False)
+
     # PILOT-01: Check review mode (visible vs shadow)
     is_shadow = cfg.get("mode", "visible").strip().lower() == "shadow"
 
@@ -490,12 +505,14 @@ def run_action(
         resp = {"status": "shadow_logged", "comments_count": len(fresh_candidates)}
     else:
         # 7. Post Pull Request Review
+        review_event = "REQUEST_CHANGES" if (fail_on_findings and len(final_candidates) > 0) else "COMMENT"
         resp = gh_client.post_review(
             repo=repo,
             pr_number=pr_number,
             commit_sha=commit_sha,
             body=summary_body,
             comments=formatted_inline,
+            event=review_event,
         )
 
     # 8. Record Anonymized Telemetry
@@ -516,6 +533,15 @@ def run_action(
         t_logger.log_event(event)
 
     logger.info("Aion Review posted successfully: %s", resp.get("status", "ok"))
+
+    # If fail_on_findings is enabled and actionable defects were detected, exit with code 1 to block PR merge
+    if fail_on_findings and len(final_candidates) > 0:
+        logger.warning(
+            "Aion Code Reviewer detected %d actionable finding(s) with fail-on-findings enabled. Exiting with code 1 to block PR merge.",
+            len(final_candidates),
+        )
+        return 1
+
     return 0
 
 
