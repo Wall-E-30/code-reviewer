@@ -87,6 +87,10 @@ def parse_action_inputs() -> Dict[str, Any]:
         or os.getenv("INPUT_API_KEY")
         or os.getenv("INPUT_API-KEY")
         or os.getenv("AION_API_KEY")
+        or os.getenv("OPENROUTER_API_KEY")
+        or os.getenv("GROQ_API_KEY")
+        or os.getenv("OPENAI_API_KEY")
+        or os.getenv("LLM_API_KEY")
         or ""
     )
 
@@ -138,6 +142,8 @@ def parse_action_inputs() -> Dict[str, Any]:
             with open(event_path, "r", encoding="utf-8") as f:
                 event_data = json.load(f)
             pr_data = event_data.get("pull_request")
+            if not pr_data and "issue" in event_data and event_data["issue"].get("pull_request"):
+                pr_data = event_data["issue"]
             if pr_data:
                 if pr_number is None:
                     pr_number = pr_data.get("number")

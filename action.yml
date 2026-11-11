@@ -8,10 +8,18 @@ branding:
 inputs:
   github-token:
     description: 'GitHub token for reading PR diffs and posting review comments'
-    required: true
+    required: false
     default: ${{ github.token }}
+  github_token:
+    description: 'Alias for github-token'
+    required: false
+    default: ''
   api-key:
     description: 'BYOK API key for model inference (Groq, OpenRouter, OpenAI, Hugging Face)'
+    required: false
+    default: ''
+  api_key:
+    description: 'Alias for api-key'
     required: false
     default: ''
   provider:
@@ -26,14 +34,26 @@ inputs:
     description: 'Maximum inline comments per review (hard ceiling)'
     required: false
     default: '5'
+  max_comments:
+    description: 'Alias for max-comments'
+    required: false
+    default: ''
   min-confidence:
     description: 'Confidence threshold (0.0 to 1.0) for posting comments'
     required: false
     default: '0.7'
+  min_confidence:
+    description: 'Alias for min-confidence'
+    required: false
+    default: ''
   enable-telemetry:
     description: 'Enable anonymized review and telemetry logging'
     required: false
     default: 'true'
+  enable_telemetry:
+    description: 'Alias for enable-telemetry'
+    required: false
+    default: ''
   mode:
     description: 'Review mode: visible (posts inline comments to PR) or shadow (silent analysis, logs only, no PR comments)'
     required: false
@@ -51,18 +71,19 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -e .
+        python -m pip install "pydantic>=2.0" "httpx>=0.25.0" "ruff"
 
     - name: Run Aion Code Reviewer
       shell: bash
       env:
-        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
-        INPUT_API_KEY: ${{ inputs.api-key }}
+        PYTHONPATH: ${{ github.action_path }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token || inputs.github_token || github.token }}
+        INPUT_API_KEY: ${{ inputs.api-key || inputs.api_key || '' }}
         INPUT_PROVIDER: ${{ inputs.provider }}
         INPUT_MODEL: ${{ inputs.model }}
-        INPUT_MAX_COMMENTS: ${{ inputs.max-comments }}
-        INPUT_MIN_CONFIDENCE: ${{ inputs.min-confidence }}
-        INPUT_ENABLE_TELEMETRY: ${{ inputs.enable-telemetry }}
+        INPUT_MAX_COMMENTS: ${{ inputs.max-comments || inputs.max_comments || '5' }}
+        INPUT_MIN_CONFIDENCE: ${{ inputs.min-confidence || inputs.min_confidence || '0.7' }}
+        INPUT_ENABLE_TELEMETRY: ${{ inputs.enable-telemetry || inputs.enable_telemetry || 'true' }}
         INPUT_MODE: ${{ inputs.mode }}
       run: python -m action.main
 

@@ -387,7 +387,9 @@ class OpenRouterProvider(OpenAICompatibleProvider):
     ) -> None:
         key = api_key or os.getenv("OPENROUTER_API_KEY", "")
         url = base_url or "https://openrouter.ai/api/v1"
-        mdl = model or "qwen/qwen-2.5-coder-32b-instruct"
+        mdl = model
+        if not mdl or mdl in ("qwen-2.5-coder-32b", "qwen2.5-coder-32b"):
+            mdl = "qwen/qwen-2.5-coder-32b-instruct"
         headers = {
             "HTTP-Referer": "https://github.com/Wall-E-30/code-reviewer",
             "X-Title": "Aion Code Reviewer",
