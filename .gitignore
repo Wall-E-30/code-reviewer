@@ -14,3 +14,4 @@ models/autoregressive_rl_model/
 uv.lock
 
 .aion/
+data/*_test/
