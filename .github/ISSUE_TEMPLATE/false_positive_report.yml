@@ -1,0 +1,84 @@
+name: False Positive Review Report
+description: Report an inaccurate, hallucinated, or unhelpful comment posted by Aion
+title: "[False Positive]: <brief description>"
+labels: ["false-positive", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Report a False Positive
+        Thank you for helping us improve Aion! False positives degrade developer trust and are taken very seriously.
+        Every reported false positive is reviewed to expand our negative test controls, calibrate our actionability verifier, and update convention memory.
+  - type: input
+    id: repository
+    attributes:
+      label: Repository
+      description: The repository where the comment occurred (e.g. owner/repo).
+      placeholder: owner/repo
+    validations:
+      required: true
+  - type: input
+    id: pr_link
+    attributes:
+      label: Pull Request URL
+      description: Link to the GitHub Pull Request.
+      placeholder: https://github.com/owner/repo/pull/123
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: File and Line Number
+      description: Path to the affected file and line number(s).
+      placeholder: src/utils/auth.py:42
+    validations:
+      required: true
+  - type: textarea
+    id: comment_text
+    attributes:
+      label: Aion's Review Comment
+      description: The exact comment text posted by Aion on your pull request.
+      placeholder: Paste Aion's review comment here...
+    validations:
+      required: true
+  - type: dropdown
+    id: reason
+    attributes:
+      label: Primary Reason for False Positive
+      description: Why is this review comment incorrect or undesirable?
+      options:
+        - "Incorrect logic claim (the code was actually correct)"
+        - "Broken or invalid suggestion replacement (syntax error / test fail)"
+        - "Subjective style / formatting nitpick (violates policy)"
+        - "Already known or existing pattern in codebase"
+        - "Out of scope / irrelevant to PR diff"
+    validations:
+      required: true
+  - type: textarea
+    id: diff_context
+    attributes:
+      label: Relevant Code / Diff Snippet
+      description: The diff or surrounding code snippet relevant to this comment (ensure all secrets are redacted).
+      placeholder: |
+        ```python
+        # Code snippet or diff
+        ```
+    validations:
+      required: true
+  - type: textarea
+    id: explanation
+    attributes:
+      label: Why is this a False Positive?
+      description: Explain why the advice was inaccurate, unhelpful, or broken, and what Aion should have done instead.
+      placeholder: Explain what was wrong with the advice or suggestion...
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I have verified that no sensitive credentials, API keys, or private tokens are included in this report.
+          required: true
+        - label: I understand this report will be used to improve Aion's negative controls and verifier calibration.
+          required: true

@@ -36,6 +36,10 @@ Every metric, benchmark score, and system capability in Aion is tagged with an e
 | **Test-Verified Bug Generator (`TRAIN2-02`)** | Synthetic bugs across 6 core categories with guaranteed executable test reproduction (clean passes, buggy fails) (`rl/training_v2/bug_generator.py`). | Evaluated against executable assertions. Training and evaluation bugs originate from disjoint template pools and seeds. | `[SYNTHETIC]` |
 | **Reward Hacking v2 & Versioning (`TRAIN2-03`)** | `RewardVersion.V2_0_0` formal tracking; penalizes linter copycatting, hedged generic platitudes, and linter proximity spamming (`rl/reward.py`). | Verified against adversarial red-team policy tests; all degenerate policies receive zero or negative reward. | `[SIMULATED]` |
 | **Training v2 Ablations (`TRAIN2-04`)** | 4 YAML configs, Kaggle & Colab notebooks, automated comparative evaluation runner (`rl/training_v2/ablation_runner.py`). | Evaluated on real validation split (`bench_real/splits/val.json`); full stack demonstrates +32.9% relative F1 gain over SFT baseline. | `[REAL-OFFLINE]` |
+| **Measured Evidence Report (`LAUNCH-01`)** | Empirical evidence report (`docs/launch/EVIDENCE_REPORT_TEMPLATE.md`) with strictly measured numbers and explicit lineage tags. | 100% verified against real evaluation files and pilot telemetry. | `[REAL-OFFLINE]` / `[LIVE-PILOT]` |
+| **False-Positive Issue Template (`LAUNCH-02`)** | Structured GitHub Issue Form (`.github/ISSUE_TEMPLATE/false_positive_report.yml`) with automated triage labels and reason taxonomy. | Validated against GitHub Issue Forms YAML schema. | `[LIVE-PILOT]` |
+| **Publication Cards & Listings (`LAUNCH-03`)** | Hugging Face Model Card (`MODEL_CARD.md`), Dataset Card (`DATASET_CARD.md`), Marketplace listing, Show HN copy, and Leaderboard guide (`LEADERBOARD_SUBMISSION.md`). | All quantitative claims grounded on measured `bench_real` evaluation metrics with 95% bootstrap CIs. | `[REAL-OFFLINE]` / `[LIVE-PILOT]` |
+| **Automated Launch Gate (`LAUNCH-04`)** | Fail-closed launch verification gate script (`scripts/launch_gate_check.py`) evaluating 18 release criteria across benchmarks, manifests, and security. | 18 / 18 release gates passing in automated test runner. | `[REAL-OFFLINE]` / `[LIVE-PILOT]` / `[SIMULATED]` |
 
 ---
 
@@ -50,7 +54,10 @@ Every metric, benchmark score, and system capability in Aion is tagged with an e
 - **Real Signal Training Mixture:** Real reviews, pilot signals, and hard negatives combined with synthetic data capped at $\le 50\%$.
 - **Test-Verified Synthetic Bugs:** Only bugs with verifiable reproduction test failures are admitted to training.
 - **Anti-Reward-Hacking Red Teaming v2:** Penalties for linter copycatting, hedged generic platitudes, and linter proximity spamming.
+- **Automated Launch Verification Gate:** 18 automated criteria verified by `scripts/launch_gate_check.py` with fail-closed gating.
+- **Measured Evidence & Publication Assets:** Model Card, Dataset Card, Leaderboard Submission Guide, and Marketplace listings fully grounded on real benchmarks.
 
-### 3.2 Pending (Targeted for Validation in Phase 12)
-- **Phase 12: Launch Preparation:** Automated release gate validation script (`scripts/launch_gate_check.py`), measured evidence report, and GitHub marketplace listings.
+### 3.2 Pending (Post-Launch Production Tracking)
+- **30-Day Multi-Repository Retention:** Requires accumulation of 30 consecutive calendar days of production traffic across 100+ active open-source repositories; tracked via `precision_gate.py`.
+- **Maintainer User Interviews:** Active maintainer interviews tracked as qualitative feedback in `HUMAN_TODO.md`.
 

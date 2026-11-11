@@ -75,10 +75,10 @@
 | **TRAIN2-02**| Test-Verified LLM Bug Generator | P0 | Phase 11 | Complete ✅ | Synthetic bugs with test/reproduction failure verification; evaluation bugs from different source than training bugs. |
 | **TRAIN2-03**| Expanded Reward Hacking & Versioning | P0 | Phase 11 | Complete ✅ | Red-team degenerate policies (linter hit proximity, linter copycat, hedged generic comments). Track reward versions. |
 | **TRAIN2-04**| Ablation Configurations & Notebooks | P1 | Phase 11 | Complete ✅ | Prepare configs and Kaggle/Colab notebooks for SFT, verifier filter, GRPO, and full stack ablations. |
-| **LAUNCH-01**| Measured Evidence Report Template | P0 | Phase 12 | Planned 📋 | Evidence report template with measured numbers and source tags only; placeholders for pending data. |
-| **LAUNCH-02**| False-Positive Issue Template | P1 | Phase 12 | Planned 📋 | Structured issue template for reporting false-positive review comments. |
-| **LAUNCH-03**| Publication Assets & Submission Flow | P1 | Phase 12 | Planned 📋 | Model/dataset cards, marketplace copy, and reproducible leaderboard submission flow. |
-| **LAUNCH-04**| Automated Launch Gate Check Script | P0 | Phase 12 | Planned 📋 | `scripts/launch_gate_check.py` reading real results and enforcing strict pass/fail per gate; fails closed on missing data. |
+| **LAUNCH-01**| Measured Evidence Report Template | P0 | Phase 12 | Complete ✅ | Evidence report template with measured numbers and source tags only; placeholders for pending data. |
+| **LAUNCH-02**| False-Positive Issue Template | P1 | Phase 12 | Complete ✅ | Structured issue template for reporting false-positive review comments. |
+| **LAUNCH-03**| Publication Assets & Submission Flow | P1 | Phase 12 | Complete ✅ | Model/dataset cards, marketplace copy, and reproducible leaderboard submission flow. |
+| **LAUNCH-04**| Automated Launch Gate Check Script | P0 | Phase 12 | Complete ✅ | `scripts/launch_gate_check.py` reading real results and enforcing strict pass/fail per gate; fails closed on missing data. |
 
 ---
 

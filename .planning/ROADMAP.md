@@ -176,7 +176,7 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
   - Implement shadow mode in Action and App with onboarding guide and install script. Implement visible mode with feedback link, one-click "not useful" reasons, repo-level mute, 5 comments/PR cap, and kill switch. Build audit workflow sampling posted comments weekly, audited live precision report, and enforce real telemetry in `precision_gate.py`. Prepare maintainer interview guide.
 - [x] **Phase 11: Training v2 on Real Signal**
   - Data mixing with real mined reviews excluding bench_real repos, opt-in pilot feedback, hard negatives, and synthetic data capped at 50%. Test-verified LLM bug generator mimicking real bug classes with failing test verification. Extend reward hacking audit with degenerate policies (linter proximity, copycat, hedged generic comments) and reward versioning. Prepare Kaggle/Colab training configs and ablation log.
-- [ ] **Phase 12: Launch Preparation**
+- [x] **Phase 12: Launch Preparation**
   - Draft evidence report template, rewrite Show HN/Marketplace copy with measured results and source tags, and create false-positive issue template. Prepare listings, model/dataset cards, and leaderboard submission flow. Add `scripts/launch_gate_check.py` reading real results and printing pass/fail per gate.
 
 ---
@@ -234,9 +234,15 @@ Total v1.0: 36 / 36 Requirements Mapped & Verified (100% Coverage)
 - [x] 4. Four structured ablation configs (`sft.yaml`, `verifier_filter.yaml`, `grpo.yaml`, `full_stack.yaml`), Kaggle & Colab notebooks, and automated ablation runner (`rl/training_v2/ablation_runner.py`) generate comparative results in `data/training_v2/ablation_results.json` (`TRAIN2-04`).
 
 ### Phase 12: Launch Preparation
-**Status:** Planned 📋  
+**Status:** Complete ✅  
 **Goal:** Produce measured-only evidence reports, listings, and automated release verification gate (`scripts/launch_gate_check.py`).  
 **Requirements Mapped:** `LAUNCH-01`, `LAUNCH-02`, `LAUNCH-03`, `LAUNCH-04`
+
+**Success Criteria:**
+- [x] 1. Measured evidence report template in `docs/launch/EVIDENCE_REPORT_TEMPLATE.md` contains strictly measured numbers from `bench_real` and training v2 ablations, with explicit source tags (`[REAL-OFFLINE]`, `[LIVE-PILOT]`) and `[PENDING-PILOT-PRODUCTION]` disclaimers (`LAUNCH-01`).
+- [x] 2. False-positive GitHub issue template in `.github/ISSUE_TEMPLATE/false_positive_report.yml` provides a structured, frictionless reporting form with standardized triage labels and dismiss categories (`LAUNCH-02`).
+- [x] 3. Publication assets (Hugging Face `MODEL_CARD.md`, `DATASET_CARD.md`, `LEADERBOARD_SUBMISSION.md`) and rewritten launch copy (`MARKETPLACE.md`, `SHOW_HN.md`) fully grounded on measured numbers with zero ungrounded claims (`LAUNCH-03`).
+- [x] 4. Automated launch verification script (`scripts/launch_gate_check.py`) enforces 18 release gates across real benchmark evaluations, training manifests, reward versioning, sandbox hardening, and publication assets, failing closed on missing data (`LAUNCH-04`).
 
 ---
 
