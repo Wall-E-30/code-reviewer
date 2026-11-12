@@ -301,7 +301,7 @@ def test_pipeline_convention_memory_suppression_and_bandit_learning():
                     }
                 ]
 
-            def post_review(self, repo: str, pr_number: int, commit_sha: str, body: str, comments: list):
+            def post_review(self, repo: str, pr_number: int, commit_sha: str, body: str, comments: list, *args, **kwargs):
                 self.posted_reviews.append({"body": body, "comments": comments})
                 return {"status": "success", "id": 999}
 

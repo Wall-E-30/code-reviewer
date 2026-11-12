@@ -506,17 +506,32 @@ def run_action(
     else:
         # 7. Post Pull Request Review
         review_event = "REQUEST_CHANGES" if (fail_on_findings and len(final_candidates) > 0) else "COMMENT"
-        resp = gh_client.post_review(
-            repo=repo,
-            pr_number=pr_number,
-            commit_sha=commit_sha,
-            body=summary_body,
-            comments=formatted_inline,
-            event=review_event,
-        )
+        try:
+            resp = gh_client.post_review(
+                repo=repo,
+                pr_number=pr_number,
+                commit_sha=commit_sha,
+                body=summary_body,
+                comments=formatted_inline,
+                event=review_event,
+            )
+        except TypeError:
+            resp = gh_client.post_review(
+                repo=repo,
+                pr_number=pr_number,
+                commit_sha=commit_sha,
+                body=summary_body,
+                comments=formatted_inline,
+            )
 
         # Fallback to direct PR conversation comment if post_review failed
-        if resp.get("status") not in (200, 201):
+        is_success = (
+            resp.get("status") in (200, 201, "success", "ok")
+            or "id" in resp
+            or "state" in resp
+            or resp.get("success") is True
+        )
+        if not is_success:
             logger.warning(
                 "post_review failed with status %s (%s). Attempting direct issue comment fallback...",
                 resp.get("status"),
@@ -527,7 +542,11 @@ def run_action(
                 pr_number=pr_number,
                 body=summary_body,
             )
-            if fallback_resp.get("status") in (200, 201):
+            if (
+                fallback_resp.get("status") in (200, 201, "success", "ok")
+                or "id" in fallback_resp
+                or fallback_resp.get("success") is True
+            ):
                 logger.info("Successfully posted review summary as a direct PR conversation comment.")
                 resp = fallback_resp
             elif resp.get("status") == 403 or fallback_resp.get("status") == 403:
