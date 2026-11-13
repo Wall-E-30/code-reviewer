@@ -273,15 +273,15 @@ def run_ruff_linter(file_path: str, code_content: str) -> List[CandidateComment]
             elif rule_code.startswith("F821") or rule_code.startswith("E9"):
                 category = "bug"
                 severity = "critical"
-            elif rule_code.startswith("E") or rule_code.startswith("W"):
+            elif (
+                rule_code.startswith("E")
+                or rule_code.startswith("W")
+                or rule_code in ("F401", "F841")
+            ):
                 category = "style"
                 severity = "minor"
 
-            orig_line = lines[row - 1] if 1 <= row <= len(lines) else ""
             suggestion = None
-            if orig_line:
-                # Add inline noqa or placeholder suggestion if actionable
-                suggestion = f"{orig_line}  # fix: {rule_code.lower()}"
 
             findings.append(
                 CandidateComment(
