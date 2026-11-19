@@ -98,6 +98,7 @@ def format_review_summary(
     files_analyzed: int,
     linter_count: int,
     duration_sec: float,
+    warning_message: Optional[str] = None,
 ) -> str:
     """
     Format an executive Markdown review summary for the top-level pull request review.
@@ -127,7 +128,14 @@ def format_review_summary(
         f"| **Analysis Latency** | `{duration_sec:.2f}s` |"
     )
 
-    parts = [header, "", status_callout, "", overview_table]
+    parts = [header, ""]
+    if warning_message:
+        parts.extend([
+            f"> ⚠️ **Notice:** {warning_message}\n"
+            f"> *AI defect detection was skipped; review completed using static linters only.*",
+            "",
+        ])
+    parts.extend([status_callout, "", overview_table])
 
     if findings_count > 0:
         checklist_rows = [

@@ -97,6 +97,9 @@ class CandidateComment(BaseModel):
 class BaseReviewProvider(ABC):
     """Base interface for all code review inference providers."""
 
+    def __init__(self) -> None:
+        self.last_error: Optional[str] = None
+
     @abstractmethod
     def generate_review(
         self,
@@ -135,6 +138,7 @@ class MockReviewProvider(BaseReviewProvider):
         canned_comments: Optional[List[CandidateComment]] = None,
         default_confidence: float = 0.85,
     ) -> None:
+        super().__init__()
         self.canned_comments = canned_comments
         self.default_confidence = default_confidence
 
@@ -238,6 +242,7 @@ class OpenAICompatibleProvider(BaseReviewProvider):
         timeout: float = 10.0,
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> None:
+        super().__init__()
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key or ""
         self.model = model
@@ -354,7 +359,30 @@ class OpenAICompatibleProvider(BaseReviewProvider):
                     return []
                 message_content = choices[0].get("message", {}).get("content", "")
                 return self._parse_response_json(message_content, file_path)
+        except urllib.error.HTTPError as e:
+            error_body = ""
+            try:
+                error_body = e.read().decode("utf-8")
+            except Exception:
+                pass
+            error_msg = f"HTTP Error {e.code}: {e.reason}"
+            if e.code == 402:
+                error_msg = (
+                    f"HTTP 402 Payment Required: Provider account has insufficient credits. "
+                    "For zero-cost reviews, use OpenRouter with model 'qwen/qwen-2.5-coder-32b-instruct:free' or provider 'groq'."
+                )
+            elif e.code == 401:
+                error_msg = (
+                    f"HTTP 401 Unauthorized: Invalid or missing API key for {self.__class__.__name__}. "
+                    "Please check your API key secret."
+                )
+            self.last_error = error_msg
+            logger.warning("Provider request failed for %s: %s %s", url, error_msg, error_body[:150])
+            print(f"::warning::[Aion Reviewer] {error_msg}", flush=True)
+            return []
         except Exception as e:
+            error_msg = f"Provider request failed: {e}"
+            self.last_error = error_msg
             logger.warning("Provider request failed for %s: %s", url, e)
             return []
 
@@ -389,7 +417,7 @@ class OpenRouterProvider(OpenAICompatibleProvider):
         url = base_url or "https://openrouter.ai/api/v1"
         mdl = model
         if not mdl or mdl in ("qwen-2.5-coder-32b", "qwen2.5-coder-32b"):
-            mdl = "qwen/qwen-2.5-coder-32b-instruct"
+            mdl = "qwen/qwen-2.5-coder-32b-instruct:free"
         headers = {
             "HTTP-Referer": "https://github.com/Wall-E-30/code-reviewer",
             "X-Title": "Aion Code Reviewer",

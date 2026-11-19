@@ -220,6 +220,50 @@ def test_openai_compatible_response_parsing() -> None:
     assert c.rule_id == "sqli-found"
 
 
+def test_openrouter_default_free_model() -> None:
+    provider = get_provider("openrouter", api_key="test_key")
+    assert isinstance(provider, OpenRouterProvider)
+    assert provider.model == "qwen/qwen-2.5-coder-32b-instruct:free"
+
+
+def test_provider_http_402_handling(monkeypatch: pytest.MonkeyPatch) -> None:
+    import urllib.error
+    import io
+
+    provider = OpenRouterProvider(api_key="test_key")
+
+    def mock_urlopen(*args, **kwargs):
+        fp = io.BytesIO(b'{"error": {"message": "Payment required"}}')
+        raise urllib.error.HTTPError(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            code=402,
+            msg="Payment Required",
+            hdrs={},
+            fp=fp,
+        )
+
+    monkeypatch.setattr("urllib.request.urlopen", mock_urlopen)
+    results = provider.generate_review("test.py", "+ x = 1", "", "python")
+    assert results == []
+    assert provider.last_error is not None
+    assert "402 Payment Required" in provider.last_error
+    assert "qwen/qwen-2.5-coder-32b-instruct:free" in provider.last_error
+
+
+def test_format_review_summary_with_warning() -> None:
+    from action.formatter import format_review_summary
+
+    summary = format_review_summary(
+        results=[],
+        files_analyzed=1,
+        linter_count=1,
+        duration_sec=0.5,
+        warning_message="HTTP 402 Payment Required: Provider account has insufficient credits.",
+    )
+    assert "⚠️ **Notice:** HTTP 402 Payment Required" in summary
+    assert "AI defect detection was skipped; review completed using static linters only." in summary
+
+
 # ============================================================================
 # 3. Static Linters Tests
 # ============================================================================

@@ -468,11 +468,13 @@ def run_action(
     ]
 
     duration_sec = time.time() - start_time
+    provider_warning = getattr(provider, "last_error", None)
     summary_body = format_review_summary(
         results=fresh_candidates,
         files_analyzed=analyzed_count,
         linter_count=1,
         duration_sec=duration_sec,
+        warning_message=provider_warning,
     )
 
     fail_on_findings = cfg.get("fail_on_findings", False)
