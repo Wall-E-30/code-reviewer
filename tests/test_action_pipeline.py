@@ -475,6 +475,49 @@ def test_verifier_suggestion_validation_and_no_op() -> None:
     assert filtered[0].suggestion == "    x = 2"
 
 
+def test_verifier_suggestion_markdown_fence_cleaning() -> None:
+    verifier = PrecisionVerifier()
+    file_content = "def test():\n    print(self.username)\n"
+    candidate = CandidateComment(
+        file_path="test.py",
+        line_number=2,
+        category="bug",
+        severity="major",
+        comment="AttributeError: username not defined",
+        suggestion="```python\n    print(self.name)\n```",
+        confidence=0.90,
+    )
+    filtered = verifier.filter_candidates(
+        [candidate],
+        modified_lines={2},
+        file_content=file_content,
+    )
+    assert len(filtered) == 1
+    assert filtered[0].suggestion == "    print(self.name)"
+
+
+def test_verifier_smart_snap_line() -> None:
+    verifier = PrecisionVerifier()
+    file_content = "def test():\n    print(self.username)\n"
+    # Candidate points to line 1, but line 2 was modified
+    candidate = CandidateComment(
+        file_path="test.py",
+        line_number=1,
+        category="bug",
+        severity="major",
+        comment="AttributeError: username not defined",
+        suggestion="    print(self.name)",
+        confidence=0.90,
+    )
+    filtered = verifier.filter_candidates(
+        [candidate],
+        modified_lines={2},
+        file_content=file_content,
+    )
+    assert len(filtered) == 1
+    assert filtered[0].line_number == 2
+
+
 def test_verifier_deduplication() -> None:
     verifier = PrecisionVerifier()
     # Multiple comments on the exact same line

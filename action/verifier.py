@@ -14,11 +14,14 @@ Filters candidate review comments through multi-stage gates:
 from __future__ import annotations
 
 import ast
+import logging
 import re
 import textwrap
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from action.providers import CandidateComment
+
+logger = logging.getLogger("aion.verifier")
 
 NITPICK_PATTERNS = re.compile(
     r"\b(nit:|nitpick|consider renaming|naming convention|redundant comment|"
@@ -68,6 +71,19 @@ class PrecisionVerifier:
 
         suggestion_stripped = candidate.suggestion.strip()
 
+        # Sanitize markdown code fences if present
+        if suggestion_stripped.startswith("```"):
+            fence_lines = suggestion_stripped.splitlines()
+            if fence_lines and fence_lines[0].startswith("```"):
+                fence_lines = fence_lines[1:]
+            if fence_lines and fence_lines[-1].strip().startswith("```"):
+                fence_lines = fence_lines[:-1]
+            suggestion_stripped = "\n".join(fence_lines)
+            candidate.suggestion = suggestion_stripped
+
+        if not suggestion_stripped:
+            return False
+
         # Check for no-op duplicates against original code
         if file_content:
             lines = file_content.splitlines()
@@ -80,7 +96,7 @@ class PrecisionVerifier:
         if candidate.file_path.endswith(".py"):
             try:
                 # Dedent in case the suggestion has leading indentation
-                dedented = textwrap.dedent(candidate.suggestion)
+                dedented = textwrap.dedent(suggestion_stripped)
                 ast.parse(dedented)
             except SyntaxError:
                 return False
@@ -147,7 +163,20 @@ class PrecisionVerifier:
         for c in candidates:
             # Stage 1: Line sanity check
             if modified_lines and (c.line_number not in modified_lines):
-                continue
+                # Smart snap: if line is within ±2 lines of a modified line, snap to it
+                closest_mod = min(modified_lines, key=lambda l: abs(l - c.line_number))
+                if abs(closest_mod - c.line_number) <= 2:
+                    logger.info(
+                        "Verifier smart-snapped %s line %d -> %d (within PR diff)",
+                        c.file_path, c.line_number, closest_mod,
+                    )
+                    c.line_number = closest_mod
+                else:
+                    logger.info(
+                        "Verifier filtered out %s:%d (line not in PR modified lines %s): %s",
+                        c.file_path, c.line_number, sorted(list(modified_lines)), c.comment[:80],
+                    )
+                    continue
 
             # Stage 2: Confidence threshold (category-specific bandit or fallback default)
             cat_thresh = (
@@ -156,14 +185,26 @@ class PrecisionVerifier:
                 else threshold
             )
             if c.confidence < cat_thresh:
+                logger.info(
+                    "Verifier filtered out %s:%d (confidence %.2f < threshold %.2f): %s",
+                    c.file_path, c.line_number, c.confidence, cat_thresh, c.comment[:80],
+                )
                 continue
 
             # Stage 3: Nitpick suppression
             if self.is_nitpick(c):
+                logger.info(
+                    "Verifier filtered out %s:%d (nitpick check triggered, cat=%s, sev=%s): %s",
+                    c.file_path, c.line_number, c.category, c.severity, c.comment[:80],
+                )
                 continue
 
             # Stage 4: Suggestion validation
             if not self.is_valid_suggestion(c, file_content=file_content):
+                logger.info(
+                    "Verifier filtered out %s:%d (invalid, duplicate, or malformed suggestion %r): %s",
+                    c.file_path, c.line_number, c.suggestion, c.comment[:80],
+                )
                 continue
 
             # Stage 4.5: Actionability verifier model scoring (TRAIN-02)
@@ -175,8 +216,16 @@ class PrecisionVerifier:
                     category=c.category,
                 )
                 if p_act < act_thresh:
+                    logger.info(
+                        "Verifier filtered out %s:%d (actionability %.2f < threshold %.2f): %s",
+                        c.file_path, c.line_number, p_act, act_thresh, c.comment[:80],
+                    )
                     continue
 
+            logger.info(
+                "Verifier accepted candidate for %s:%d (cat=%s, sev=%s, conf=%.2f): %s",
+                c.file_path, c.line_number, c.category, c.severity, c.confidence, c.comment[:80],
+            )
             filtered.append(c)
 
         # Stage 5: Deduplication (group by file_path and line_number)

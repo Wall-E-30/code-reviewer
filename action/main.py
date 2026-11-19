@@ -321,16 +321,24 @@ def run_action(
             )
             all_candidates.extend(provider_comments)
 
+    logger.info("Total raw candidates collected: %d", len(all_candidates))
+    for idx, c in enumerate(all_candidates, 1):
+        logger.info(
+            "  [Raw Candidate #%d] %s:%d | %s (%s, conf=%.2f, rule=%s) | comment: %s | suggestion: %r",
+            idx, c.file_path, c.line_number, c.category, c.severity, c.confidence, c.rule_id, c.comment[:75], c.suggestion,
+        )
+
     # Filter candidates through RepoConventionMemory (suppressed categories & patterns)
-    active_candidates = [
-        c
-        for c in all_candidates
-        if not conv_memory.is_suppressed(
+    active_candidates = []
+    for c in all_candidates:
+        if conv_memory.is_suppressed(
             category=c.category,
             comment_text=c.comment,
             rule_id=c.rule_id,
-        )
-    ]
+        ):
+            logger.info("Candidate %s:%d suppressed by RepoConventionMemory (cat=%s, rule=%s)", c.file_path, c.line_number, c.category, c.rule_id)
+        else:
+            active_candidates.append(c)
 
     # 4. Precision Verifier Filtering
     filtered_candidates: List[CandidateComment] = []

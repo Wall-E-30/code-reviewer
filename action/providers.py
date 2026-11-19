@@ -28,15 +28,18 @@ CRITICAL INSTRUCTIONS:
 1. FOCUS EXCLUSIVELY on real defects. Do not comment on formatting, variable naming preferences,
    subjective stylistic choices, or docstrings.
 2. Every finding MUST include a concrete, 1-click replacement in the "suggestion" field.
-3. Output MUST be a valid JSON array of objects conforming to this exact schema:
+   The "suggestion" field must contain ONLY the raw replacement code lines (DO NOT wrap in ``` markdown code fences).
+3. If an attribute, method, or variable is accessed but undefined (e.g. AttributeError, NameError, wrong attribute name),
+   always classify it as "category": "bug", "severity": "major" or "critical", with "confidence": 0.90 to 1.0.
+4. Output MUST be a valid JSON array of objects conforming to this exact schema:
 [
   {
-    "line_number": <int: 1-based line number in the new/modified file>,
+    "line_number": <int: exact 1-based line number in the new/modified file where the fix should be applied>,
     "category": <"bug" | "security" | "performance" | "style">,
     "severity": <"critical" | "major" | "minor">,
-    "comment": "<concise explanation of the defect and why it fails>",
-    "suggestion": "<replacement code line(s) that fix the issue>",
-    "confidence": <float: 0.0 to 1.0>,
+    "comment": "<concise explanation of the defect and why it fails at runtime>",
+    "suggestion": "<replacement code line(s) that fix the issue; raw code only, NO markdown fences>",
+    "confidence": <float: 0.0 to 1.0; use >= 0.85 for clear bugs and fatal errors>,
     "rule_id": "<short-kebab-rule-identifier>"
   }
 ]
@@ -279,24 +282,53 @@ class OpenAICompatibleProvider(BaseReviewProvider):
             if not isinstance(item, dict):
                 continue
             line_no = item.get("line_number")
+            if isinstance(line_no, str) and line_no.strip().isdigit():
+                line_no = int(line_no.strip())
             if not isinstance(line_no, int):
                 continue
             comment_text = str(item.get("comment", "")).strip()
             if not comment_text:
                 continue
 
-            candidates.append(
-                CandidateComment(
-                    file_path=file_path,
-                    line_number=line_no,
-                    category=str(item.get("category", "bug")),
-                    severity=str(item.get("severity", "major")),
-                    comment=comment_text,
-                    suggestion=item.get("suggestion"),
-                    confidence=float(item.get("confidence", 0.8)),
-                    rule_id=item.get("rule_id", "ai-review"),
-                )
+            raw_sugg = item.get("suggestion")
+            clean_sugg: Optional[str] = None
+            if raw_sugg is not None:
+                sugg_str = str(raw_sugg).strip()
+                # Strip markdown code fences if present
+                if sugg_str.startswith("```"):
+                    fence_lines = sugg_str.splitlines()
+                    if fence_lines and fence_lines[0].startswith("```"):
+                        fence_lines = fence_lines[1:]
+                    if fence_lines and fence_lines[-1].strip().startswith("```"):
+                        fence_lines = fence_lines[:-1]
+                    sugg_str = "\n".join(fence_lines)
+                clean_sugg = sugg_str if sugg_str.strip() else None
+
+            raw_conf = item.get("confidence", 0.85)
+            try:
+                conf = float(raw_conf)
+            except (ValueError, TypeError):
+                conf = 0.85
+
+            cat = str(item.get("category", "bug")).lower()
+            sev = str(item.get("severity", "major")).lower()
+            rule_id = str(item.get("rule_id", "ai-review"))
+
+            cand = CandidateComment(
+                file_path=file_path,
+                line_number=line_no,
+                category=cat,
+                severity=sev,
+                comment=comment_text,
+                suggestion=clean_sugg,
+                confidence=conf,
+                rule_id=rule_id,
             )
+            logger.info(
+                "Parsed LLM candidate: %s:%d [%s/%s conf=%.2f rule=%s] %s (suggestion: %r)",
+                file_path, line_no, cat, sev, conf, rule_id, comment_text[:80], clean_sugg,
+            )
+            candidates.append(cand)
 
         return candidates
 
